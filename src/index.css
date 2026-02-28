@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --radius: 0.75rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #111318;
+  color: #f0f2f7;
+  font-family: "DM Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  background: #0a0c10 !important;
+  font-family: "DM Sans", sans-serif;
+}
+
+.leaflet-control-zoom a {
+  background: #1a1e27 !important;
+  color: #9ca3af !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #22272f !important;
+  color: #fff !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(17, 19, 24, 0.8) !important;
+  color: #374151 !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #4b5563 !important;
+}
+
+/* Marker — stable positioning, no transform conflict with Leaflet */
+.leaflet-marker-icon {
+  /* Never transition transform — Leaflet owns it for positioning via translate3d */
+  transition: filter 0.15s ease;
+  will-change: auto;
+}
+
+.leaflet-marker-icon:hover {
+  /* Use filter instead of transform so we don't reset Leaflet's translate3d */
+  filter: brightness(1.15) drop-shadow(0 4px 12px rgba(0, 229, 160, 0.4));
+  z-index: 1000 !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Input number arrows off */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* GPS user-location dot pulse */
+@keyframes ping {
+  75%, 100% { transform: scale(2.5); opacity: 0; }
+}
