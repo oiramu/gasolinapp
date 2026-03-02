@@ -153,7 +153,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
             )}
           </div>
           <button onClick={() => setReportModalOpen(false)}
-            className="text-gray-500 hover:text-white transition-colors p-1">
+            className="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg">
             <X size={18} />
           </button>
         </div>
