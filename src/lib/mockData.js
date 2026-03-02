@@ -15,9 +15,9 @@ export const MOCK_STATIONS = [
     lat: 11.012, lng: -74.812,
     address: 'Cra. 46 #76-15, Barranquilla',
     fuel_prices: [
-      { id: 'p1', fuel_type: 'extra', price: 3.25, currency: 'USD', votes_up: 5, votes_down: 0, created_at: new Date(Date.now() - 2*60*60*1000).toISOString(), reported_by: 'MK', is_active: true },
-      { id: 'p2', fuel_type: 'diesel', price: 2.94, currency: 'USD', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'MK', is_active: true },
-      { id: 'p3', fuel_type: 'urea', price: 1.80, currency: 'USD', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 4*60*60*1000).toISOString(), reported_by: 'JR', is_active: true },
+      { id: 'p1', fuel_type: 'extra', price: 3.25, currency: 'COP', votes_up: 5, votes_down: 0, created_at: new Date(Date.now() - 2*60*60*1000).toISOString(), reported_by: 'MK', is_active: true },
+      { id: 'p2', fuel_type: 'diesel', price: 2.94, currency: 'COP', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'MK', is_active: true },
+      { id: 'p3', fuel_type: 'diesel', price: 1.80, currency: 'COP', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 4*60*60*1000).toISOString(), reported_by: 'JR', is_active: true },
     ],
     reports: [
       { id: 'r1', type: 'promotion', content: 'Descuento 3% pagando con Nequi. Atención rápida.', votes_up: 8, votes_down: 0, created_at: new Date(Date.now() - 2*60*60*1000).toISOString(), user_display_name: 'MK' },
@@ -29,9 +29,9 @@ export const MOCK_STATIONS = [
     lat: 10.986, lng: -74.802,
     address: 'Cl. 45 #41-30, Barranquilla',
     fuel_prices: [
-      { id: 'p4', fuel_type: 'extra', price: 3.28, currency: 'USD', votes_up: 7, votes_down: 0, created_at: new Date(Date.now() - 1*60*60*1000).toISOString(), reported_by: 'AL', is_active: true },
-      { id: 'p5', fuel_type: 'super', price: 3.45, currency: 'USD', votes_up: 12, votes_down: 1, created_at: new Date(Date.now() - 1*60*60*1000).toISOString(), reported_by: 'AL', is_active: true },
-      { id: 'p6', fuel_type: 'diesel', price: 2.98, currency: 'USD', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 90*60*1000).toISOString(), reported_by: 'AL', is_active: true },
+      { id: 'p4', fuel_type: 'extra', price: 3.28, currency: 'COP', votes_up: 7, votes_down: 0, created_at: new Date(Date.now() - 1*60*60*1000).toISOString(), reported_by: 'AL', is_active: true },
+      { id: 'p5', fuel_type: 'corriente', price: 3.45, currency: 'COP', votes_up: 12, votes_down: 1, created_at: new Date(Date.now() - 1*60*60*1000).toISOString(), reported_by: 'AL', is_active: true },
+      { id: 'p6', fuel_type: 'diesel', price: 2.98, currency: 'COP', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 90*60*1000).toISOString(), reported_by: 'AL', is_active: true },
     ],
     reports: [
       { id: 'r3', type: 'promotion', content: '¡Tienen súper! Único en la zona. Un poco caro pero vale.', votes_up: 12, votes_down: 0, created_at: new Date(Date.now() - 60*60*1000).toISOString(), user_display_name: 'AL' },
@@ -49,10 +49,10 @@ export const MOCK_STATIONS = [
     lat: 11.001, lng: -74.790,
     address: 'Cra. 53 #68-40, Barranquilla',
     fuel_prices: [
-      { id: 'p7', fuel_type: 'extra', price: 3.30, currency: 'USD', votes_up: 5, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
-      { id: 'p8', fuel_type: 'super', price: 3.48, currency: 'USD', votes_up: 4, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
-      { id: 'p9', fuel_type: 'diesel', price: 3.02, currency: 'USD', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
-      { id: 'p10', fuel_type: 'urea', price: 1.85, currency: 'USD', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
+      { id: 'p7', fuel_type: 'extra', price: 3.30, currency: 'COP', votes_up: 5, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
+      { id: 'p8', fuel_type: 'corriente', price: 3.48, currency: 'COP', votes_up: 4, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
+      { id: 'p9', fuel_type: 'diesel', price: 3.02, currency: 'COP', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
+      { id: 'p10', fuel_type: 'diesel', price: 1.85, currency: 'COP', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
     ],
     reports: [
       { id: 'r4', type: 'comment', content: 'Pago con tarjeta sin problema. Instalaciones muy limpias.', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), user_display_name: 'CG' },
@@ -63,8 +63,8 @@ export const MOCK_STATIONS = [
     lat: 11.019, lng: -74.852,
     address: 'Cra. 72B #98-12, Barranquilla',
     fuel_prices: [
-      { id: 'p11', fuel_type: 'extra', price: 3.24, currency: 'USD', votes_up: 9, votes_down: 1, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
-      { id: 'p12', fuel_type: 'diesel', price: 2.96, currency: 'USD', votes_up: 7, votes_down: 0, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
+      { id: 'p11', fuel_type: 'extra', price: 3.24, currency: 'COP', votes_up: 9, votes_down: 1, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
+      { id: 'p12', fuel_type: 'diesel', price: 2.96, currency: 'COP', votes_up: 7, votes_down: 0, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
     ],
     reports: [
       { id: 'r5', type: 'warning', content: 'Cola larga a las 6pm pero el precio está bien. Recomendado venir en la mañana.', votes_up: 9, votes_down: 0, created_at: new Date(Date.now() - 30*60*1000).toISOString(), user_display_name: 'FB' },
@@ -82,9 +82,9 @@ export const MOCK_STATIONS = [
     lat: 10.998, lng: -74.786,
     address: 'Cl. 74 #60-25, Barranquilla',
     fuel_prices: [
-      { id: 'p13', fuel_type: 'extra', price: 3.32, currency: 'USD', votes_up: 10, votes_down: 2, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
-      { id: 'p14', fuel_type: 'super', price: 3.50, currency: 'USD', votes_up: 8, votes_down: 1, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
-      { id: 'p15', fuel_type: 'diesel', price: 3.00, currency: 'USD', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
+      { id: 'p13', fuel_type: 'extra', price: 3.32, currency: 'COP', votes_up: 10, votes_down: 2, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
+      { id: 'p14', fuel_type: 'corriente', price: 3.50, currency: 'COP', votes_up: 8, votes_down: 1, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
+      { id: 'p15', fuel_type: 'diesel', price: 3.00, currency: 'COP', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
     ],
     reports: [
       { id: 'r6', type: 'warning', content: '⚠️ Solo efectivo esta mañana, falla en el sistema de tarjetas.', votes_up: 15, votes_down: 0, created_at: new Date(Date.now() - 45*60*1000).toISOString(), user_display_name: 'RO' },

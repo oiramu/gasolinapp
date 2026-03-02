@@ -4,3 +4,5 @@ dist/
 .env.local
 .DS_Store
 *.log
+.shell.env
+seed.sql

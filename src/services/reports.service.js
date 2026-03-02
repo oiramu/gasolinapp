@@ -39,6 +39,7 @@ export async function submitPriceReport({ stationId, fuels, comment, userDisplay
       station_id: stationId,
       fuel_type: fuelType,
       price: parsed,
+      currency: 'COP',
       comment,
       reported_by: reporter,
       is_active: true,

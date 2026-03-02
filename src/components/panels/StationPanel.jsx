@@ -9,7 +9,7 @@ import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelat
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
-const FUEL_ICONS = { extra: Fuel, super: Zap, diesel: Droplets, urea: RefreshCw }
+const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw }
 const REPORT_ICONS = { price: Tag, promotion: Star, warning: AlertTriangle, comment: MessageSquare, correction: Info }
 
 function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
@@ -192,7 +192,11 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
       {/* ── Fuel prices grid ───────────────────────────── */}
       <div className="p-4 pb-0 grid grid-cols-2 gap-2">
         {FUEL_ORDER.map((ft) => {
-          const zoneAvg = ft === 'diesel' ? zoneData?.avg_diesel : zoneData?.avg_extra
+          let zoneAvg = null
+          if (ft === 'diesel') zoneAvg = zoneData?.avg_diesel
+          else if (ft === 'extra') zoneAvg = zoneData?.avg_extra
+          else if (ft === 'corriente') zoneAvg = zoneData?.avg_corriente
+
           return (
             <FuelCard
               key={ft}

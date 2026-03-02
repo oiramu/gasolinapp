@@ -8,7 +8,7 @@ import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
 import { submitPriceReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
-const FUEL_ICONS = { extra: Fuel, super: Zap, diesel: Droplets, urea: RefreshCw }
+const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw }
 
 function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
   const config = FUEL_TYPES[fuelType]
@@ -57,14 +57,14 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono text-sm">$</span>
             <input
               type="number"
-              step="0.01"
-              min="0.5"
-              max="20"
-              placeholder="0.00"
+              step="1"
+              min="5000"
+              max="40000"
+              placeholder="15000"
               value={price}
               onChange={(e) => onPriceChange(e.target.value)}
               className={cn(
-                'w-full bg-surface-DEFAULT border rounded-lg pl-6 pr-3 py-2',
+                'w-full bg-surface border rounded-lg pl-6 pr-3 py-2',
                 'font-mono text-sm text-white placeholder-gray-700',
                 'outline-none transition-colors',
                 config.borderClass.replace('/40', '/60'),
@@ -72,7 +72,7 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
               )}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 text-[10px] font-mono">
-              USD/gal
+              COP/gal
             </span>
           </div>
         </div>
@@ -84,8 +84,8 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
 export default function ReportPriceModal({ station, onSuccess }) {
   const { reportModalOpen, setReportModalOpen, showToast } = useAppStore()
 
-  const [activeFuels, setActiveFuels] = useState({ extra: true, super: false, diesel: false, urea: false })
-  const [prices, setPrices] = useState({ extra: '', super: '', diesel: '', urea: '' })
+  const [activeFuels, setActiveFuels] = useState({ corriente: true, extra: false, diesel: false, urea: false })
+  const [prices, setPrices] = useState({ corriente: '', extra: '', diesel: '', urea: '' })
   const [comment, setComment] = useState('')
   const [userName, setUserName] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -118,9 +118,9 @@ export default function ReportPriceModal({ station, onSuccess }) {
       onSuccess?.()
 
       // Reset
-      setPrices({ extra: '', super: '', diesel: '', urea: '' })
+      setPrices({ corriente: '', extra: '', diesel: '', urea: '' })
       setComment('')
-      setActiveFuels({ extra: true, super: false, diesel: false, urea: false })
+      setActiveFuels({ corriente: true, extra: false, diesel: false, urea: false })
     } catch (err) {
       showToast('Error al enviar. Intenta de nuevo.', 'error')
     } finally {

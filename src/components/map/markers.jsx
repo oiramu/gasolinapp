@@ -26,8 +26,11 @@ const FONT_BODY = '"DM Sans", sans-serif'
  * Pointer events are only handled by the outer Leaflet marker container.
  */
 function StationPinSVG({ station, latestPrices, hasData }) {
-  const extraPrice   = latestPrices?.extra?.price
-  const displayPrice = extraPrice ? `$${extraPrice.toFixed(2)}` : 'S/D'
+  const priceObj = latestPrices?.corriente || latestPrices?.extra || latestPrices?.diesel
+  const price = priceObj?.price
+  const displayPrice = price 
+    ? (price > 100 ? `$${Math.round(price)}` : `$${price.toFixed(2)}`)
+    : 'S/D'
   const fuelCount    = Object.keys(latestPrices || {}).length
   const borderColor  = hasData ? COLORS.active : COLORS.inactive
   const textColor    = hasData ? COLORS.active : '#9CA3AF'
@@ -116,7 +119,7 @@ export function createZoneIcon(zone) {
       pointerEvents: 'none',  // let Leaflet own all events
     }}>
       <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 15, color: COLORS.active, lineHeight: 1 }}>
-        ${zone.avg_extra?.toFixed(2)}
+        ${zone.avg_corriente?.toFixed(2)}
       </span>
       <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
         {zone.name} · {zone.station_count} est.

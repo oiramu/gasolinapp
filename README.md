@@ -139,7 +139,7 @@ Zoom ≥ 13  → Marcadores individuales por gasolinera
 - [x] Zoom-in/out switcha entre vistas de zona e individuales
 - [x] Panel lateral con precios por tipo de combustible
 - [x] Estaciones sin datos muestran promedio de zona + banner de advertencia
-- [x] Modal para reportar precios (Extra, Súper, Diésel, AdBlue/Urea)
+- [x] Modal para reportar precios (Extra, Corriente, Diésel, AdBlue/Urea)
 - [x] Sistema de votos en reportes (confirmar / incorrecto)
 - [x] Realtime via Supabase WebSocket
 - [x] Iconos Lucide (shadcn.io/icons)

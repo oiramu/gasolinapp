@@ -100,7 +100,7 @@ async function fetchStationsForZone(zone) {
 }
 
 // ── Map OSM element → station object ─────────────────────────────────────────
-function mapOSMToStation(el, zone, zoneId) {
+function mapOSMToStation(el, zone) {
   // Position: nodes have lat/lng, ways/relations have center
   const lat = el.lat ?? el.center?.lat
   const lng = el.lon ?? el.center?.lon
@@ -113,14 +113,14 @@ function mapOSMToStation(el, zone, zoneId) {
   const address = buildAddress(tags, zone)
 
   return {
-    id:      randomUUID(),
-    osm_id:  `${el.type}/${el.id}`,
-    name:    cleanText(name),
-    brand:   cleanText(brand),
-    address: address,
-    lat:     parseFloat(lat.toFixed(6)),
-    lng:     parseFloat(lng.toFixed(6)),
-    zone_id: zoneId,
+    id:        randomUUID(),
+    osm_id:    `${el.type}/${el.id}`,
+    name:      cleanText(name),
+    brand:     cleanText(brand),
+    address:   address,
+    lat:       parseFloat(lat.toFixed(6)),
+    lng:       parseFloat(lng.toFixed(6)),
+    zone_code: zone.code,   // store code, not UUID — resolved in SQL via LATERAL
   }
 }
 
@@ -158,47 +158,82 @@ function cleanText(s) {
 }
 
 // ── SQL generators ────────────────────────────────────────────────────────────
+
 function generateZoneSQL(zones) {
-  const rows = zones.map(z => {
-    const id = randomUUID()
-    z._uuid = id
-    return `  ('${id}', '${cleanText(z.name)}', '${cleanText(z.city)}', ` +
-           `'${cleanText(z.dept)}', '${z.code}', ${z.lat}, ${z.lng})`
-  }).join(',\n')
-
-  return `
--- ═══════════════════════════════════════════════════════════
---  ZONAS (${zones.length} ciudades principales de Colombia)
--- ═══════════════════════════════════════════════════════════
--- Nota: si ya tienes esta tabla, añade las columnas city/dept/code
--- ALTER TABLE zones ADD COLUMN IF NOT EXISTS city TEXT;
--- ALTER TABLE zones ADD COLUMN IF NOT EXISTS dept TEXT;
--- ALTER TABLE zones ADD COLUMN IF NOT EXISTS code TEXT UNIQUE;
-
-INSERT INTO zones (id, name, city, dept, code, lat, lng) VALUES
-${rows}
-ON CONFLICT (id) DO NOTHING;
-`
-}
-
-function generateStationsSQL(stations) {
-  if (!stations.length) return ''
-
-  const rows = stations.map(s =>
-    `  ('${s.id}', '${s.name}', '${s.brand}', '${s.address}', ` +
-    `${s.lat}, ${s.lng}, '${s.zone_id}', '${s.osm_id}')`
+  const rows = zones.map(z =>
+    `  (gen_random_uuid(), '${cleanText(z.name)}', '${cleanText(z.city)}', ` +
+    `'${cleanText(z.dept)}', '${z.code}', ${z.lat}, ${z.lng})`
   ).join(',\n')
 
   return `
-INSERT INTO stations (id, name, brand, address, lat, lng, zone_id, osm_id) VALUES
+-- ══════════════════════════════════════════════════════════════════
+--  PASO 1: Preparar columnas y constraint (seguro si ya existen)
+-- ══════════════════════════════════════════════════════════════════
+ALTER TABLE stations ADD COLUMN IF NOT EXISTS osm_id TEXT;
+ALTER TABLE zones    ADD COLUMN IF NOT EXISTS city   TEXT;
+ALTER TABLE zones    ADD COLUMN IF NOT EXISTS dept   TEXT;
+ALTER TABLE zones    ADD COLUMN IF NOT EXISTS code   TEXT;
+
+ALTER TABLE stations DROP CONSTRAINT IF EXISTS stations_osm_id_unique;
+ALTER TABLE stations ADD  CONSTRAINT stations_osm_id_unique UNIQUE (osm_id);
+
+-- ══════════════════════════════════════════════════════════════════
+--  PASO 2: Insertar/actualizar zonas
+-- ══════════════════════════════════════════════════════════════════
+INSERT INTO zones (id, name, city, dept, code, lat, lng) VALUES
 ${rows}
+ON CONFLICT (name) DO UPDATE SET
+  city = EXCLUDED.city,
+  dept = EXCLUDED.dept,
+  code = EXCLUDED.code;
+`
+}
+
+// Generates stations INSERT grouped by zone, using a LATERAL subquery to find
+// the zone_id dynamically — works regardless of what UUIDs exist in the DB.
+function generateStationsSQL(stations, zones) {
+  if (!stations.length) return ''
+
+  const byZone = new Map()
+  for (const s of stations) {
+    if (!byZone.has(s.zone_code)) byZone.set(s.zone_code, [])
+    byZone.get(s.zone_code).push(s)
+  }
+
+  const blocks = []
+  for (const [code, zoneStations] of byZone) {
+    const zone = zones.find(z => z.code === code)
+    if (!zone) continue
+
+    const rows = zoneStations.map(s =>
+      `    ('${s.id}', '${s.name}', '${s.brand}', '${s.address}', ` +
+      `${s.lat}, ${s.lng}, '${s.osm_id}')`
+    ).join(',\n')
+
+    blocks.push(`
+-- ${zone.name} (${code}) — ${zoneStations.length} estaciones
+INSERT INTO stations (id, name, brand, address, lat, lng, zone_id, osm_id)
+SELECT v.id::uuid, v.name, v.brand, v.address, v.lat::float, v.lng::float, z.id, v.osm_id
+FROM (VALUES
+${rows}
+) AS v(id, name, brand, address, lat, lng, osm_id)
+CROSS JOIN LATERAL (
+  SELECT id FROM zones
+  WHERE name ILIKE '%${cleanText(zone.city)}%'
+     OR name ILIKE '%${cleanText(zone.name)}%'
+     OR (ABS(lat - ${zone.lat}) < 0.27 AND ABS(lng - (${zone.lng})) < 0.27)
+  ORDER BY ABS(lat - ${zone.lat}) + ABS(lng - (${zone.lng}))
+  LIMIT 1
+) z
 ON CONFLICT (osm_id) DO UPDATE SET
   name    = EXCLUDED.name,
   brand   = EXCLUDED.brand,
   address = EXCLUDED.address,
   lat     = EXCLUDED.lat,
-  lng     = EXCLUDED.lng;
-`
+  lng     = EXCLUDED.lng;`)
+  }
+
+  return blocks.join('\n')
 }
 
 // ── Direct Supabase insert ────────────────────────────────────────────────────
@@ -214,29 +249,135 @@ async function insertToSupabase(zones, stations) {
 
   const supabase = createClient(url, key)
 
-  // Insert zones
-  console.error('\n📍 Insertando zonas...')
-  const { error: zErr } = await supabase.from('zones').upsert(
-    zones.map(z => ({ id: z._uuid, name: z.name, city: z.city, dept: z.dept, code: z.code, lat: z.lat, lng: z.lng })),
-    { onConflict: 'id' }
-  )
-  if (zErr) console.error('  Error zonas:', zErr.message)
-  else console.error(`  ✓ ${zones.length} zonas insertadas`)
+  // ── Step 1: Fetch ALL existing zones from DB ─────────────────────────────────
+  console.error('\n📍 Sincronizando zonas...')
+  const { data: existingZones, error: fetchErr } = await supabase
+    .from('zones').select('id, name, lat, lng')
+  if (fetchErr) {
+    console.error('  ❌ Error leyendo zonas:', fetchErr.message)
+    process.exit(1)
+  }
+  console.error(`  ℹ️  Zonas existentes en DB: ${existingZones.length}`)
+  if (existingZones.length > 0) {
+    console.error('     ' + existingZones.map(z => `"${z.name}"`).join(', '))
+  }
 
-  // Insert stations in batches of 100
-  console.error('\n⛽ Insertando gasolineras...')
+  // ── Step 2: Match cada zona del script con una zona de DB ────────────────────
+  // Estrategia: primero por nombre exacto, luego por ciudad contenida,
+  // luego por proximidad geográfica (radio 30km)
+  const zoneIdMap = new Map() // zone.code → real DB UUID
+
+  for (const z of zones) {
+    const nameLC = z.name.toLowerCase()
+    const cityLC = z.city.toLowerCase()
+
+    const match = existingZones.find(ez => {
+      const ezLC = ez.name.toLowerCase()
+      // 1. Nombre exacto
+      if (ezLC === nameLC) return true
+      // 2. El nombre del script está contenido en el de DB (ej: "Barranquilla" en "Barranquilla Norte")
+      if (ezLC.includes(nameLC) || nameLC.includes(ezLC)) return true
+      // 3. Ciudad contenida en nombre de zona
+      if (ezLC.includes(cityLC) || cityLC.includes(ezLC)) return true
+      // 4. Proximidad geográfica < 30km (~0.27 grados)
+      if (Math.abs(ez.lat - z.lat) < 0.27 && Math.abs(ez.lng - z.lng) < 0.27) return true
+      return false
+    })
+
+    if (match) {
+      zoneIdMap.set(z.code, match.id)
+      z._uuid = match.id
+      console.error(`  ✓ "${z.name}" → zona existente "${match.name}" (${match.id.slice(0,8)}...)`)
+    }
+  }
+
+  // ── Step 3: Crear zonas que no existen en DB ─────────────────────────────────
+  const newZones = zones.filter(z => !zoneIdMap.has(z.code))
+
+  if (newZones.length > 0) {
+    console.error(`\n  ℹ️  ${newZones.length} zonas nuevas a crear: ${newZones.map(z => z.code).join(', ')}`)
+
+    // Intentar insertar (requiere service_role key o RLS desactivado)
+    const toInsert = newZones.map(z => ({
+      id: z._uuid, name: z.name, city: z.city, dept: z.dept,
+      code: z.code, lat: z.lat, lng: z.lng,
+    }))
+
+    const { error: insErr } = await supabase.from('zones').insert(toInsert)
+
+    if (insErr) {
+      // Si falla por RLS, dar instrucciones claras para hacerlo manual
+      console.error(`\n  ⚠️  No se pudieron crear zonas automáticamente (${insErr.message})`)
+      console.error('\n  ════════════════════════════════════════════════════════')
+      console.error('  📋 Ejecuta este SQL en el Supabase SQL Editor y vuelve a correr el script:')
+      console.error('  ════════════════════════════════════════════════════════\n')
+      for (const z of newZones) {
+        console.error(`  INSERT INTO zones (id, name, city, dept, code, lat, lng)`)
+        console.error(`  VALUES ('${z._uuid}', '${z.name}', '${z.city}', '${z.dept}', '${z.code}', ${z.lat}, ${z.lng})`)
+        console.error(`  ON CONFLICT (id) DO NOTHING;\n`)
+      }
+      console.error('  ════════════════════════════════════════════════════════')
+
+      if (zoneIdMap.size === 0) {
+        console.error('\n  ❌ Sin zonas válidas, abortando.')
+        process.exit(1)
+      }
+      console.error(`\n  ⚡ Continuando con las ${zoneIdMap.size} zonas que sí se encontraron...\n`)
+    } else {
+      newZones.forEach(z => {
+        zoneIdMap.set(z.code, z._uuid)
+        console.error(`  ✓ Zona "${z.name}" creada (${z._uuid.slice(0,8)}...)`)
+      })
+    }
+  }
+
+  console.error(`\n  ✅ ${zoneIdMap.size}/${zones.length} zonas listas`)
+
+  // ── Step 4: Remap zone_id de cada estación al UUID real de DB ────────────────
+  // El script asignó z._uuid a las estaciones antes de conocer los IDs reales
+  const uuidToCode = new Map(zones.map(z => [z._uuid, z.code]))
+
+  const remappedStations = stations
+    .map(s => {
+      const code      = uuidToCode.get(s.zone_id)
+      const realZoneId = code ? zoneIdMap.get(code) : null
+      return realZoneId ? { ...s, zone_id: realZoneId } : null
+    })
+    .filter(Boolean)
+
+  const skipped = stations.length - remappedStations.length
+  if (skipped > 0) {
+    console.error(`  ⚠️  ${skipped} estaciones omitidas (su zona no existe en DB)`)
+  }
+
+  if (remappedStations.length === 0) {
+    console.error('  ❌ No hay estaciones para insertar. Verifica que las zonas existan en DB.')
+    process.exit(1)
+  }
+
+  // ── Step 5: Upsert estaciones en batches de 100 ──────────────────────────────
+  console.error(`\n⛽ Insertando ${remappedStations.length} gasolineras...`)
   const BATCH = 100
   let inserted = 0
-  for (let i = 0; i < stations.length; i += BATCH) {
-    const batch = stations.slice(i, i + BATCH).map(s => ({
+  let errCount = 0
+
+  for (let i = 0; i < remappedStations.length; i += BATCH) {
+    const batch = remappedStations.slice(i, i + BATCH).map(s => ({
       id: s.id, name: s.name, brand: s.brand, address: s.address,
       lat: s.lat, lng: s.lng, zone_id: s.zone_id, osm_id: s.osm_id,
     }))
-    const { error } = await supabase.from('stations').upsert(batch, { onConflict: 'osm_id', ignoreDuplicates: false })
-    if (error) console.error(`  ⚠️  Batch ${i}-${i+BATCH}: ${error.message}`)
-    else { inserted += batch.length; process.stderr.write('.') }
+    const { error } = await supabase.from('stations').upsert(
+      batch, { onConflict: 'osm_id', ignoreDuplicates: false }
+    )
+    if (error) {
+      errCount++
+      console.error(`\n  ⚠️  Batch ${i}–${i + batch.length}: ${error.message}`)
+    } else {
+      inserted += batch.length
+      process.stderr.write('.')
+    }
   }
-  console.error(`\n  ✓ ${inserted} gasolineras insertadas`)
+  console.error(`\n  ✓ ${inserted} gasolineras insertadas${errCount ? ` (${errCount} batches con error)` : ''}`)
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -255,9 +396,6 @@ async function main() {
   console.error(`📊 Procesando ${targetZones.length} zonas...`)
   console.error(`🌐 Fuente: OpenStreetMap / Overpass API\n`)
 
-  // Assign UUIDs to zones first
-  targetZones.forEach(z => { z._uuid = randomUUID() })
-
   const allStations = []
   let totalFetched  = 0
   let totalSkipped  = 0
@@ -269,7 +407,7 @@ async function main() {
       let zoneCount = 0
 
       for (const el of elements) {
-        const station = mapOSMToStation(el, zone, zone._uuid)
+        const station = mapOSMToStation(el, zone)
         if (!station) { totalSkipped++; continue }
         allStations.push(station)
         zoneCount++
@@ -295,60 +433,63 @@ async function main() {
     return true
   })
 
+  // Dedup por proximidad: node + way + relation del mismo sitio físico
+  // Si dos estaciones están a <50m entre sí, conserva solo la primera encontrada
+  const DIST = 0.0005 // ~50 metros en grados
+  const final = []
+  for (const s of deduplicated) {
+    const nearby = final.find(e =>
+      Math.abs(e.lat - s.lat) < DIST && Math.abs(e.lng - s.lng) < DIST
+    )
+    if (!nearby) final.push(s)
+  }
+
   console.error(`\n📊 Resultado:`)
   console.error(`   Total encontradas: ${totalFetched}`)
   console.error(`   Sin coordenadas (skip): ${totalSkipped}`)
-  console.error(`   Duplicadas removidas: ${totalFetched - deduplicated.length}`)
-  console.error(`   ✅ Listas para insertar: ${deduplicated.length}`)
+  console.error(`   Duplicadas por osm_id: ${totalFetched - deduplicated.length}`)
+  console.error(`   Duplicadas por proximidad (<50m): ${deduplicated.length - final.length}`)
+  console.error(`   ✅ Listas para insertar: ${final.length}`)
 
   if (directInsert) {
-    await insertToSupabase(targetZones, deduplicated)
+    await insertToSupabase(targetZones, final)
     console.error('\n🎉 ¡Seed completado exitosamente!')
     return
   }
 
-  // Generate SQL output
-  const header = `
--- ═══════════════════════════════════════════════════════════════════════════
+  // Always output a SQL file — default name seed.sql
+  const outputFile = outFile || 'seed.sql'
+
+  const header = `-- ═══════════════════════════════════════════════════════════════════════════
 --  GasolinApp — Seed: Gasolineras de Colombia
 --  Generado: ${new Date().toISOString()}
 --  Fuente: OpenStreetMap (© OpenStreetMap contributors, ODbL)
 --  Total zonas: ${targetZones.length}
---  Total gasolineras: ${deduplicated.length}
+--  Total gasolineras: ${final.length}
 --
---  Uso: psql $DATABASE_URL < seed.sql
---       o copiar en Supabase SQL Editor
+--  Instrucciones:
+--  1. Abre Supabase SQL Editor
+--  2. Pega TODO este archivo y ejecuta
+--  3. El SQL busca zonas existentes por nombre/proximidad automáticamente
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- Primero asegurarse de tener la columna osm_id para UPSERT
-ALTER TABLE stations ADD COLUMN IF NOT EXISTS osm_id TEXT UNIQUE;
-ALTER TABLE zones    ADD COLUMN IF NOT EXISTS city  TEXT;
-ALTER TABLE zones    ADD COLUMN IF NOT EXISTS dept  TEXT;
-ALTER TABLE zones    ADD COLUMN IF NOT EXISTS code  TEXT;
-
 `
+
   const zonesSQL    = generateZoneSQL(targetZones)
-  const stationsSQL = generateStationsSQL(deduplicated)
+  const stationsSQL = generateStationsSQL(final, targetZones)
 
-  // Chunk stations into batches of 500 for SQL readability
-  const CHUNK = 500
-  const stationChunks = []
-  for (let i = 0; i < deduplicated.length; i += CHUNK) {
-    stationChunks.push(generateStationsSQL(deduplicated.slice(i, i + CHUNK)))
-  }
+  const fullSQL = header + zonesSQL +
+    `\n-- ══════════════════════════════════════════════════════════════════\n` +
+    `--  PASO 3: Gasolineras (${final.length} total, agrupadas por zona)\n` +
+    `-- ══════════════════════════════════════════════════════════════════\n` +
+    stationsSQL + '\n'
 
-  const fullSQL = header + zonesSQL + '\n-- ═══════════════════════════════\n' +
-    `--  GASOLINERAS (${deduplicated.length} total)\n` +
-    '-- ═══════════════════════════════\n\n' +
-    stationChunks.join('\n')
-
-  if (outFile) {
-    writeFileSync(outFile, fullSQL, 'utf-8')
-    console.error(`\n💾 SQL guardado en: ${outFile}`)
-    console.error(`   Siguiente paso: ejecuta en Supabase SQL Editor o con psql`)
-  } else {
-    process.stdout.write(fullSQL)
-  }
+  writeFileSync(outputFile, fullSQL, 'utf-8')
+  console.error(`\n💾 SQL guardado en: ${outputFile}  (${(fullSQL.length/1024).toFixed(0)} KB)`)
+  console.error(`\n✅ Siguiente paso:`)
+  console.error(`   1. Abre Supabase → SQL Editor`)
+  console.error(`   2. Pega el contenido de ${outputFile}`)
+  console.error(`   3. Ejecuta — ¡listo!`)
 }
 
 main().catch(err => {
