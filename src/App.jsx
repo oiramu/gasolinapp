@@ -62,7 +62,7 @@ export default function App() {
 
         {/* ── Side panel ──────────────────────────────────────────────────── */}
         <div className={cn(
-          'fixed sm:absolute right-0 top-0 bottom-0 w-full sm:w-[360px]',
+          'fixed sm:absolute right-0 top-14 sm:top-0 bottom-0 w-full sm:w-[360px]',
           'transition-transform duration-300 z-[400]',
           panelOpen ? 'translate-x-0' : 'translate-x-full'
         )}>
@@ -78,7 +78,7 @@ export default function App() {
         {/* Mobile backdrop */}
         {panelOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-[390] sm:hidden"
+            className="fixed top-14 inset-x-0 bottom-0 bg-black/50 z-[390] sm:hidden"
             onClick={() => setPanelOpen(false)}
           />
         )}

@@ -47,7 +47,7 @@ function MapController({ mapRef }) {
 
 // ── Main MapView ─────────────────────────────────────────────────────────────
 export default function MapView({ stations, zones }) {
-  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter } = useAppStore()
+  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen } = useAppStore()
   const mapRef      = useRef(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
 
@@ -133,7 +133,7 @@ export default function MapView({ stations, zones }) {
         <button
           onClick={locateUser}
           title="Ir a mi ubicación"
-          className="absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full bg-surface-card border border-white/10 shadow-lg flex items-center justify-center text-fuel-400 hover:text-fuel-300 hover:border-fuel-400/40 transition-all"
+          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full bg-surface-card border border-white/10 shadow-lg items-center justify-center text-fuel-400 hover:text-fuel-300 hover:border-fuel-400/40 transition-all ${panelOpen ? 'hidden sm:flex' : 'flex'}`}
         >
           <Locate size={18} />
         </button>
