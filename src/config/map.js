@@ -7,7 +7,7 @@
 export const MAP_DEFAULT_CENTER = [10.99, -74.808]
 
 /** Default zoom level on first load */
-export const MAP_DEFAULT_ZOOM = 12
+export const MAP_DEFAULT_ZOOM = 14
 
 /**
  * Below this zoom level the map switches to zone cluster view.
