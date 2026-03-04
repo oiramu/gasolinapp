@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export const useAppStore = create((set, get) => ({
   // ── Map state ────────────────────────────────────────────
-  mapZoom: 13,
+  mapZoom: 12,
   mapCenter: [10.99, -74.808],
   setMapZoom: (zoom) => set({ mapZoom: zoom }),
   setMapCenter: (center) => set({ mapCenter: center }),

@@ -7,13 +7,13 @@
 export const MAP_DEFAULT_CENTER = [10.99, -74.808]
 
 /** Default zoom level on first load */
-export const MAP_DEFAULT_ZOOM = 13
+export const MAP_DEFAULT_ZOOM = 12
 
 /**
  * Below this zoom level the map switches to zone cluster view.
  * At or above it, individual station markers are shown.
  */
-export const MAP_CLUSTER_ZOOM_THRESHOLD = 14
+export const MAP_CLUSTER_ZOOM_THRESHOLD = 12
 
 /** CartoDB dark tile layer — matches the app's dark theme */
 export const MAP_TILE_URL =

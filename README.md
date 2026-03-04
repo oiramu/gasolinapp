@@ -137,8 +137,8 @@ gasolinapp/
 ## 🗺️ Lógica de Zoom
 
 ```
-Zoom < 13  → Marcadores de zona con precio promedio (RPC: get_zone_averages)
-Zoom ≥ 13  → Marcadores individuales por gasolinera
+Zoom < 12  → Marcadores de zona con precio promedio (RPC: get_zone_averages)
+Zoom ≥ 12  → Marcadores individuales por gasolinera
               • Verde + precio  = datos verificados por usuarios
               • Gris + precio~  = estimado del promedio de zona
 ```
