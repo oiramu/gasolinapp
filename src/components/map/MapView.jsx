@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
-import { Locate } from 'lucide-react'
+import { Locate, LocateFixed } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { createStationIcon, createZoneIcon, createUserLocationIcon } from './markers'
@@ -16,9 +16,12 @@ import {
 /** Zoom suitable for a driver — close enough to see nearby stations */
 const DRIVING_ZOOM = 16
 
-// ── Internal: listens to map zoom changes and updates store ─────────────────
-function ZoomWatcher({ onZoomChange }) {
-  useMapEvents({ zoomend: (e) => onZoomChange(e.target.getZoom()) })
+// ── Internal: listens to map events and updates store/state ─────────────────
+function MapEventsWatcher({ onZoomChange, onMove }) {
+  useMapEvents({
+    zoomend: (e) => onZoomChange(e.target.getZoom()),
+    move: (e) => onMove(e.target.getCenter()),
+  })
   return null
 }
 
@@ -50,19 +53,29 @@ export default function MapView({ stations, zones }) {
   const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen } = useAppStore()
   const mapRef      = useRef(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
+  const [isCentered, setIsCentered] = useState(false)
 
   // Fly to user on first GPS fix at driving zoom
   const handleFirstFix = useCallback(({ lat, lng }) => {
     if (mapRef.current) {
       mapRef.current.flyTo([lat, lng], DRIVING_ZOOM, { duration: 1.2 })
+      setIsCentered(true)
     }
   }, [])
 
   const { position: userPos } = useGeolocation({ onFirstFix: handleFirstFix })
 
+  const handleMapMove = useCallback((center) => {
+    if (!userPos || !mapRef.current) return
+    const distance = mapRef.current.distance(center, [userPos.lat, userPos.lng])
+    const currentlyCentered = distance < 20 // 20 meters tolerance
+    setIsCentered((prev) => (prev !== currentlyCentered ? currentlyCentered : prev))
+  }, [userPos])
+
   const locateUser = () => {
     if (userPos && mapRef.current) {
       mapRef.current.flyTo([userPos.lat, userPos.lng], DRIVING_ZOOM, { duration: 0.8 })
+      setIsCentered(true)
     }
   }
 
@@ -80,7 +93,7 @@ export default function MapView({ stations, zones }) {
           maxZoom={MAP_MAX_ZOOM}
         />
 
-        <ZoomWatcher onZoomChange={setMapZoom} />
+        <MapEventsWatcher onZoomChange={setMapZoom} onMove={handleMapMove} />
         <MapSync />
         <MapController mapRef={mapRef} />
 
@@ -133,9 +146,9 @@ export default function MapView({ stations, zones }) {
         <button
           onClick={locateUser}
           title="Ir a mi ubicación"
-          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full bg-surface-card border border-white/10 shadow-lg items-center justify-center text-fuel-400 hover:text-fuel-300 hover:border-fuel-400/40 transition-all ${panelOpen ? 'hidden sm:flex' : 'flex'}`}
+          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full border border-white/10 shadow-lg items-center justify-center transition-all ${panelOpen ? 'hidden sm:flex' : 'flex'} ${isCentered ? 'bg-fuel-500 text-surface-card hover:bg-fuel-600' : 'bg-surface-card text-fuel-400 hover:text-fuel-300 hover:border-fuel-400/40'}`}
         >
-          <Locate size={18} />
+          {isCentered ? <LocateFixed size={18} /> : <Locate size={18} />}
         </button>
       )}
     </div>
