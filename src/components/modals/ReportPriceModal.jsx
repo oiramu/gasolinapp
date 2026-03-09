@@ -58,7 +58,7 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
             <input
               type="number"
               step="1"
-              min="5000"
+              min={fuelType === 'urea' ? '2000' : '5000'}
               max="40000"
               placeholder="15000"
               value={price}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
 import { Locate, LocateFixed } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
+import { FUEL_TYPES } from '@/lib/fuel'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { createStationIcon, createZoneIcon, createUserLocationIcon } from './markers'
 import {
@@ -50,10 +51,12 @@ function MapController({ mapRef }) {
 
 // ── Main MapView ─────────────────────────────────────────────────────────────
 export default function MapView({ stations, zones }) {
-  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen } = useAppStore()
-  const mapRef      = useRef(null)
+  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType } = useAppStore()
+  const mapRef       = useRef(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
   const [isCentered, setIsCentered] = useState(false)
+  const [fabHover, setFabHover]     = useState(false)
+  const fuelColor = FUEL_TYPES[defaultFuelType]?.color || '#00E5A0'
 
   // Fly to user on first GPS fix at driving zoom
   const handleFirstFix = useCallback(({ lat, lng }) => {
@@ -146,7 +149,10 @@ export default function MapView({ stations, zones }) {
         <button
           onClick={locateUser}
           title="Ir a mi ubicación"
-          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full border border-white/10 shadow-lg items-center justify-center transition-all ${panelOpen ? 'hidden sm:flex' : 'flex'} ${isCentered ? 'bg-fuel-500 text-surface-card hover:bg-fuel-600' : 'bg-surface-card text-fuel-400 hover:text-fuel-300 hover:border-fuel-400/40'}`}
+          onMouseEnter={() => setFabHover(true)}
+          onMouseLeave={() => setFabHover(false)}
+          style={{ color: isCentered || fabHover ? fuelColor : undefined }}
+          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full border shadow-lg items-center justify-center transition-all bg-surface-card hover:bg-surface-muted ${panelOpen ? 'hidden sm:flex' : 'flex'} ${isCentered ? 'border-fuel-500/40' : 'border-white/10 text-gray-500'}`}
         >
           {isCentered ? <LocateFixed size={18} /> : <Locate size={18} />}
         </button>

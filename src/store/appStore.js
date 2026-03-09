@@ -1,5 +1,22 @@
 import { create } from 'zustand'
 
+const STORAGE_KEY = 'gasolinapp_prefs'
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function savePrefs(prefs) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
+}
+
+const savedPrefs = loadPrefs()
+
 export const useAppStore = create((set, get) => ({
   // ── Map state ────────────────────────────────────────────
   mapZoom: 12,
@@ -18,6 +35,17 @@ export const useAppStore = create((set, get) => ({
   // ── Report modal ─────────────────────────────────────────
   reportModalOpen: false,
   setReportModalOpen: (open) => set({ reportModalOpen: open }),
+
+  // ── Settings modal ───────────────────────────────────────
+  settingsModalOpen: false,
+  setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
+
+  // ── User preferences ─────────────────────────────────────
+  defaultFuelType: savedPrefs.defaultFuelType ?? 'corriente',
+  setDefaultFuelType: (ft) => {
+    savePrefs({ ...loadPrefs(), defaultFuelType: ft })
+    set({ defaultFuelType: ft })
+  },
 
   // ── Toast ────────────────────────────────────────────────
   toast: null,

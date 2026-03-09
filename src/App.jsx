@@ -5,12 +5,13 @@ import TopBar from '@/components/TopBar'
 import MapView from '@/components/map/MapView'
 import StationPanel from '@/components/panels/StationPanel'
 import ReportPriceModal from '@/components/modals/ReportPriceModal'
+import SettingsModal from '@/components/modals/SettingsModal'
 import MapLegend from '@/components/MapLegend'
 import Toast from '@/components/Toast'
 import { cn } from '@/lib/utils'
 
 export default function App() {
-  const { selectedStation, panelOpen, setPanelOpen, setSelectedStation } = useAppStore()
+  const { selectedStation, panelOpen, setPanelOpen, setSelectedStation, defaultFuelType } = useAppStore()
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { stations, loading, error, refresh: refreshStations } = useStationsData()
@@ -39,8 +40,8 @@ export default function App() {
           'flex-1 relative transition-all duration-300',
           panelOpen ? 'sm:mr-[360px]' : ''
         )}>
-          <MapView stations={stations} zones={zones} />
-          <MapLegend />
+          <MapView key={defaultFuelType} stations={stations} zones={zones} />
+          <MapLegend loading={loading} />
 
           {/* Loading overlay */}
           {loading && (
@@ -89,6 +90,7 @@ export default function App() {
         station={syncedStation}
         onSuccess={refreshAll}
       />
+      <SettingsModal />
       <Toast />
     </div>
   )

@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import L from 'leaflet'
 import { FUEL_TYPES, getLatestPrices, hasReportedPrices } from '@/lib/fuel'
+import { useAppStore } from '@/store/appStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design tokens — single source of truth for marker colors/fonts
@@ -25,15 +26,24 @@ const FONT_BODY = '"DM Sans", sans-serif'
  * which was causing the "going crazy on hover" jitter bug.
  * Pointer events are only handled by the outer Leaflet marker container.
  */
-function StationPinSVG({ station, latestPrices, hasData }) {
-  const priceObj = latestPrices?.corriente || latestPrices?.extra || latestPrices?.diesel
+function StationPinSVG({ station, latestPrices, hasData, defaultFuelType }) {
+  // Prefer the user's chosen fuel type, fall back to any available
+  const priceObj = latestPrices?.[defaultFuelType]
+    || latestPrices?.corriente
+    || latestPrices?.extra
+    || latestPrices?.diesel
+
   const price = priceObj?.price
-  const displayPrice = price 
+  const displayPrice = price
     ? (price > 100 ? `$${Math.round(price)}` : `$${price.toFixed(2)}`)
     : 'S/D'
-  const fuelCount    = Object.keys(latestPrices || {}).length
-  const borderColor  = hasData ? COLORS.active : COLORS.inactive
-  const textColor    = hasData ? COLORS.active : '#9CA3AF'
+  const fuelCount = Object.keys(latestPrices || {}).length
+  const textColor = hasData ? COLORS.active : '#9CA3AF'
+
+  // If we have the requested fuel type price, tint the border with its color
+  const fuelColor = latestPrices?.[defaultFuelType]
+    ? (FUEL_TYPES[defaultFuelType]?.color || COLORS.active)
+    : (hasData ? COLORS.active : COLORS.inactive)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none' }}>
@@ -41,16 +51,16 @@ function StationPinSVG({ station, latestPrices, hasData }) {
       {/* ── Bubble ──────────────────────────────────────────────────────── */}
       <div style={{
         background: hasData ? COLORS.surface : COLORS.surfaceMuted,
-        border: `2px solid ${borderColor}`,
+        border: `2px solid ${fuelColor}`,
         borderRadius: 10, padding: '5px 9px', minWidth: 62,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-        boxShadow: hasData ? '0 4px 16px rgba(0,229,160,0.25)' : '0 2px 8px rgba(0,0,0,0.4)',
+        boxShadow: hasData ? `0 4px 16px ${fuelColor}40` : '0 2px 8px rgba(0,0,0,0.4)',
         position: 'relative',
       }}>
 
         {/* Fuel pump badge */}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-          style={{ position: 'absolute', top: -8, right: -8, background: borderColor, borderRadius: '50%', padding: 2 }}>
+          style={{ position: 'absolute', top: -8, right: -8, background: fuelColor, borderRadius: '50%', padding: 2 }}>
           <path d="M3 22V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round"/>
           <path d="M15 11h2a2 2 0 0 1 2 2v3a1 1 0 0 0 2 0v-5l-3-3" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M3 22h12" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round"/>
@@ -58,12 +68,12 @@ function StationPinSVG({ station, latestPrices, hasData }) {
         </svg>
 
         {/* Price */}
-        <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13, color: textColor, lineHeight: 1 }}>
+        <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13, color: hasData ? fuelColor : '#9CA3AF', lineHeight: 1 }}>
           {displayPrice}
         </span>
 
         {/* Brand */}
-        <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: '#6B7280', lineHeight: 1 }}>
+        <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: fuelColor, opacity: 0.75, lineHeight: 1 }}>
           {station.brand}
         </span>
 
@@ -82,7 +92,7 @@ function StationPinSVG({ station, latestPrices, hasData }) {
         width: 0, height: 0,
         borderLeft: '5px solid transparent',
         borderRight: '5px solid transparent',
-        borderTop: `6px solid ${borderColor}`,
+        borderTop: `6px solid ${fuelColor}`,
         marginTop: -1,
         pointerEvents: 'none',
       }} />
@@ -96,11 +106,12 @@ function StationPinSVG({ station, latestPrices, hasData }) {
 
 /** Creates a Leaflet icon for a single gas station. */
 export function createStationIcon(station) {
-  const latestPrices = getLatestPrices(station.fuel_prices)
-  const hasData      = hasReportedPrices(station)
+  const latestPrices    = getLatestPrices(station.fuel_prices)
+  const hasData         = hasReportedPrices(station)
+  const defaultFuelType = useAppStore.getState().defaultFuelType
 
   return L.divIcon({
-    html:        renderToStaticMarkup(<StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} />),
+    html:        renderToStaticMarkup(<StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} defaultFuelType={defaultFuelType} />),
     className:   '',          // remove Leaflet's default white background
     iconSize:    [62, 48],
     iconAnchor:  [31, 48],    // bottom-center of the pin
@@ -110,16 +121,23 @@ export function createStationIcon(station) {
 
 /** Creates a Leaflet icon for a zone cluster (shown at low zoom). */
 export function createZoneIcon(zone) {
+  const defaultFuelType = useAppStore.getState().defaultFuelType
+
+  // avg price for the selected fuel type
+  const avgKey   = `avg_${defaultFuelType}`
+  const avgPrice = zone[avgKey] ?? zone.avg_corriente
+  const fuelColor = FUEL_TYPES[defaultFuelType]?.color || COLORS.active
+
   const html = renderToStaticMarkup(
     <div style={{
-      background: COLORS.surface, border: `2px solid ${COLORS.active}`,
+      background: COLORS.surface, border: `2px solid ${fuelColor}`,
       borderRadius: 14, padding: '8px 14px',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-      boxShadow: '0 6px 24px rgba(0,229,160,0.3)',
+      boxShadow: `0 6px 24px ${fuelColor}4D`,
       pointerEvents: 'none',  // let Leaflet own all events
     }}>
-      <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 15, color: COLORS.active, lineHeight: 1 }}>
-        ${zone.avg_corriente?.toFixed(2)}
+      <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 15, color: fuelColor, lineHeight: 1 }}>
+        {avgPrice ? `$${Math.round(avgPrice)}` : 'S/D'}
       </span>
       <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
         {zone.name} · {zone.station_count} est.
@@ -152,7 +170,3 @@ export function createUserLocationIcon() {
 
   return L.divIcon({ html, className: '', iconSize: [20, 20], iconAnchor: [10, 10] })
 }
-
-
-
-
