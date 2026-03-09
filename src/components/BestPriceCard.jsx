@@ -50,7 +50,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
 
   return (
     <div
-      className={`absolute bottom-[220px] sm:bottom-6 left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300 ease-out ${
+      className={`absolute bottom-[256px] sm:bottom-6 left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300 ease-out ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >

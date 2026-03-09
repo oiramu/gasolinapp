@@ -1,6 +1,8 @@
 import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
+import { Fuel } from 'lucide-react'
+import FilterSelect from '@/components/FilterSelect'
 
 const FUEL_OPTIONS = FUEL_ORDER.filter(f => f !== 'urea')
 
@@ -19,8 +21,22 @@ export default function FilterChips({ activeFuelType, distanceMode, userPos, onF
       panelOpen ? "hidden sm:flex" : "flex"
     )}>
       
-      {/* Fuel chips */}
-      <div className="flex items-center gap-1 bg-surface-card/90 backdrop-blur-md border border-white/10 rounded-full px-1.5 py-1 shadow-2xl pointer-events-auto">
+      {/* Fuel selection: Select on mobile, Chips on desktop */}
+      <FilterSelect
+        className="sm:hidden pointer-events-auto"
+        icon={Fuel}
+        value={activeFuelType}
+        activeColor={FUEL_TYPES[activeFuelType].color}
+        options={FUEL_OPTIONS.map(ft => ({ 
+          value: ft, 
+          label: FUEL_TYPES[ft].label,
+          color: FUEL_TYPES[ft].color
+        }))}
+        onChange={onFuelChange}
+      />
+
+      {/* Fuel chips - Desktop only */}
+      <div className="hidden sm:flex items-center gap-1 bg-surface-card/90 backdrop-blur-md border border-white/10 rounded-full px-1.5 py-1 shadow-2xl pointer-events-auto">
         {FUEL_OPTIONS.map(ft => {
           const cfg = FUEL_TYPES[ft]
           const isActive = activeFuelType === ft

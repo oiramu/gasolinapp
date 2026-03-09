@@ -1,9 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
-import { Locate, LocateFixed } from 'lucide-react'
+import { Locate, LocateFixed, Plus, Minus } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES } from '@/lib/fuel'
 import { useGeolocation } from '@/hooks/useGeolocation'
+import { cn } from '@/lib/utils'
 import { createStationIcon, createZoneIcon, createUserLocationIcon } from './markers'
 import {
   MAP_DEFAULT_CENTER,
@@ -159,19 +160,43 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
         ))}
       </MapContainer>
 
-      {/* ── Locate-me button ────────────────────────────────────────────── */}
-      {userPos && (
-        <button
-          onClick={locateUser}
-          title="Ir a mi ubicación"
-          onMouseEnter={() => setFabHover(true)}
-          onMouseLeave={() => setFabHover(false)}
-          style={{ color: isCentered || fabHover ? fuelColor : undefined }}
-          className={`absolute bottom-6 right-4 z-[500] w-10 h-10 rounded-full border shadow-lg items-center justify-center transition-all bg-surface-card hover:bg-surface-muted ${panelOpen ? 'hidden sm:flex' : 'flex'} ${isCentered ? 'border-fuel-500/40' : 'border-white/10 text-gray-500'}`}
-        >
-          {isCentered ? <LocateFixed size={18} /> : <Locate size={18} />}
-        </button>
-      )}
+      {/* FABs: zoom + locate (Mobile grouping) */}
+      <div className={cn(
+        "absolute bottom-6 right-4 z-[500] flex flex-col gap-2",
+        panelOpen ? "hidden sm:flex" : "flex"
+      )}>
+        {/* Zoom controls - Mobile only */}
+        <div className="flex flex-col gap-2 mb-1 sm:hidden items-center">
+          <button
+            onClick={() => mapRef.current?.zoomIn()}
+            className="w-8 h-8 rounded-full border border-white/10 bg-surface-card flex items-center justify-center text-gray-400 active:bg-surface-muted shadow-lg active:scale-90 transition-all"
+          >
+            <Plus size={16} />
+          </button>
+          <button
+            onClick={() => mapRef.current?.zoomOut()}
+            className="w-8 h-8 rounded-full border border-white/10 bg-surface-card flex items-center justify-center text-gray-400 active:bg-surface-muted shadow-lg active:scale-90 transition-all"
+          >
+            <Minus size={16} />
+          </button>
+        </div>
+
+        {userPos && (
+          <button
+            onClick={locateUser}
+            title="Ir a mi ubicación"
+            onMouseEnter={() => setFabHover(true)}
+            onMouseLeave={() => setFabHover(false)}
+            style={{ color: isCentered || fabHover ? fuelColor : undefined }}
+            className={cn(
+              "w-10 h-10 rounded-full border shadow-lg flex items-center justify-center transition-all bg-surface-card hover:bg-surface-muted",
+              isCentered ? "border-fuel-500/40" : "border-white/10 text-gray-500"
+            )}
+          >
+            {isCentered ? <LocateFixed size={18} /> : <Locate size={18} />}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
