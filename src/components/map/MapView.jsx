@@ -18,10 +18,19 @@ import {
 const DRIVING_ZOOM = 16
 
 // ── Internal: listens to map events and updates store/state ─────────────────
-function MapEventsWatcher({ onZoomChange, onMove }) {
+function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoundsChange }) {
   useMapEvents({
-    zoomend: (e) => onZoomChange(e.target.getZoom()),
+    movestart: () => onMoveStart?.(),
+    moveend: (e) => {
+      onMoveEnd?.()
+      onBoundsChange?.(e.target.getBounds())
+    },
+    zoomend: (e) => {
+      onZoomChange(e.target.getZoom())
+      onBoundsChange?.(e.target.getBounds())
+    },
     move: (e) => onMove(e.target.getCenter()),
+    click: () => useAppStore.getState().setPanelOpen(false),
   })
   return null
 }
@@ -50,7 +59,7 @@ function MapController({ mapRef }) {
 }
 
 // ── Main MapView ─────────────────────────────────────────────────────────────
-export default function MapView({ stations, zones }) {
+export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBoundsChange }) {
   const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType } = useAppStore()
   const mapRef       = useRef(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
@@ -96,7 +105,13 @@ export default function MapView({ stations, zones }) {
           maxZoom={MAP_MAX_ZOOM}
         />
 
-        <MapEventsWatcher onZoomChange={setMapZoom} onMove={handleMapMove} />
+        <MapEventsWatcher
+          onZoomChange={setMapZoom}
+          onMove={handleMapMove}
+          onMoveStart={onMoveStart}
+          onMoveEnd={onMoveEnd}
+          onBoundsChange={onBoundsChange}
+        />
         <MapSync />
         <MapController mapRef={mapRef} />
 
