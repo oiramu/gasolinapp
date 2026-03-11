@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useStationsData } from '@/hooks/useStationsData'
 import { useZonesData } from '@/hooks/useZonesData'
@@ -26,7 +26,7 @@ function distanceMeters(lat1, lng1, lat2, lng2) {
 }
 
 // ── Find best-priced station within the given map bounds ──────────────────────
-function getBestStation(stations, bounds, fuelType, distanceMode, userPos) {
+function getBestStation(stations, bounds, fuelType) {
   if (!bounds || !stations.length) return null
 
   let candidates = stations.filter(s => {
@@ -35,13 +35,6 @@ function getBestStation(stations, bounds, fuelType, distanceMode, userPos) {
     const prices = getLatestPrices(s.fuel_prices ?? [])
     return !!prices[fuelType]
   })
-
-  if (distanceMode === 'near' && userPos) {
-    const RADIUS = 3000 // 3km
-    candidates = candidates.filter(s =>
-      distanceMeters(userPos.lat, userPos.lng, s.lat, s.lng) <= RADIUS
-    )
-  }
 
   if (!candidates.length) return null
 
@@ -80,7 +73,18 @@ export default function App() {
 
   // ── Active filter state ───────────────────────────────────────────────────
   // Fuel type is now synced directly with global store (defaultFuelType)
-  const [distanceMode, setDistanceMode] = useState('all') // 'all' | 'near'
+  const [distanceMode, setDistanceMode] = useState('near') // 'all' | 'near'
+
+  const filteredStations = useMemo(() => {
+    if (distanceMode === 'all' || !userPos) return stations
+    
+    // 15km radius for the "near" filter
+    const RADIUS = 15000 
+    
+    return stations.filter(s => 
+      distanceMeters(userPos.lat, userPos.lng, s.lat, s.lng) <= RADIUS
+    )
+  }, [stations, distanceMode, userPos])
 
   // ── Map bounds → best price card ──────────────────────────────────────────
   const [mapBounds, setMapBounds] = useState(null)
@@ -95,10 +99,10 @@ export default function App() {
   useEffect(() => {
     if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current)
     boundsTimerRef.current = setTimeout(() => {
-      setBestStation(getBestStation(stations, mapBounds, defaultFuelType, distanceMode, userPos))
+      setBestStation(getBestStation(filteredStations, mapBounds, defaultFuelType))
     }, 400)
     return () => clearTimeout(boundsTimerRef.current)
-  }, [stations, mapBounds, defaultFuelType, distanceMode, userPos])
+  }, [filteredStations, mapBounds, defaultFuelType])
 
   // ── Keyboard shortcut Cmd+K / Ctrl+K ─────────────────────────────────────
   useEffect(() => {
@@ -126,7 +130,7 @@ export default function App() {
         )}>
           <MapView
             key={defaultFuelType}
-            stations={stations}
+            stations={filteredStations}
             zones={zones}
             onBoundsChange={handleBoundsChange}
           />
@@ -200,7 +204,7 @@ export default function App() {
       />
       <SettingsModal />
       <SpotlightModal
-        stations={stations}
+        stations={filteredStations}
         activeFuelType={defaultFuelType}
         userPos={userPos}
         onSelect={(s) => setSelectedStation(s)}
