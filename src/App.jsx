@@ -130,7 +130,7 @@ export default function App() {
         )}>
           <MapView
             key={defaultFuelType}
-            stations={filteredStations}
+            stations={stations}
             zones={zones}
             onBoundsChange={handleBoundsChange}
           />
