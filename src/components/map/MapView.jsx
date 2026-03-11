@@ -143,7 +143,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
             eventHandlers={{
               click: () => {
                 setMapCenter([zone.lat, zone.lng])
-                useAppStore.getState().setMapZoom(14)
+                useAppStore.getState().setMapZoom(MAP_CLUSTER_ZOOM_THRESHOLD)
               },
             }}
           />
