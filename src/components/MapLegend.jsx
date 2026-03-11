@@ -11,9 +11,9 @@ export default function MapLegend({ loading, realtimeConnected = true }) {
 
   const toggleZoomMode = () => {
     if (isClusterMode) {
-      setMapZoom(14) // Fly to individual station view
+      setMapZoom(MAP_CLUSTER_ZOOM_THRESHOLD+1) // Fly to individual station view
     } else {
-      setMapZoom(11) // Zoom out to cluster view
+      setMapZoom(MAP_CLUSTER_ZOOM_THRESHOLD-1) // Zoom out to cluster view
     }
   }
 

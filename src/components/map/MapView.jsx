@@ -9,10 +9,10 @@ import { createStationIcon, createZoneIcon, createUserLocationIcon } from './mar
 import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
-  MAP_CLUSTER_ZOOM_THRESHOLD,
   MAP_TILE_URL,
   MAP_TILE_ATTRIBUTION,
   MAP_MAX_ZOOM,
+  MAP_CLUSTER_ZOOM_THRESHOLD,
 } from '@/config/map'
 
 /** Zoom suitable for a driver — close enough to see nearby stations */
@@ -143,7 +143,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
             eventHandlers={{
               click: () => {
                 setMapCenter([zone.lat, zone.lng])
-                useAppStore.getState().setMapZoom(MAP_CLUSTER_ZOOM_THRESHOLD)
+                setMapZoom(MAP_CLUSTER_ZOOM_THRESHOLD)
               },
             }}
           />
