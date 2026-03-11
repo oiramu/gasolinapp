@@ -18,36 +18,40 @@ function savePrefs(prefs) {
 const savedPrefs = loadPrefs()
 
 export const useAppStore = create((set, get) => ({
-  // ── Map state ────────────────────────────────────────────
+  // Map state
   mapZoom: 12,
   mapCenter: [10.99, -74.808],
   setMapZoom: (zoom) => set({ mapZoom: zoom }),
   setMapCenter: (center) => set({ mapCenter: center }),
 
-  // ── Selected station ─────────────────────────────────────
+  // Selected station
   selectedStation: null,
   setSelectedStation: (station) => set({ selectedStation: station, panelOpen: !!station }),
 
-  // ── Side panel ───────────────────────────────────────────
+  // Side panel
   panelOpen: false,
   setPanelOpen: (open) => set({ panelOpen: open, selectedStation: open ? get().selectedStation : null }),
 
-  // ── Report modal ─────────────────────────────────────────
+  // Report modal
   reportModalOpen: false,
   setReportModalOpen: (open) => set({ reportModalOpen: open }),
 
-  // ── Settings modal ───────────────────────────────────────
+  // Settings modal
   settingsModalOpen: false,
   setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
 
-  // ── User preferences ─────────────────────────────────────
+  // Spotlight modal
+  spotlightOpen: false,
+  setSpotlightOpen: (open) => set({ spotlightOpen: open }),
+
+  // User preferences
   defaultFuelType: savedPrefs.defaultFuelType ?? 'corriente',
   setDefaultFuelType: (ft) => {
     savePrefs({ ...loadPrefs(), defaultFuelType: ft })
     set({ defaultFuelType: ft })
   },
 
-  // ── Toast ────────────────────────────────────────────────
+  // Toast
   toast: null,
   showToast: (message, type = 'success') => {
     set({ toast: { message, type, id: Date.now() } })
