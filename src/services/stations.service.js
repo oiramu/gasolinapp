@@ -10,9 +10,9 @@ import { supabase } from '@/lib/supabase'
 
 /** Full select clause reused across queries */
 const STATION_SELECT = `
-  id, name, brand, address, lat, lng, zone_id,
+  id, name, brand, address, lat, lng, zone_id, has_gnv,
   fuel_prices (
-    id, fuel_type, price, currency, comment,
+    id, fuel_type, price, price_unit, currency, comment,
     votes_up, votes_down, created_at, reported_by, is_active
   ),
   reports (
@@ -30,6 +30,21 @@ export async function fetchStations() {
     .from('stations')
     .select(STATION_SELECT)
     .eq('is_active', true)
+
+  return { data, error }
+}
+
+/**
+ * Fetch only stations that have GNV (Gas Natural Vehicular) available.
+ * Uses the has_gnv flag for efficient filtering.
+ * @returns {{ data: Station[] | null, error: Error | null }}
+ */
+export async function fetchGnvStations() {
+  const { data, error } = await supabase
+    .from('stations')
+    .select(STATION_SELECT)
+    .eq('is_active', true)
+    .eq('has_gnv', true)
 
   return { data, error }
 }

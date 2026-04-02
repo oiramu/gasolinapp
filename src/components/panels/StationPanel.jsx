@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import {
   Fuel, MapPin, ThumbsUp, ThumbsDown, Plus, X,
   AlertTriangle, Clock, Tag, MessageSquare, ChevronRight,
-  Droplets, Zap, Star, RefreshCw, Info,
+  Droplets, Zap, Star, RefreshCw, Info, Wind,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS } from '@/lib/fuel'
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
-const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw }
+const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 const REPORT_ICONS = { price: Tag, promotion: Star, warning: AlertTriangle, comment: MessageSquare, correction: Info }
 
 function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
@@ -193,9 +193,10 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
       <div className="p-4 pb-0 grid grid-cols-2 gap-2">
         {FUEL_ORDER.map((ft) => {
           let zoneAvg = null
-          if (ft === 'diesel') zoneAvg = zoneData?.avg_diesel
-          else if (ft === 'extra') zoneAvg = zoneData?.avg_extra
+          if (ft === 'diesel')    zoneAvg = zoneData?.avg_diesel
+          else if (ft === 'extra')     zoneAvg = zoneData?.avg_extra
           else if (ft === 'corriente') zoneAvg = zoneData?.avg_corriente
+          else if (ft === 'gnv')       zoneAvg = zoneData?.avg_gnv
 
           return (
             <FuelCard

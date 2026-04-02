@@ -1,9 +1,9 @@
-import { X, Settings, Fuel, Droplets, ChevronDown, RefreshCw } from 'lucide-react'
+import { X, Settings, Fuel, Droplets, ChevronDown, RefreshCw, Wind } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
 import { cn } from '@/lib/utils'
 
-const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw }
+const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 
 export default function SettingsModal() {
   const { settingsModalOpen, setSettingsModalOpen, defaultFuelType, setDefaultFuelType } = useAppStore()

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Star } from 'lucide-react'
-import { FUEL_TYPES, getLatestPrices, formatRelativeTime } from '@/lib/fuel'
+import { Navigation, Clock, Star, Wind } from 'lucide-react'
+import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime } from '@/lib/fuel'
 
 function formatDistance(meters) {
   if (!meters && meters !== 0) return null
@@ -18,12 +18,13 @@ function haversine(lat1, lng1, lat2, lng2) {
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
 
-export default function BestPriceCard({ station, fuelType, userPos, onSelect }) {
+export default function BestPriceCard({ station, fuelType, userPos, onSelect, allStations }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
 
   const fuelConfig = FUEL_TYPES[fuelType]
   const fuelColor  = fuelConfig?.color || '#00E5A0'
+  const isGnv      = fuelType === 'gnv'
 
   useEffect(() => {
     if (!station) {
@@ -37,6 +38,33 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
     }
     setVisible(true)
   }, [station, prevId])
+
+  // Estado vacío para GNV: cuando el filtro es GNV pero no hay estaciones
+  const noGnvInArea = isGnv && !station
+
+  if (noGnvInArea) {
+    return (
+      <div className="absolute bottom-[256px] sm:bottom-6 left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0">
+        <div
+          className="bg-surface-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          style={{ borderColor: fuelColor + '30' }}
+        >
+          <div className="h-0.5 w-full" style={{ background: `linear-gradient(to right, ${fuelColor}, ${fuelColor}80)` }} />
+          <div className="px-4 py-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: fuelColor + '15' }}>
+              <Wind size={18} style={{ color: fuelColor }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-semibold text-white">Sin estaciones de Gas en esta zona</p>
+              <p className="text-[10px] text-gray-500 font-mono mt-0.5 leading-relaxed">
+                Intenta ampliar el rango o mover el mapa.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!station) return null
 
@@ -66,7 +94,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
               {price.price.toLocaleString('es-CO')}
             </div>
             <div className="text-[9px] font-mono uppercase tracking-wider mt-0.5" style={{ color: fuelColor + 'aa' }}>
-              COP / gal
+              {isGnv ? 'COP / m³' : 'COP / gal'}
             </div>
           </div>
 
@@ -75,7 +103,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md" style={{ background: fuelColor + '20', color: fuelColor }}>
-                Mejor precio
+                {isGnv ? 'Mejor precio Gas' : 'Mejor precio'}
               </span>
               {isOld && (
                 <span className="flex items-center gap-0.5 text-[9px] font-mono text-amber-400/70">

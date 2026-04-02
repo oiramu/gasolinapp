@@ -1,18 +1,25 @@
 import { useState } from 'react'
 import {
-  X, Fuel, Zap, Droplets, RefreshCw,
-  Send, User, MessageSquare, ChevronDown,
+  X, Fuel, Zap, Droplets, RefreshCw, Wind,
+  Send, User, MessageSquare, ChevronDown, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier } from '@/lib/fuel'
 import { submitPriceReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
-const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw }
+const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 
 function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
-  const config = FUEL_TYPES[fuelType]
-  const Icon = FUEL_ICONS[fuelType]
+  const config   = FUEL_TYPES[fuelType]
+  const Icon     = FUEL_ICONS[fuelType] || Fuel
+  const isGnv    = fuelType === 'gnv'
+  const unitLabel = getFuelUnitLabel(fuelType)  // 'm³' para GNV, 'galón' para el resto
+
+  // Advertencia suave de outlier
+  const numericPrice = parseFloat(price)
+  const showOutlier  = active && price && !isNaN(numericPrice) && isPriceOutlier(numericPrice, fuelType)
+  const range        = FUEL_PRICE_RANGES[fuelType]
 
   return (
     <div className={cn(
@@ -53,18 +60,25 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
       {/* Price input — shown when active */}
       {active && (
         <div className="px-3 pb-3">
+          {/* Gas hint */}
+          {isGnv && (
+            <p className="text-[10px] text-orange-400/70 font-mono mb-2 flex items-center gap-1">
+              <Wind size={9} />
+              El Gas se mide en metros cúbicos (m³)
+            </p>
+          )}
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono text-sm">$</span>
             <input
               type="number"
               step="1"
-              min={fuelType === 'urea' ? '2000' : '5000'}
-              max="40000"
-              placeholder="15000"
+              min={range?.min ?? 0}
+              max={range?.max ?? 99999}
+              placeholder={isGnv ? '2500' : '15000'}
               value={price}
               onChange={(e) => onPriceChange(e.target.value)}
               className={cn(
-                'w-full bg-surface border rounded-lg pl-6 pr-3 py-2',
+                'w-full bg-surface border rounded-lg pl-6 pr-20 py-2',
                 'font-mono text-sm text-white placeholder-gray-700',
                 'outline-none transition-colors',
                 config.borderClass.replace('/40', '/60'),
@@ -72,26 +86,39 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
               )}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 text-[10px] font-mono">
-              COP/gal
+              COP/{isGnv ? 'm³' : 'gal'}
             </span>
           </div>
+
+          {/* Advertencia suave de outlier (no bloquea el envío) */}
+          {showOutlier && (
+            <div className="flex items-start gap-1.5 mt-2 p-2 rounded-lg bg-amber-400/8 border border-amber-400/20">
+              <AlertTriangle size={11} className="text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[10px] text-amber-300/80 leading-relaxed">
+                ¿Estás seguro de este precio? Parece inusual para {config.label} (esperado {range.min.toLocaleString('es-CO')}–{range.max.toLocaleString('es-CO')} COP/{unitLabel}).
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+const INITIAL_ACTIVE_FUELS = { corriente: true, extra: false, diesel: false, urea: false, gnv: false }
+const INITIAL_PRICES       = { corriente: '', extra: '', diesel: '', urea: '', gnv: '' }
+
 export default function ReportPriceModal({ station, onSuccess }) {
   const { reportModalOpen, setReportModalOpen, showToast } = useAppStore()
 
-  const [activeFuels, setActiveFuels] = useState({ corriente: true, extra: false, diesel: false, urea: false })
-  const [prices, setPrices] = useState({ corriente: '', extra: '', diesel: '', urea: '' })
-  const [comment, setComment] = useState('')
-  const [userName, setUserName] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [activeFuels, setActiveFuels] = useState(INITIAL_ACTIVE_FUELS)
+  const [prices, setPrices]           = useState(INITIAL_PRICES)
+  const [comment, setComment]         = useState('')
+  const [userName, setUserName]       = useState('')
+  const [submitting, setSubmitting]   = useState(false)
 
   const toggleFuel = (ft) => setActiveFuels((prev) => ({ ...prev, [ft]: !prev[ft] }))
-  const setPrice = (ft, val) => setPrices((prev) => ({ ...prev, [ft]: val }))
+  const setPrice   = (ft, val) => setPrices((prev) => ({ ...prev, [ft]: val }))
 
   const hasAnyPrice = Object.entries(prices).some(([ft, p]) => activeFuels[ft] && p && parseFloat(p) > 0)
 
@@ -118,9 +145,9 @@ export default function ReportPriceModal({ station, onSuccess }) {
       onSuccess?.()
 
       // Reset
-      setPrices({ corriente: '', extra: '', diesel: '', urea: '' })
+      setPrices(INITIAL_PRICES)
       setComment('')
-      setActiveFuels({ corriente: true, extra: false, diesel: false, urea: false })
+      setActiveFuels(INITIAL_ACTIVE_FUELS)
     } catch (err) {
       showToast('Error al enviar. Intenta de nuevo.', 'error')
     } finally {
@@ -184,7 +211,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
               Combustibles disponibles & precios
             </label>
             <div className="space-y-2">
-              {FUEL_ORDER.map((ft) => (
+              {FUEL_ORDER.filter(ft => ft !== 'urea').map((ft) => (
                 <FuelToggle
                   key={ft}
                   fuelType={ft}

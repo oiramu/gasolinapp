@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Navigation, Clock, MapPin, Building2, ArrowUpDown, Fuel } from 'lucide-react'
+import { Search, X, Navigation, Clock, MapPin, Building2, ArrowUpDown, Fuel, Wind } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import FilterSelect from '@/components/FilterSelect'
 import { useAppStore } from '@/store/appStore'
@@ -70,6 +70,8 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
     return () => window.removeEventListener('keydown', handler)
   }, [spotlightOpen, close])
 
+  const isGnvFilter = fuel === 'gnv'
+
   // Filter + sort stations
   const results = (() => {
     let list = stations
@@ -80,6 +82,8 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
         return { ...s, _price: price, _dist: dist }
       })
       .filter(s => {
+        // GNV: solo mostrar estaciones con has_gnv = true
+        if (isGnvFilter && !s.has_gnv) return false
         if (brand !== 'Todas' && s.brand !== brand) return false
         const q = query.toLowerCase()
         if (q && !s.name.toLowerCase().includes(q) && !s.brand?.toLowerCase().includes(q) && !s.address?.toLowerCase().includes(q)) return false
@@ -197,9 +201,19 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
         <div ref={listRef} className="overflow-y-auto flex-1">
           {results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-4">
-              <Search size={28} className="text-gray-700" />
-              <p className="text-gray-500 font-mono text-sm">Sin resultados para "{query}"</p>
-              <p className="text-gray-700 text-xs">Prueba con otro nombre, marca o cambia los filtros</p>
+              {isGnvFilter ? (
+                <>
+                  <Wind size={28} className="text-orange-500/50" />
+                  <p className="text-gray-500 font-mono text-sm">No hay estaciones de Gas{query ? ` para "${query}"` : ' en esta zona'}</p>
+                  <p className="text-gray-700 text-xs">Intenta cambiar los filtros, ampliar la búsqueda o mover el mapa</p>
+                </>
+              ) : (
+                <>
+                  <Search size={28} className="text-gray-700" />
+                  <p className="text-gray-500 font-mono text-sm">Sin resultados para "{query}"</p>
+                  <p className="text-gray-700 text-xs">Prueba con otro nombre, marca o cambia los filtros</p>
+                </>
+              )}
             </div>
           ) : (
             results.map((s, i) => {
@@ -229,7 +243,9 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
                         <div className="text-[15px] font-display font-bold leading-none" style={{ color: cfg?.color }}>
                           {s._price.price.toLocaleString('es-CO')}
                         </div>
-                        <div className="text-[8px] font-mono mt-0.5" style={{ color: cfg?.color + '80' }}>COP</div>
+                        <div className="text-[8px] font-mono mt-0.5" style={{ color: cfg?.color + '80' }}>
+                          {isGnvFilter ? 'm³' : 'COP'}
+                        </div>
                       </>
                     ) : (
                       <span className="text-[11px] font-mono text-gray-700">S/D</span>
@@ -240,6 +256,13 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[13px] font-semibold text-white truncate">{s.name}</span>
+                      {/* Badge Gas disponible cuando el filtro NO es Gas */}
+                      {!isGnvFilter && s.has_gnv && (
+                        <span className="flex-shrink-0 text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ background: '#F9731615', color: '#F97316', border: '1px solid #F9731625' }}>
+                          GAS
+                        </span>
+                      )}
                     </div>
                     <p className="text-[11px] text-gray-500 font-mono">{s.brand}</p>
                     {s.address && (
@@ -273,7 +296,7 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
 
         {/* ── Footer ── */}
         <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 text-[9px] font-mono text-gray-700">
-          <span>{results.length} {results.length === 1 ? 'estación' : 'estaciones'}</span>
+          <span>{results.length} {results.length === 1 ? 'estación' : 'estaciones'}{isGnvFilter ? ' de Gas' : ''}</span>
           <span className="hidden sm:block">↑↓ navegar · ↵ abrir · ESC cerrar</span>
         </div>
       </div>

@@ -7,10 +7,11 @@ import { useAppStore } from '@/store/appStore'
 // Design tokens — single source of truth for marker colors/fonts
 // ─────────────────────────────────────────────────────────────────────────────
 const COLORS = {
-  active:   '#00E5A0',
-  inactive: '#4B5563',
-  surface:  '#111318',
+  active:       '#00E5A0',
+  inactive:     '#4B5563',
+  surface:      '#111318',
   surfaceMuted: '#22272F',
+  gnv:          '#F97316',
 }
 
 const FONT_MONO = '"JetBrains Mono", monospace'
@@ -26,7 +27,7 @@ const FONT_BODY = '"DM Sans", sans-serif'
  * which was causing the "going crazy on hover" jitter bug.
  * Pointer events are only handled by the outer Leaflet marker container.
  */
-function StationPinSVG({ station, latestPrices, hasData, defaultFuelType }) {
+function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed }) {
   // Prefer the user's chosen fuel type, fall back to any available
   const priceObj = latestPrices?.[defaultFuelType]
     || latestPrices?.corriente
@@ -45,8 +46,10 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType }) {
     ? (FUEL_TYPES[defaultFuelType]?.color || COLORS.active)
     : (hasData ? COLORS.active : COLORS.inactive)
 
+  const hasGnv = station.has_gnv === true
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none', opacity: dimmed ? 0.3 : 1, transition: 'opacity 0.2s' }}>
 
       {/* ── Bubble ──────────────────────────────────────────────────────── */}
       <div style={{
@@ -66,6 +69,20 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType }) {
           <path d="M3 22h12" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round"/>
           <rect x="6" y="11" width="5" height="4" rx="1" fill={COLORS.surface} stroke={COLORS.surface} strokeWidth="0.5"/>
         </svg>
+
+        {/* Gas badge — visible siempre que la estación tenga gas */}
+        {hasGnv && (
+          <div style={{
+            position: 'absolute', top: -8, left: -8,
+            background: COLORS.gnv, borderRadius: 4,
+            padding: '1px 4px',
+            fontFamily: FONT_MONO, fontSize: 7, fontWeight: 700,
+            color: '#fff', lineHeight: 1.4,
+            letterSpacing: '0.5px',
+          }}>
+            GAS
+          </div>
+        )}
 
         {/* Price */}
         <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13, color: hasData ? fuelColor : '#9CA3AF', lineHeight: 1 }}>
@@ -108,10 +125,13 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType }) {
 export function createStationIcon(station) {
   const latestPrices    = getLatestPrices(station.fuel_prices)
   const hasData         = hasReportedPrices(station)
-  const defaultFuelType = useAppStore.getState().defaultFuelType
+  const { defaultFuelType } = useAppStore.getState()
+
+  // Cuando el filtro activo es GNV, atenuar estaciones sin GNV
+  const dimmed = defaultFuelType === 'gnv' && station.has_gnv !== true
 
   return L.divIcon({
-    html:        renderToStaticMarkup(<StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} defaultFuelType={defaultFuelType} />),
+    html:        renderToStaticMarkup(<StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} defaultFuelType={defaultFuelType} dimmed={dimmed} />),
     className:   '',          // remove Leaflet's default white background
     iconSize:    [62, 48],
     iconAnchor:  [31, 48],    // bottom-center of the pin
