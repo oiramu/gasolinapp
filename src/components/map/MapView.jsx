@@ -60,6 +60,16 @@ function MapController({ mapRef }) {
   return null
 }
 
+// ── Internal: fires bounds immediately on first mount ──────────────────
+function MapInitializer({ onBoundsChange }) {
+  const map = useMap()
+  useEffect(() => {
+    onBoundsChange?.(map.getBounds())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])  // intentionally runs once on mount
+  return null
+}
+
 // ── Memoized station marker — avoids re-render when unrelated state changes ──
 const StationMarker = memo(function StationMarker({ station, setSelectedStation }) {
   const icon = useMemo(() => createStationIcon(station), [
@@ -142,6 +152,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
           maxZoom={MAP_MAX_ZOOM}
         />
 
+        <MapInitializer onBoundsChange={(b) => { onBoundsChange?.(b); setBounds(b) }} />
         <MapEventsWatcher
           onZoomChange={setMapZoom}
           onMove={() => {}}
