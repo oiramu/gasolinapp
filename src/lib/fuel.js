@@ -70,7 +70,7 @@ export function formatPrice(price, fuelType, unit) {
 export const FUEL_PRICE_RANGES = {
   corriente: { min: 12000, max: 20000 },
   extra:     { min: 13000, max: 22000 },
-  diesel:    { min: 11000, max: 19000 },
+  diesel:    { min: 9000, max: 19000 },
   urea:      { min: 2000,  max: 10000 },
   gnv:       { min: 1500,  max: 5000  },
 }
