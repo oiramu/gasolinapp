@@ -48,7 +48,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
   if (noGnvInArea) {
     return (
       <div className={cn(
-        "absolute left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300",
+        "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300",
         legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6"
       )}>
         <div
@@ -85,7 +85,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
   return (
     <div
       className={cn(
-        "absolute left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300 ease-out",
+        "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300 ease-out",
         legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6",
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
@@ -98,7 +98,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
 
         <div className="px-4 py-3.5 flex items-center gap-4">
           <div className="flex-shrink-0 text-center">
-            <div className="text-[28px] font-display font-bold leading-none" style={{ color: fuelColor }}>
+            <div className="text-[32px] font-display font-bold leading-none" style={{ color: fuelColor }}>
               {price.price.toLocaleString('es-CO')}
             </div>
             <div className="text-[9px] font-mono uppercase tracking-wider mt-0.5" style={{ color: fuelColor + 'aa' }}>
@@ -121,39 +121,40 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
             </div>
             <p className="text-[13px] font-semibold text-white truncate">{station.name}</p>
             <p className="text-[10px] text-gray-500 font-mono truncate">{station.brand}</p>
+            
             <div className="flex items-center gap-2 mt-1">
               {distance !== null && (
                 <span className="text-[10px] font-mono text-gray-400">{formatDistance(distance)}</span>
               )}
               <span className="text-[10px] font-mono text-gray-600">{formatRelativeTime(price.created_at)}</span>
             </div>
-          </div>
 
-          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] font-mono px-2.5 py-1.5 rounded-lg transition-all hover:brightness-110"
-              style={{ background: fuelColor + '25', color: fuelColor }}
-            >
-              <Navigation size={11} />
-              <span>Llegar</span>
-            </a>
-            <button
-              onClick={() => onSelect(station)}
-              className="flex items-center gap-1 text-[10px] font-mono px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition-all"
-            >
-              <Star size={11} />
-              <span>Ver</span>
-            </button>
-            <button
-              onClick={() => setCalculatorOpen(true, station)}
-              className="flex items-center gap-1 text-[10px] font-mono px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition-all"
-            >
-              <Calculator size={11} />
-              <span>Calcular</span>
-            </button>
+            <div className="flex items-center gap-1.5 mt-3">
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[10px] font-mono px-2.5 py-1.5 rounded-lg transition-all hover:brightness-110"
+                style={{ background: fuelColor + '25', color: fuelColor }}
+              >
+                <Navigation size={11} />
+                <span>Llegar</span>
+              </a>
+              <button
+                onClick={() => setCalculatorOpen(true, station)}
+                className="flex items-center gap-1 text-[10px] font-mono px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
+              >
+                <Calculator size={11} />
+                <span>Calcular</span>
+              </button>
+              <button
+                onClick={() => onSelect(station)}
+                className="flex items-center gap-1 text-[10px] font-mono px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
+              >
+                <Star size={11} />
+                <span>Ver</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
