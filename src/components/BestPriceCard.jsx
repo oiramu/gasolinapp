@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Star, Wind } from 'lucide-react'
+import { Navigation, Clock, Star, Wind, Calculator } from 'lucide-react'
 import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime } from '@/lib/fuel'
+import { useAppStore } from '@/store/appStore'
+import { cn } from '@/lib/utils'
 
 function formatDistance(meters) {
   if (!meters && meters !== 0) return null
@@ -21,6 +23,7 @@ const SIX_HOURS = 6 * 60 * 60 * 1000
 export default function BestPriceCard({ station, fuelType, userPos, onSelect, allStations }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
+  const { setCalculatorOpen, legendOpen } = useAppStore()
 
   const fuelConfig = FUEL_TYPES[fuelType]
   const fuelColor  = fuelConfig?.color || '#00E5A0'
@@ -44,7 +47,10 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
 
   if (noGnvInArea) {
     return (
-      <div className="absolute bottom-[256px] sm:bottom-6 left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0">
+      <div className={cn(
+        "absolute left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300",
+        legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6"
+      )}>
         <div
           className="bg-surface-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           style={{ borderColor: fuelColor + '30' }}
@@ -78,9 +84,11 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
 
   return (
     <div
-      className={`absolute bottom-[256px] sm:bottom-6 left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300 ease-out ${
+      className={cn(
+        "absolute left-1/2 -translate-x-1/2 z-[450] w-full max-w-[340px] sm:max-w-[400px] px-4 sm:px-0 transition-all duration-300 ease-out",
+        legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6",
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-      }`}
+      )}
     >
       <div
         className="bg-surface-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
@@ -121,7 +129,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
             <a
               href={mapsUrl}
               target="_blank"
@@ -138,6 +146,13 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
             >
               <Star size={11} />
               <span>Ver</span>
+            </button>
+            <button
+              onClick={() => setCalculatorOpen(true, station)}
+              className="flex items-center gap-1 text-[10px] font-mono px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition-all"
+            >
+              <Calculator size={11} />
+              <span>Calcular</span>
             </button>
           </div>
         </div>

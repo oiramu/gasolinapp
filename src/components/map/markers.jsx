@@ -17,6 +17,16 @@ const COLORS = {
 const FONT_MONO = '"JetBrains Mono", monospace'
 const FONT_BODY = '"DM Sans", sans-serif'
 
+// ── Icon HTML cache ───────────────────────────────────────────────────────────────
+const stationIconCache = new Map()
+const zoneIconCache    = new Map()
+
+/** Call when defaultFuelType changes to force icon re-renders. */
+export function clearIconCache() {
+  stationIconCache.clear()
+  zoneIconCache.clear()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Station pin — rendered to static HTML for Leaflet DivIcon
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,18 +133,24 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
 
 /** Creates a Leaflet icon for a single gas station. */
 export function createStationIcon(station) {
-  const latestPrices    = getLatestPrices(station.fuel_prices)
-  const hasData         = hasReportedPrices(station)
   const { defaultFuelType } = useAppStore.getState()
+  const cacheKey = `${station.id}:${defaultFuelType}:${station.fuel_prices?.length ?? 0}`
 
-  // Cuando el filtro activo es GNV, atenuar estaciones sin GNV
-  const dimmed = defaultFuelType === 'gnv' && station.has_gnv !== true
+  if (!stationIconCache.has(cacheKey)) {
+    const latestPrices = getLatestPrices(station.fuel_prices)
+    const hasData      = hasReportedPrices(station)
+    const dimmed       = defaultFuelType === 'gnv' && station.has_gnv !== true
+
+    stationIconCache.set(cacheKey, renderToStaticMarkup(
+      <StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} defaultFuelType={defaultFuelType} dimmed={dimmed} />
+    ))
+  }
 
   return L.divIcon({
-    html:        renderToStaticMarkup(<StationPinSVG station={station} latestPrices={latestPrices} hasData={hasData} defaultFuelType={defaultFuelType} dimmed={dimmed} />),
-    className:   '',          // remove Leaflet's default white background
+    html:        stationIconCache.get(cacheKey),
+    className:   '',
     iconSize:    [62, 48],
-    iconAnchor:  [31, 48],    // bottom-center of the pin
+    iconAnchor:  [31, 48],
     popupAnchor: [0, -50],
   })
 }
@@ -142,30 +158,36 @@ export function createStationIcon(station) {
 /** Creates a Leaflet icon for a zone cluster (shown at low zoom). */
 export function createZoneIcon(zone) {
   const defaultFuelType = useAppStore.getState().defaultFuelType
+  const avgKey          = `avg_${defaultFuelType}`
+  const avgPrice        = zone[avgKey] ?? zone.avg_corriente
+  const cacheKey        = `${zone.id}:${defaultFuelType}:${avgPrice}`
 
-  // avg price for the selected fuel type
-  const avgKey   = `avg_${defaultFuelType}`
-  const avgPrice = zone[avgKey] ?? zone.avg_corriente
-  const fuelColor = FUEL_TYPES[defaultFuelType]?.color || COLORS.active
+  if (!zoneIconCache.has(cacheKey)) {
+    const fuelColor = FUEL_TYPES[defaultFuelType]?.color || COLORS.active
+    zoneIconCache.set(cacheKey, renderToStaticMarkup(
+      <div style={{
+        background: COLORS.surface, border: `2px solid ${fuelColor}`,
+        borderRadius: 14, padding: '8px 14px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+        boxShadow: `0 6px 24px ${fuelColor}4D`,
+        pointerEvents: 'none',
+      }}>
+        <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 15, color: fuelColor, lineHeight: 1 }}>
+          {avgPrice ? `$${Math.round(avgPrice)}` : 'S/D'}
+        </span>
+        <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          {zone.name} · {zone.station_count} est.
+        </span>
+      </div>
+    ))
+  }
 
-  const html = renderToStaticMarkup(
-    <div style={{
-      background: COLORS.surface, border: `2px solid ${fuelColor}`,
-      borderRadius: 14, padding: '8px 14px',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-      boxShadow: `0 6px 24px ${fuelColor}4D`,
-      pointerEvents: 'none',  // let Leaflet own all events
-    }}>
-      <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 15, color: fuelColor, lineHeight: 1 }}>
-        {avgPrice ? `$${Math.round(avgPrice)}` : 'S/D'}
-      </span>
-      <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-        {zone.name} · {zone.station_count} est.
-      </span>
-    </div>
-  )
-
-  return L.divIcon({ html, className: '', iconSize: [90, 44], iconAnchor: [45, 22] })
+  return L.divIcon({
+    html:      zoneIconCache.get(cacheKey),
+    className: '',
+    iconSize:  [90, 44],
+    iconAnchor:[45, 22]
+  })
 }
 
 /** Pulsing dot for the user's current GPS position — app green palette. */

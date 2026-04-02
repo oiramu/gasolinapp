@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import {
   Fuel, MapPin, ThumbsUp, ThumbsDown, Plus, X,
   AlertTriangle, Clock, Tag, MessageSquare, ChevronRight,
-  Droplets, Zap, Star, RefreshCw, Info, Wind,
+  Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS } from '@/lib/fuel'
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
+import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
 
 const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 const REPORT_ICONS = { price: Tag, promotion: Star, warning: AlertTriangle, comment: MessageSquare, correction: Info }
@@ -135,9 +136,11 @@ function ReportItem({ report, onVote }) {
 }
 
 export default function StationPanel({ station, zoneData, onRefetch }) {
-  const { setPanelOpen, setReportModalOpen } = useAppStore()
+  const { setPanelOpen, setReportModalOpen, defaultFuelType } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
+
+  const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'
 
   if (!station) return null
 
@@ -189,51 +192,92 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
         )}
       </div>
 
-      {/* ── Fuel prices grid ───────────────────────────── */}
-      <div className="p-4 pb-0 grid grid-cols-2 gap-2">
-        {FUEL_ORDER.map((ft) => {
-          let zoneAvg = null
-          if (ft === 'diesel')    zoneAvg = zoneData?.avg_diesel
-          else if (ft === 'extra')     zoneAvg = zoneData?.avg_extra
-          else if (ft === 'corriente') zoneAvg = zoneData?.avg_corriente
-          else if (ft === 'gnv')       zoneAvg = zoneData?.avg_gnv
-
-          return (
-            <FuelCard
-              key={ft}
-              fuelType={ft}
-              priceData={latestPrices[ft]}
-              zoneAvg={hasData ? null : zoneAvg}
-              hasData={hasData}
-            />
-          )
-        })}
+      {/* ── Tabs Navigation ── */}
+      <div className="flex px-4 pt-1 pb-0 border-b border-white/5 flex-shrink-0">
+        <button
+          onClick={() => setActiveTab('precios')}
+          className={cn(
+            "flex-1 flex justify-center items-center gap-2 pb-3 pt-3 border-b-[3px] text-[11px] uppercase tracking-wider font-mono transition-all",
+            activeTab === 'precios' ? "border-fuel-500 text-fuel-500" : "border-transparent text-gray-500 hover:text-gray-300"
+          )}
+        >
+          <List size={14} />
+          Precios y reportes
+        </button>
+        <button
+          onClick={() => setActiveTab('historial')}
+          className={cn(
+            "flex-1 flex justify-center items-center gap-2 pb-3 pt-3 border-b-[3px] text-[11px] uppercase tracking-wider font-mono transition-all",
+            activeTab === 'historial' ? "border-fuel-500 text-fuel-500" : "border-transparent text-gray-500 hover:text-gray-300"
+          )}
+        >
+          <BarChart2 size={14} />
+          Historial
+        </button>
       </div>
 
-      {/* ── Reports section ────────────────────────────── */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[11px] uppercase tracking-wider text-gray-500 font-mono">
-            Reportes ({station.reports?.length || 0})
-          </h3>
-        </div>
+      {/* ── Tab Content Area ── */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'precios' ? (
+          <>
+            {/* ── Fuel prices grid ───────────────────────────── */}
+            <div className="p-4 grid grid-cols-2 auto-rows-fr gap-2">
+              {FUEL_ORDER.map((ft) => {
+                let zoneAvg = null
+                if (ft === 'diesel')    zoneAvg = zoneData?.avg_diesel
+                else if (ft === 'extra')     zoneAvg = zoneData?.avg_extra
+                else if (ft === 'corriente') zoneAvg = zoneData?.avg_corriente
+                else if (ft === 'gnv')       zoneAvg = zoneData?.avg_gnv
 
-        {station.reports?.length > 0 ? (
-          station.reports.map((report) => (
-            <ReportItem
-              key={report.id}
-              report={report}
-              onVote={async ({ reportId, voteType }) => {
-                await voteOnReport({ reportId, voteType })
-                onRefetch?.()
-              }}
-            />
-          ))
+                return (
+                  <FuelCard
+                    key={ft}
+                    fuelType={ft}
+                    priceData={latestPrices[ft]}
+                    zoneAvg={hasData ? null : zoneAvg}
+                    hasData={hasData}
+                  />
+                )
+              })}
+            </div>
+
+            {/* ── Reports section ────────────────────────────── */}
+            <div className="p-4 pt-0">
+              <div className="flex items-center justify-between mt-2 mb-3">
+                <h3 className="text-[11px] uppercase tracking-wider text-gray-500 font-mono">
+                  Reportes comunitarios ({station.reports?.length || 0})
+                </h3>
+              </div>
+
+              {station.reports?.length > 0 ? (
+                <div className="space-y-2.5">
+                  {station.reports.map((report) => (
+                    <ReportItem
+                      key={report.id}
+                      report={report}
+                      onVote={async ({ reportId, voteType }) => {
+                        await voteOnReport({ reportId, voteType })
+                        onRefetch?.()
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center py-6 gap-2 text-center">
+                  <MessageSquare size={28} className="text-gray-700 mb-1" />
+                  <p className="text-[12px] text-gray-500">Nadie ha reportado aún.</p>
+                  <p className="text-[11px] text-gray-700">¡Sé el primero en reportar el precio!</p>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
-          <div className="flex flex-col items-center py-6 gap-2 text-center">
-            <MessageSquare size={28} className="text-gray-700" />
-            <p className="text-[12px] text-gray-600">Nadie ha reportado aún.</p>
-            <p className="text-[11px] text-gray-700">¡Sé el primero en reportar el precio!</p>
+          /* ── Price History ───────────────────────────────── */
+          <div className="p-4 pt-6">
+            <PriceHistoryChart
+              stationId={station.id}
+              initialFuelType={defaultFuelType}
+            />
           </div>
         )}
       </div>

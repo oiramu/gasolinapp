@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { clearIconCache } from '@/components/map/markers'
 
 const STORAGE_KEY = 'gasolinapp_prefs'
 
@@ -40,13 +41,23 @@ export const useAppStore = create((set, get) => ({
   settingsModalOpen: false,
   setSettingsModalOpen: (open) => set({ settingsModalOpen: open }),
 
+  // Tank calculator modal
+  calculatorOpen: false,
+  calculatorStation: null,
+  setCalculatorOpen: (open, station = null) => set({ calculatorOpen: open, calculatorStation: station }),
+
   // Spotlight modal
   spotlightOpen: false,
   setSpotlightOpen: (open) => set({ spotlightOpen: open }),
 
+  // Map Legend (Visor)
+  legendOpen: window.innerWidth >= 640,
+  setLegendOpen: (open) => set({ legendOpen: open }),
+
   // User preferences
   defaultFuelType: savedPrefs.defaultFuelType ?? 'corriente',
   setDefaultFuelType: (ft) => {
+    clearIconCache()
     savePrefs({ ...loadPrefs(), defaultFuelType: ft })
     set({ defaultFuelType: ft })
   },

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
 import { Locate, LocateFixed, Plus, Minus } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
@@ -60,14 +60,49 @@ function MapController({ mapRef }) {
   return null
 }
 
+// ── Memoized station marker — avoids re-render when unrelated state changes ──
+const StationMarker = memo(function StationMarker({ station, setSelectedStation }) {
+  const icon = useMemo(() => createStationIcon(station), [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    station.id, station.fuel_prices,
+    useAppStore.getState().defaultFuelType,
+  ])
+  // useCallback here is valid — called at component level, not inside .map()
+  const handleClick = useCallback(() => setSelectedStation(station), [station, setSelectedStation])
+
+  return (
+    <Marker
+      position={[station.lat, station.lng]}
+      icon={icon}
+      eventHandlers={{ click: handleClick }}
+    />
+  )
+})
+
+
 // ── Main MapView ─────────────────────────────────────────────────────────────
 export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBoundsChange }) {
   const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType } = useAppStore()
   const mapRef       = useRef(null)
+  const [bounds, setBounds] = useState(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
   const [isLocked, setIsLocked] = useState(false)
   const [fabHover, setFabHover] = useState(false)
   const fuelColor = FUEL_TYPES[defaultFuelType]?.color || '#00E5A0'
+
+  // ── Viewport culling: only render stations inside current map bounds + buffer ──
+  const BUFFER_DEG = 0.01  // ~1km buffer to avoid pop-in at edges
+  const visibleStations = useMemo(() => {
+    if (!bounds || showClusters) return stations
+    const ne = bounds.getNorthEast()
+    const sw = bounds.getSouthWest()
+    return stations.filter(s =>
+      s.lat <= ne.lat + BUFFER_DEG &&
+      s.lat >= sw.lat - BUFFER_DEG &&
+      s.lng <= ne.lng + BUFFER_DEG &&
+      s.lng >= sw.lng - BUFFER_DEG
+    )
+  }, [bounds, stations, showClusters])
 
   // Fly to user on first GPS fix at driving zoom
   const handleFirstFix = useCallback(({ lat, lng }) => {
@@ -109,11 +144,11 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
 
         <MapEventsWatcher
           onZoomChange={setMapZoom}
-          onMove={() => {}} // No longer needing passive distance check
+          onMove={() => {}}
           onMoveStart={onMoveStart}
           onMoveEnd={onMoveEnd}
-          onBoundsChange={onBoundsChange}
-          onDragStart={() => setIsLocked(false)} // Lock breaks on manual drag
+          onBoundsChange={(b) => { onBoundsChange?.(b); setBounds(b) }}
+          onDragStart={() => setIsLocked(false)}
         />
         <MapSync />
         <MapController mapRef={mapRef} />
@@ -152,12 +187,11 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
         ))}
 
         {/* ── Individual stations — visible at high zoom ───────────────── */}
-        {!showClusters && stations.map((station) => (
-          <Marker
+        {!showClusters && visibleStations.map((station) => (
+          <StationMarker
             key={station.id}
-            position={[station.lat, station.lng]}
-            icon={createStationIcon(station)}
-            eventHandlers={{ click: () => setSelectedStation(station) }}
+            station={station}
+            setSelectedStation={setSelectedStation}
           />
         ))}
       </MapContainer>

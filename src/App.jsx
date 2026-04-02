@@ -10,6 +10,7 @@ import StationPanel from '@/components/panels/StationPanel'
 import ReportPriceModal from '@/components/modals/ReportPriceModal'
 import SettingsModal from '@/components/modals/SettingsModal'
 import SpotlightModal from '@/components/modals/SpotlightModal'
+import TankCalculatorModal from '@/components/modals/TankCalculatorModal'
 import MapLegend from '@/components/MapLegend'
 import FilterChips from '@/components/FilterChips'
 import BestPriceCard from '@/components/BestPriceCard'
@@ -209,6 +210,7 @@ export default function App() {
         userPos={userPos}
         onSelect={(s) => setSelectedStation(s)}
       />
+      <TankCalculatorModal />
       <Toast />
     </div>
   )

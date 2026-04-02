@@ -1,10 +1,11 @@
-import { Wifi, WifiOff, Fuel, Camera } from 'lucide-react'
+import { Wifi, WifiOff, Fuel, Camera, ChevronDown } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES } from '@/lib/fuel'
 import { MAP_CLUSTER_ZOOM_THRESHOLD } from '@/config/map'
+import { cn } from '@/lib/utils'
 
 export default function MapLegend({ loading, realtimeConnected = true }) {
-  const { defaultFuelType, mapZoom, setMapZoom, setSettingsModalOpen } = useAppStore()
+  const { defaultFuelType, mapZoom, setMapZoom, setSettingsModalOpen, legendOpen, setLegendOpen } = useAppStore()
   const fuelConfig = FUEL_TYPES[defaultFuelType]
   const fuelColor = fuelConfig?.color || '#00E5A0'
   const isClusterMode = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
@@ -21,29 +22,43 @@ export default function MapLegend({ loading, realtimeConnected = true }) {
     <div className="absolute bottom-6 left-4 z-[400] w-[256px] bg-surface-card/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
       
       {/* ── Header: Title & Realtime Status ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white/5">
+      <button
+        onClick={() => setLegendOpen(!legendOpen)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+      >
         <p className="text-[10px] uppercase tracking-[0.15em] text-gray-400 font-mono font-bold">
           Visor
         </p>
-        
-        {realtimeConnected ? (
-          <div className="flex items-center gap-1.5 text-[10px] font-mono font-medium" style={{ color: fuelColor }}>
-            <span className="relative flex h-2 w-2 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full rounded-full opacity-40 animate-ping" style={{ backgroundColor: fuelColor }} />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: fuelColor }} />
-            </span>
-            <span>En vivo</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 text-[10px] text-red-400 font-mono font-medium">
-            <WifiOff size={11} />
-            <span>Sin datos</span>
-          </div>
-        )}
-      </div>
 
-      {/* ── Body: Status & Legend ── */}
-      <div className="px-4 py-3.5 space-y-4">
+        <div className="flex items-center gap-2.5">
+          {realtimeConnected ? (
+            <div className="flex items-center gap-1.5 text-[10px] font-mono font-medium" style={{ color: fuelColor }}>
+              <span className="relative flex h-2 w-2 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full rounded-full opacity-40 animate-ping" style={{ backgroundColor: fuelColor }} />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: fuelColor }} />
+              </span>
+              <span>En vivo</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[10px] text-red-400 font-mono font-medium">
+              <WifiOff size={11} />
+              <span>Sin datos</span>
+            </div>
+          )}
+          <ChevronDown 
+            size={14} 
+            className={cn("text-gray-500 transition-transform duration-300", legendOpen && "rotate-180")} 
+          />
+        </div>
+      </button>
+
+      {/* ── Body: Status & Legend (Collapsible) ── */}
+      <div className={cn(
+        "grid transition-all duration-300",
+        legendOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      )}>
+        <div className="overflow-hidden">
+          <div className="px-4 py-3.5 space-y-4">
         
         {/* Active Settings (Fuel & Zoom Mode) */}
         <div className="flex items-center gap-2">
@@ -89,9 +104,10 @@ export default function MapLegend({ loading, realtimeConnected = true }) {
             <div className="w-3.5 h-3.5 rounded-md border-2 border-gray-600 flex-shrink-0" />
             <span>Sin datos</span>
           </div>
+          </div>
         </div>
-
       </div>
+    </div>
     </div>
   )
 }
