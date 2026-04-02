@@ -19,7 +19,7 @@ import {
 const DRIVING_ZOOM = 16
 
 // ── Internal: listens to map events and updates store/state ─────────────────
-function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoundsChange }) {
+function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoundsChange, onDragStart }) {
   useMapEvents({
     movestart: () => onMoveStart?.(),
     moveend: (e) => {
@@ -32,6 +32,7 @@ function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoun
     },
     move: (e) => onMove(e.target.getCenter()),
     click: () => useAppStore.getState().setPanelOpen(false),
+    dragstart: () => onDragStart?.(),
   })
   return null
 }
@@ -64,31 +65,31 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
   const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType } = useAppStore()
   const mapRef       = useRef(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
-  const [isCentered, setIsCentered] = useState(false)
-  const [fabHover, setFabHover]     = useState(false)
+  const [isLocked, setIsLocked] = useState(false)
+  const [fabHover, setFabHover] = useState(false)
   const fuelColor = FUEL_TYPES[defaultFuelType]?.color || '#00E5A0'
 
   // Fly to user on first GPS fix at driving zoom
   const handleFirstFix = useCallback(({ lat, lng }) => {
     if (mapRef.current) {
       mapRef.current.flyTo([lat, lng], DRIVING_ZOOM, { duration: 1.2 })
-      setIsCentered(true)
+      setIsLocked(true)
     }
   }, [])
 
   const { position: userPos } = useGeolocation({ onFirstFix: handleFirstFix })
 
-  const handleMapMove = useCallback((center) => {
-    if (!userPos || !mapRef.current) return
-    const distance = mapRef.current.distance(center, [userPos.lat, userPos.lng])
-    const currentlyCentered = distance < 20 // 20 meters tolerance
-    setIsCentered((prev) => (prev !== currentlyCentered ? currentlyCentered : prev))
-  }, [userPos])
+  // ── Lock-on Logic: Follow user if locked ─────────────────────────────────────
+  useEffect(() => {
+    if (isLocked && userPos && mapRef.current) {
+      mapRef.current.panTo([userPos.lat, userPos.lng], { animate: true })
+    }
+  }, [userPos, isLocked])
 
   const locateUser = () => {
     if (userPos && mapRef.current) {
       mapRef.current.flyTo([userPos.lat, userPos.lng], DRIVING_ZOOM, { duration: 0.8 })
-      setIsCentered(true)
+      setIsLocked(true)
     }
   }
 
@@ -108,10 +109,11 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
 
         <MapEventsWatcher
           onZoomChange={setMapZoom}
-          onMove={handleMapMove}
+          onMove={() => {}} // No longer needing passive distance check
           onMoveStart={onMoveStart}
           onMoveEnd={onMoveEnd}
           onBoundsChange={onBoundsChange}
+          onDragStart={() => setIsLocked(false)} // Lock breaks on manual drag
         />
         <MapSync />
         <MapController mapRef={mapRef} />
@@ -187,13 +189,13 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
             title="Ir a mi ubicación"
             onMouseEnter={() => setFabHover(true)}
             onMouseLeave={() => setFabHover(false)}
-            style={{ color: isCentered || fabHover ? fuelColor : undefined }}
+            style={{ color: isLocked || fabHover ? fuelColor : undefined }}
             className={cn(
               "w-10 h-10 rounded-full border shadow-lg flex items-center justify-center transition-all bg-surface-card hover:bg-surface-muted",
-              isCentered ? "border-fuel-500/40" : "border-white/10 text-gray-500"
+              isLocked ? "border-fuel-500/40" : "border-white/10 text-gray-500"
             )}
           >
-            {isCentered ? <LocateFixed size={18} /> : <Locate size={18} />}
+            {isLocked ? <LocateFixed size={18} /> : <Locate size={18} />}
           </button>
         )}
       </div>
