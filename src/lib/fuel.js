@@ -37,6 +37,14 @@ export function getFuelLabel(fuelType) {
 
 // ── Helper de formato de precios ──────────────────────────────────────────────
 
+export function formatPriceValue(price, fractionDigits = 0) {
+  if (price === null || price === undefined) return '0'
+  return Number(price).toLocaleString('de-DE', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  })
+}
+
 /**
  * Formatea un precio para mostrar en UI, incluyendo la unidad correcta.
  *
@@ -46,8 +54,8 @@ export function getFuelLabel(fuelType) {
  * @returns {string}
  *
  * @example
- * formatPrice(2500, 'gnv')          // "$2.500/m³"
- * formatPrice(15000, 'corriente')   // "$15.000/gal"
+ * formatPrice(2500, 'gnv')          // "$2.500,00/m³"
+ * formatPrice(15000, 'corriente')   // "$15.000,00/gal"
  * formatPrice(null, 'extra')        // "Sin reporte"
  */
 export function formatPrice(price, fuelType, unit) {
@@ -56,7 +64,7 @@ export function formatPrice(price, fuelType, unit) {
   const resolvedUnit = unit ?? getFuelUnit(fuelType)
   const unitLabel    = resolvedUnit === 'm3' ? '/m³' : '/gal'
 
-  return `$${Number(price).toLocaleString('es-CO')}${unitLabel}`
+  return `$${formatPriceValue(price)}${unitLabel}`
 }
 
 // ── Rangos de validación por tipo (COP) ───────────────────────────────────────
@@ -69,7 +77,7 @@ export function formatPrice(price, fuelType, unit) {
  */
 export const FUEL_PRICE_RANGES = {
   corriente: { min: 12000, max: 20000 },
-  extra:     { min: 13000, max: 22000 },
+  extra:     { min: 13000, max: 25000 },
   diesel:    { min: 9000, max: 19000 },
   urea:      { min: 2000,  max: 10000 },
   gnv:       { min: 1500,  max: 5000  },

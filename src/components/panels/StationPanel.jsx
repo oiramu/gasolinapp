@@ -5,7 +5,7 @@ import {
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS, formatPriceValue } from '@/lib/fuel'
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
@@ -42,7 +42,7 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
       {priceData ? (
         <>
           <span className="font-display font-bold text-2xl leading-none" style={{ color: config.color }}>
-            ${priceData.price.toFixed(2)}
+            ${formatPriceValue(priceData.price)}
           </span>
           <div className="flex items-center gap-1 mt-0.5">
             <Clock size={9} className="text-gray-600" />
@@ -55,7 +55,7 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
         <div className="flex flex-col gap-0.5">
           {zoneAvg && (
             <span className="font-display font-bold text-xl text-gray-500 leading-none">
-              ${zoneAvg.toFixed(2)}
+              ${formatPriceValue(zoneAvg)}
               <span className="text-xs font-body text-gray-600 ml-1">est.</span>
             </span>
           )}

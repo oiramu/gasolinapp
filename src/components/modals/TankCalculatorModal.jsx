@@ -7,7 +7,7 @@ import {
 import { useAppStore } from '@/store/appStore'
 import {
   FUEL_TYPES, FUEL_ORDER, getLatestPrices,
-  formatPrice, getFuelUnitLabel, getFuelUnit
+  formatPrice, getFuelUnitLabel, getFuelUnit, formatPriceValue
 } from '@/lib/fuel'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -42,7 +42,7 @@ const FUEL_CHIPS_LIST = FUEL_ORDER.filter(f => f !== 'urea')
 // ── Formateador de pesos COP ──────────────────────────────────────────────────
 function fmtCOP(n) {
   if (!n && n !== 0) return '—'
-  return `$${Math.round(n).toLocaleString('es-CO')}`
+  return `$${formatPriceValue(n, 0)}`
 }
 
 // ── Hook: precio histórico (≈30 días atrás) ───────────────────────────────────

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigation, Clock, Star, Wind, Calculator } from 'lucide-react'
-import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime } from '@/lib/fuel'
+import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
 
@@ -99,7 +99,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
         <div className="px-4 py-3.5 flex items-center gap-4">
           <div className="flex-shrink-0 text-center">
             <div className="text-[32px] font-display font-bold leading-none" style={{ color: fuelColor }}>
-              {price.price.toLocaleString('es-CO')}
+              {formatPriceValue(price.price)}
             </div>
             <div className="text-[9px] font-mono uppercase tracking-wider mt-0.5" style={{ color: fuelColor + 'aa' }}>
               {isGnv ? 'COP / m³' : 'COP / gal'}

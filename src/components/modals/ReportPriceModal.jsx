@@ -4,7 +4,7 @@ import {
   Send, User, MessageSquare, ChevronDown, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier, formatPriceValue } from '@/lib/fuel'
 import { submitPriceReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
@@ -95,7 +95,7 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
             <div className="flex items-start gap-1.5 mt-2 p-2 rounded-lg bg-amber-400/8 border border-amber-400/20">
               <AlertTriangle size={11} className="text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-[10px] text-amber-300/80 leading-relaxed">
-                ¿Estás seguro de este precio? Parece inusual para {config.label} (esperado {range.min.toLocaleString('es-CO')}–{range.max.toLocaleString('es-CO')} COP/{unitLabel}).
+                ¿Estás seguro de este precio? Parece inusual para {config.label} (esperado {formatPriceValue(range.min, 0)}–{formatPriceValue(range.max, 0)} COP/{unitLabel}).
               </p>
             </div>
           )}

@@ -3,7 +3,7 @@ import { Search, X, Navigation, Clock, MapPin, Building2, ArrowUpDown, Fuel, Win
 import { createPortal } from 'react-dom'
 import FilterSelect from '@/components/FilterSelect'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, formatRelativeTime } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
 
 const FUEL_OPTIONS = FUEL_ORDER.filter(f => f !== 'urea')
 const BRANDS = ['Todas', 'Terpel', 'Biomax', 'Primax', 'Shell', 'Mobil', 'EDS', 'Petrobras', 'Gulf']
@@ -241,7 +241,7 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
                     {s._price ? (
                       <>
                         <div className="text-[15px] font-display font-bold leading-none" style={{ color: cfg?.color }}>
-                          {s._price.price.toLocaleString('es-CO')}
+                          {formatPriceValue(s._price.price)}
                         </div>
                         <div className="text-[8px] font-mono mt-0.5" style={{ color: cfg?.color + '80' }}>
                           {isGnvFilter ? 'm³' : 'COP'}

@@ -7,7 +7,7 @@ import { TrendingUp, TrendingDown, Minus, MessageSquare, BarChart2, Plus, Fuel, 
 import FilterSelect from '@/components/FilterSelect'
 import { supabase } from '@/lib/supabase'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, formatPrice, getFuelUnitLabel } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, formatPrice, getFuelUnitLabel, formatPriceValue } from '@/lib/fuel'
 import { format, subDays, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ const FUEL_CHIPS = FUEL_ORDER.filter(f => f !== 'urea')
 // ── Formatters ────────────────────────────────────────────────────────────────
 function fmtAxisPrice(val) {
   if (!val && val !== 0) return ''
-  return `$${Number(val).toLocaleString('es-CO')}`
+  return `$${formatPriceValue(val)}`
 }
 
 function fmtAxisDate(val) {
