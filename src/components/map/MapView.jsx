@@ -92,7 +92,7 @@ const StationMarker = memo(function StationMarker({ station, setSelectedStation 
 
 // ── Main MapView ─────────────────────────────────────────────────────────────
 export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBoundsChange }) {
-  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType } = useAppStore()
+  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType, activeBrand, filterByFavorite, favoriteStationId, setVisibleBrands } = useAppStore()
   const mapRef       = useRef(null)
   const [bounds, setBounds] = useState(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
@@ -103,16 +103,46 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
   // ── Viewport culling: only render stations inside current map bounds + buffer ──
   const BUFFER_DEG = 0.01  // ~1km buffer to avoid pop-in at edges
   const visibleStations = useMemo(() => {
-    if (!bounds || showClusters) return stations
+    let filtered = stations
+
+    if (filterByFavorite && favoriteStationId) {
+      filtered = filtered.filter(s => s.id === favoriteStationId)
+    } else if (activeBrand && activeBrand !== 'Todas') {
+      filtered = filtered.filter(s => s.brand === activeBrand)
+    }
+
+    if (!bounds || showClusters) return filtered
+
     const ne = bounds.getNorthEast()
     const sw = bounds.getSouthWest()
-    return stations.filter(s =>
+    
+    const visibleTokens = filtered.filter(s =>
       s.lat <= ne.lat + BUFFER_DEG &&
       s.lat >= sw.lat - BUFFER_DEG &&
       s.lng <= ne.lng + BUFFER_DEG &&
       s.lng >= sw.lng - BUFFER_DEG
     )
-  }, [bounds, stations, showClusters])
+    
+    return visibleTokens
+  }, [bounds, stations, showClusters, activeBrand, filterByFavorite, favoriteStationId])
+
+  // Extract dynamically visible brands from the bounds
+  useEffect(() => {
+    if (showClusters || !bounds) {
+      setVisibleBrands([])
+      return
+    }
+    const ne = bounds.getNorthEast()
+    const sw = bounds.getSouthWest()
+    
+    const inBounds = stations.filter(s =>
+      s.lat <= ne.lat && s.lat >= sw.lat &&
+      s.lng <= ne.lng && s.lng >= sw.lng
+    )
+    
+    const uniqueBrands = Array.from(new Set(inBounds.map(s => s.brand))).filter(Boolean)
+    setVisibleBrands(uniqueBrands)
+  }, [bounds, stations, showClusters, setVisibleBrands])
 
   // Fly to user on first GPS fix at driving zoom
   const handleFirstFix = useCallback(({ lat, lng }) => {

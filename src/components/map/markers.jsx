@@ -57,6 +57,7 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
     : (hasData ? COLORS.active : COLORS.inactive)
 
   const hasGnv = station.has_gnv === true
+  const isFavorite = station.id === useAppStore.getState().favoriteStationId
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none', opacity: dimmed ? 0.3 : 1, transition: 'opacity 0.2s' }}>
@@ -99,10 +100,17 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
           {displayPrice}
         </span>
 
-        {/* Brand */}
-        <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: fuelColor, opacity: 0.75, lineHeight: 1 }}>
-          {station.brand}
-        </span>
+        {/* Brand & Favorite Star */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: fuelColor, opacity: 0.75, lineHeight: 1 }}>
+            {station.brand}
+          </span>
+          {isFavorite && (
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="#FBBF24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          )}
+        </div>
 
         {/* Fuel type dots */}
         {hasData && fuelCount > 1 && (
@@ -133,8 +141,8 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
 
 /** Creates a Leaflet icon for a single gas station. */
 export function createStationIcon(station) {
-  const { defaultFuelType } = useAppStore.getState()
-  const cacheKey = `${station.id}:${defaultFuelType}:${station.fuel_prices?.length ?? 0}`
+  const { defaultFuelType, favoriteStationId } = useAppStore.getState()
+  const cacheKey = `${station.id}:${defaultFuelType}:${station.fuel_prices?.length ?? 0}:${favoriteStationId === station.id}`
 
   if (!stationIconCache.has(cacheKey)) {
     const latestPrices = getLatestPrices(station.fuel_prices)

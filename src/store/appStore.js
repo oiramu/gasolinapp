@@ -35,7 +35,8 @@ export const useAppStore = create((set, get) => ({
 
   // Report modal
   reportModalOpen: false,
-  setReportModalOpen: (open) => set({ reportModalOpen: open }),
+  reportModalPreExpand: false,
+  setReportModalOpen: (open, preExpand = false) => set({ reportModalOpen: open, reportModalPreExpand: preExpand }),
 
   // Settings modal
   settingsModalOpen: false,
@@ -54,12 +55,52 @@ export const useAppStore = create((set, get) => ({
   legendOpen: window.innerWidth >= 640,
   setLegendOpen: (open) => set({ legendOpen: open }),
 
+  // Filters (temporal state)
+  activeBrand: savedPrefs.filterByPreferredBrand ? (savedPrefs.preferredBrand || 'Todas') : 'Todas',
+  setActiveBrand: (brand) => set({ activeBrand: brand }),
+  
+  // Custom brands visibility tracker for the visor dynamically
+  visibleBrands: [],
+  setVisibleBrands: (brands) => set({ visibleBrands: brands }),
+
   // User preferences
   defaultFuelType: savedPrefs.defaultFuelType ?? 'corriente',
+  preferredBrand: savedPrefs.preferredBrand ?? null,
+  favoriteStationId: savedPrefs.favoriteStationId ?? null,
+  filterByPreferredBrand: savedPrefs.filterByPreferredBrand ?? false,
+  filterByFavorite: savedPrefs.filterByFavorite ?? false,
+
   setDefaultFuelType: (ft) => {
     clearIconCache()
     savePrefs({ ...loadPrefs(), defaultFuelType: ft })
     set({ defaultFuelType: ft })
+  },
+  
+  setPreferredBrand: (brand) => {
+    savePrefs({ ...loadPrefs(), preferredBrand: brand })
+    set({ 
+      preferredBrand: brand,
+      activeBrand: brand || 'Todas'
+    })
+  },
+  
+  setFavoriteStationId: (id) => {
+    clearIconCache()
+    savePrefs({ ...loadPrefs(), favoriteStationId: id })
+    set({ favoriteStationId: id })
+  },
+  
+  setFilterByPreferredBrand: (active) => {
+    savePrefs({ ...loadPrefs(), filterByPreferredBrand: active })
+    set({ 
+      filterByPreferredBrand: active,
+      activeBrand: active ? (get().preferredBrand || 'Todas') : 'Todas'
+    })
+  },
+  
+  setFilterByFavorite: (active) => {
+    savePrefs({ ...loadPrefs(), filterByFavorite: active })
+    set({ filterByFavorite: active })
   },
 
   // Toast

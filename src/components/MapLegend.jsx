@@ -1,4 +1,4 @@
-import { Wifi, WifiOff, Fuel, Camera, ChevronDown } from 'lucide-react'
+import { WifiOff, Fuel, Camera, ChevronDown } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES } from '@/lib/fuel'
 import { MAP_CLUSTER_ZOOM_THRESHOLD } from '@/config/map'

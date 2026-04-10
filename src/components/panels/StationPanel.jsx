@@ -8,6 +8,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS, formatPriceValue } from '@/lib/fuel'
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
+import { SERVICES } from '@/lib/services'
 import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
 
 const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
@@ -136,7 +137,7 @@ function ReportItem({ report, onVote }) {
 }
 
 export default function StationPanel({ station, zoneData, onRefetch }) {
-  const { setPanelOpen, setReportModalOpen, defaultFuelType } = useAppStore()
+  const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
 
@@ -145,6 +146,15 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
   if (!station) return null
 
   const brandColor = BRAND_COLORS[station.brand] || '#6B7280'
+  const isFavorite = favoriteStationId === station.id
+
+  const toggleFavorite = () => {
+    if (isFavorite) {
+      setFavoriteStationId(null)
+    } else {
+      setFavoriteStationId(station.id)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full animate-slide-in-right bg-surface-card">
@@ -175,10 +185,23 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
               </div>
             </div>
           </div>
-          <button onClick={() => setPanelOpen(false)}
-            className="text-gray-500 hover:text-white transition-colors p-1 -mt-0.5 -mr-0.5">
-            <X size={16} />
-          </button>
+          <div className="flex gap-1 -mt-0.5 -mr-0.5">
+            <button
+              onClick={toggleFavorite}
+              className={cn(
+                "p-1.5 rounded-lg transition-colors border",
+                isFavorite 
+                  ? "text-amber-400 bg-amber-400/10 border-amber-400/30" 
+                  : "text-gray-500 hover:text-white hover:bg-white/5 border-transparent"
+              )}
+            >
+              <Star size={16} className={isFavorite ? "fill-current" : ""} />
+            </button>
+            <button onClick={() => setPanelOpen(false)}
+              className="text-gray-500 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5 border border-transparent">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* No-data warning */}
@@ -239,6 +262,54 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                   />
                 )
               })}
+            </div>
+
+            {/* ── Services section ───────────────────────────── */}
+            <div className="p-4 pt-2">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[11px] uppercase tracking-wider text-gray-500 font-mono">
+                  Servicios
+                </h3>
+              </div>
+
+              {(() => {
+                const srvcs = SERVICES.filter(s => station?.[s.key] === true)
+                const hasAnyData = srvcs.length > 0
+
+                if (hasAnyData) {
+                  return (
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2 snap-x">
+                      {srvcs.map(confDef => {
+                        const Icon = confDef.icon
+                        return (
+                          <div key={confDef.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fuel-500/10 border border-fuel-500/20 text-fuel-500 snap-start whitespace-nowrap">
+                            <Icon size={12} />
+                            <span className="text-[10px] font-mono font-medium">{confDef.label}</span>
+                          </div>
+                        )
+                      })}
+                      <button
+                        onClick={() => setReportModalOpen(true, true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-muted/30 border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 snap-start whitespace-nowrap transition-colors"
+                      >
+                        <Plus size={12} />
+                        <span className="text-[10px] font-mono font-medium">Agregar</span>
+                      </button>
+                    </div>
+                  )
+                }
+
+                // No data
+                return (
+                  <div className="flex flex-col items-center py-4 text-center rounded-xl border border-white/5 bg-surface-muted/10">
+                    <p className="text-[11px] text-gray-500 mb-2">Sin información de servicios</p>
+                    <button onClick={() => setReportModalOpen(true, true)}
+                      className="text-[10px] font-mono text-fuel-500 border border-fuel-500/30 px-3 py-1.5 rounded-lg hover:bg-fuel-500/10 transition-colors">
+                      Sé el primero en reportar
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* ── Reports section ────────────────────────────── */}

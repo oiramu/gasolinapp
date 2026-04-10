@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Star, Wind, Calculator } from 'lucide-react'
+import { Navigation, Clock, Star, Wind, Calculator, Plus, Landmark } from 'lucide-react'
 import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
+import { SERVICES } from '@/lib/services'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
 
@@ -23,7 +24,7 @@ const SIX_HOURS = 6 * 60 * 60 * 1000
 export default function BestPriceCard({ station, fuelType, userPos, onSelect, allStations }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
-  const { setCalculatorOpen, legendOpen } = useAppStore()
+  const { setCalculatorOpen, legendOpen, setPanelOpen, setSelectedStation } = useAppStore()
 
   const fuelConfig = FUEL_TYPES[fuelType]
   const fuelColor  = fuelConfig?.color || '#00E5A0'
@@ -49,7 +50,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
     return (
       <div className={cn(
         "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300",
-        legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6"
+        legendOpen ? "bottom-[240px] sm:bottom-6" : "bottom-[80px] sm:bottom-6"
       )}>
         <div
           className="bg-surface-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
@@ -86,7 +87,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
     <div
       className={cn(
         "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300 ease-out",
-        legendOpen ? "bottom-[256px] sm:bottom-6" : "bottom-[80px] sm:bottom-6",
+        legendOpen ? "bottom-[240px] sm:bottom-6" : "bottom-[80px] sm:bottom-6",
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
     >
@@ -122,7 +123,40 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
             <p className="text-[13px] font-semibold text-white truncate">{station.name}</p>
             <p className="text-[10px] text-gray-500 font-mono truncate">{station.brand}</p>
             
-            <div className="flex items-center gap-2 mt-1">
+            {/* Services Inline */}
+            {(() => {
+              const activeSrvcs = SERVICES.filter(s => station?.[s.key] === true)
+              const hasAtms = (station?.atm_franquicias || []).length > 0
+              if (activeSrvcs.length === 0 && !hasAtms) return null
+              
+              const items = [ 
+                ...activeSrvcs.map(s => ({ key: s.key, Icon: s.icon })), 
+                ...(hasAtms ? [{ key: 'atm', Icon: Landmark }] : []) 
+              ]
+
+              const MAX_ICONS = 5
+              const display = items.slice(0, MAX_ICONS === items.length ? MAX_ICONS : MAX_ICONS - 1)
+              const overflow = items.length > MAX_ICONS ? items.length - display.length : 0
+
+              return (
+                <div className="flex items-center gap-1.5 mt-1">
+                  {display.map(item => {
+                    const Icon = item.Icon
+                    return <Icon key={item.key} size={13} className="text-gray-400 opacity-70" />
+                  })}
+                  {overflow > 0 && (
+                     <button
+                       onClick={(e) => { e.stopPropagation(); setSelectedStation(station); setPanelOpen(true) }}
+                       className="flex items-center justify-center h-[16px] text-[9px] font-mono font-bold text-gray-400 border border-white/10 rounded px-1.5 ml-0.5 hover:bg-white/5 active:scale-95 transition-all bg-surface-muted/30"
+                     >
+                       +{overflow}
+                     </button>
+                  )}
+                </div>
+              )
+            })()}
+
+            <div className="flex items-center gap-2 mt-1.5">
               {distance !== null && (
                 <span className="text-[10px] font-mono text-gray-400">{formatDistance(distance)}</span>
               )}

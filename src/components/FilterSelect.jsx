@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function FilterSelect({ value, options, onChange, icon: Icon, label, activeColor, className }) {
+export default function FilterSelect({ value, options, onChange, icon: Icon, label, activeColor, className, fullWidth }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -24,16 +24,19 @@ export default function FilterSelect({ value, options, onChange, icon: Icon, lab
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono transition-all border",
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono transition-all border",
           isActive
             ? "bg-white/10 text-white border-white/20"
-            : "text-gray-500 border-white/5 hover:border-white/10"
+            : "text-gray-500 border-white/5 hover:border-white/10",
+          fullWidth && "w-full justify-between"
         )}
         style={isActive && activeColor ? { background: activeColor + '15', color: activeColor, borderColor: activeColor + '30' } : {}}
       >
-        {Icon && <Icon size={12} className="opacity-70" />}
-        <span className="truncate max-w-[80px]">{selectedOption}</span>
-        <ChevronDown size={10} className={cn("transition-transform duration-200", open && "rotate-180")} />
+        <div className="flex items-center gap-1.5 truncate">
+          {Icon && <Icon size={12} className="opacity-70" />}
+          <span className={cn("truncate", !fullWidth && "max-w-[80px]")}>{selectedOption}</span>
+        </div>
+        <ChevronDown size={10} className={cn("transition-transform duration-200 flex-shrink-0", open && "rotate-180")} />
       </button>
 
       {open && (

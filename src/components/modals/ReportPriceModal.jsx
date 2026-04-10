@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   X, Fuel, Zap, Droplets, RefreshCw, Wind,
   Send, User, MessageSquare, ChevronDown, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier, formatPriceValue } from '@/lib/fuel'
+import { SERVICES, SERVICE_CATEGORIES } from '@/lib/services'
 import { submitPriceReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 
@@ -108,23 +109,63 @@ function FuelToggle({ fuelType, active, onToggle, price, onPriceChange }) {
 const INITIAL_ACTIVE_FUELS = { corriente: true, extra: false, diesel: false, urea: false, gnv: false }
 const INITIAL_PRICES       = { corriente: '', extra: '', diesel: '', urea: '', gnv: '' }
 
+function getInitialServicesState(station) {
+  if (!station) return {}
+  const state = {}
+  SERVICES.forEach(s => {
+    if (station[s.key] === true) state[s.key] = true
+    if (station[s.key] === false) state[s.key] = false
+  })
+  return state
+}
+
+
 export default function ReportPriceModal({ station, onSuccess }) {
-  const { reportModalOpen, setReportModalOpen, showToast } = useAppStore()
+  const { reportModalOpen, reportModalPreExpand, setReportModalOpen, showToast } = useAppStore()
 
   const [activeFuels, setActiveFuels] = useState(INITIAL_ACTIVE_FUELS)
   const [prices, setPrices]           = useState(INITIAL_PRICES)
+  const [servicesState, setServicesState] = useState({})
+  const [servicesExpanded, setServicesExpanded] = useState(false)
   const [comment, setComment]         = useState('')
   const [userName, setUserName]       = useState('')
   const [submitting, setSubmitting]   = useState(false)
 
+  // Reset and initialization
+  useEffect(() => {
+    if (reportModalOpen) {
+      setServicesState(getInitialServicesState(station))
+      setServicesExpanded(reportModalPreExpand)
+    }
+  }, [reportModalOpen, station, reportModalPreExpand])
+
   const toggleFuel = (ft) => setActiveFuels((prev) => ({ ...prev, [ft]: !prev[ft] }))
   const setPrice   = (ft, val) => setPrices((prev) => ({ ...prev, [ft]: val }))
 
+  const handleServiceTap = (key) => {
+    setServicesState(prev => {
+      const current = prev[key]
+      let next = null
+      if (current === undefined || current === null) next = true
+      else if (current === true) next = false
+      else if (current === false) next = null
+      return { ...prev, [key]: next }
+    })
+  }
+
+
   const hasAnyPrice = Object.entries(prices).some(([ft, p]) => activeFuels[ft] && p && parseFloat(p) > 0)
+  
+  const modifiedServices = Object.entries(servicesState)
+    .filter(([_, status]) => status === true || status === false)
+    .reduce((acc, [key, status]) => ({ ...acc, [key]: status }), {})
+    
+  // Permitimos hacer submit si tiene un precio o servicios modificados
+  const canSubmit = hasAnyPrice || Object.keys(modifiedServices).length > 0
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!station || !hasAnyPrice) return
+    if (!station || !canSubmit) return
 
     setSubmitting(true)
     try {
@@ -137,10 +178,11 @@ export default function ReportPriceModal({ station, onSuccess }) {
         stationId: station.id,
         fuels: fuelMap,
         comment,
+        modifiedServices,
         userDisplayName: userName || 'Anónimo',
       })
 
-      showToast('✓ ¡Precio reportado! Gracias por contribuir.', 'success')
+      showToast('✓ ¡Reporte enviado! Gracias por contribuir.', 'success')
       setReportModalOpen(false)
       onSuccess?.()
 
@@ -148,6 +190,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
       setPrices(INITIAL_PRICES)
       setComment('')
       setActiveFuels(INITIAL_ACTIVE_FUELS)
+      setServicesState({})
     } catch (err) {
       showToast('Error al enviar. Intenta de nuevo.', 'error')
     } finally {
@@ -224,6 +267,100 @@ export default function ReportPriceModal({ station, onSuccess }) {
             </div>
           </div>
 
+          {/* ── Services (Collapsible) ── */}
+          <div className="border-y border-white/5 py-1">
+            <button
+              type="button"
+              onClick={() => setServicesExpanded(!servicesExpanded)}
+              className="w-full flex items-center justify-between py-2 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "p-1 rounded-md transition-all",
+                  servicesExpanded ? "bg-fuel-500/10 text-fuel-500" : "bg-white/5 text-gray-500"
+                )}>
+                  <ChevronDown size={14} className={cn("transition-transform", !servicesExpanded && "-rotate-90")} />
+                </div>
+                <div>
+                  <span className="text-[12px] font-bold text-white block">Servicios de la estación</span>
+                  {(() => {
+                    const knownCount = SERVICES.filter(s => station && station[s.key] === true).length
+                    return (
+                      <span className="text-[10px] text-gray-500">
+                        {knownCount > 0 
+                          ? `${knownCount} servicios registrados · ¿Actualizar?`
+                          : '¿Qué servicios tiene esta estación?'}
+                      </span>
+                    )
+                  })()}
+                </div>
+              </div>
+            </button>
+
+            {/* Grid */}
+            <div className={cn(
+              "grid transition-all duration-300",
+              servicesExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}>
+              <div className="overflow-hidden">
+                <div className="pt-2 pb-1 space-y-4">
+                  {/* Toggles Groups */}
+                  {SERVICE_CATEGORIES.map(cat => {
+                    const catServices = SERVICES.filter(s => s.category === cat.id)
+                    if (catServices.length === 0) return null
+                    
+                    return (
+                      <div key={cat.id}>
+                        <p className="text-[9px] uppercase font-mono font-bold text-gray-600 mb-2">{cat.label}</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {catServices.map(s => {
+                            const Icon = s.icon
+                            const status = servicesState[s.key]
+                            return (
+                              <button
+                                key={s.key}
+                                type="button"
+                                onClick={() => handleServiceTap(s.key)}
+                                className={cn(
+                                  "flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1.5 h-16 relative overflow-hidden",
+                                  status === true  ? "bg-fuel-500/20 border-fuel-500/50 text-white" :
+                                  status === false ? "bg-black/40 border-white/5 text-gray-600" :
+                                  "bg-surface-muted/30 border-white/5 text-gray-400 hover:bg-white/5"
+                                )}
+                              >
+                                {status === true && (
+                                  <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-xl opacity-20 bg-fuel-500" />
+                                )}
+                                <div className="relative">
+                                  <Icon size={16} className={status === true ? "text-fuel-500" : ""} />
+                                  {status === false && (
+                                     <div className="absolute inset-[-4px] overflow-visible pointer-events-none">
+                                        <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="w-full h-full text-red-500 opacity-80" strokeLinecap="round">
+                                          <line x1="4" y1="4" x2="20" y2="20" />
+                                          <line x1="20" y1="4" x2="4" y2="20" />
+                                        </svg>
+                                     </div>
+                                  )}
+                                </div>
+                                <span className={cn(
+                                  "text-[9px] font-mono leading-tight text-center",
+                                  status === false && "line-through text-gray-600"
+                                )}>
+                                  {s.label}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Comment */}
           <div>
             <label className="text-[10px] uppercase tracking-wider text-gray-500 font-mono flex items-center gap-1 mb-1.5">
@@ -242,10 +379,10 @@ export default function ReportPriceModal({ station, onSuccess }) {
           {/* Submit */}
           <button
             type="submit"
-            disabled={!hasAnyPrice || submitting}
+            disabled={!canSubmit || submitting}
             className={cn(
               'w-full py-3 rounded-xl font-display font-bold text-[15px] flex items-center justify-center gap-2 transition-all',
-              hasAnyPrice && !submitting
+              canSubmit && !submitting
                 ? 'bg-fuel-500 hover:bg-fuel-600 text-surface active:scale-[0.98]'
                 : 'bg-surface-muted text-gray-600 cursor-not-allowed'
             )}

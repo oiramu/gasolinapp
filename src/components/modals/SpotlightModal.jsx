@@ -6,7 +6,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
 
 const FUEL_OPTIONS = FUEL_ORDER.filter(f => f !== 'urea')
-const BRANDS = ['Todas', 'Terpel', 'Biomax', 'Primax', 'Shell', 'Mobil', 'EDS', 'Petrobras', 'Gulf']
+const BRANDS = ['Todas', 'Terpel', 'Biomax', 'Primax', 'Shell', 'Mobil', 'EDS', 'Petrobras', 'Gulf', 'Texaco', 'Zeuss', 'Puma']
 const SORT_OPTIONS = [
   { value: 'price', label: 'Precio', icon: '↑' },
   { value: 'distance', label: 'Distancia', icon: '📍' },
@@ -163,7 +163,6 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
           </button>
         </div>
 
-        {/* ── Filter selects ── */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 no-scrollbar overflow-visible">
           {/* Fuel Select */}
           <FilterSelect
@@ -179,7 +178,7 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
           />
 
           <div className="w-px h-4 bg-white/10 mx-1" />
-
+          
           {/* Brand Select */}
           <FilterSelect
             icon={Building2}
@@ -187,6 +186,8 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
             options={BRANDS}
             onChange={(b) => { setBrand(b); setActiveIdx(0) }}
           />
+
+          <div className="w-px h-4 bg-white/10 mx-1" />
 
           {/* Sort Select */}
           <FilterSelect
@@ -196,6 +197,7 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
             onChange={(s) => { setSortBy(s); setActiveIdx(0) }}
           />
         </div>
+
 
         {/* ── Results ── */}
         <div ref={listRef} className="overflow-y-auto flex-1">
