@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Star, Wind, Calculator, Plus, Landmark } from 'lucide-react'
+import { Navigation, Clock, Eye, Wind, Calculator, Plus, Landmark } from 'lucide-react'
 import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
 import { SERVICES } from '@/lib/services'
 import { useAppStore } from '@/store/appStore'
@@ -185,7 +185,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
                 onClick={() => onSelect(station)}
                 className="flex items-center gap-1 text-[10px] font-mono px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
               >
-                <Star size={11} />
+                <Eye size={11} />
                 <span>Ver</span>
               </button>
             </div>
