@@ -166,9 +166,24 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex gap-3 items-start">
             {/* Fuel pump icon */}
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
               style={{ background: brandColor + '20', border: `1px solid ${brandColor}40` }}>
               <Fuel size={18} style={{ color: brandColor }} />
+              
+              {/* Top-left area: GAS badge and Favorite star */}
+              <div className="absolute -top-2 -left-2 flex items-center gap-1">
+                {isFavorite && (
+                  <div className="bg-amber-400 rounded-full p-1 border-2 border-[#111318] shadow-sm animate-fade-in">
+                    <Star size={12} className="text-black fill-current" />
+                  </div>
+                )}
+                
+                {station.has_gnv && (
+                  <div className="bg-orange-500 text-white text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border border-[#111318] shadow-sm">
+                    GAS
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <h2 className="font-display font-bold text-[17px] leading-tight">{station.name}</h2>
@@ -278,11 +293,11 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
 
                 if (hasAnyData) {
                   return (
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2 snap-x">
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
                       {srvcs.map(confDef => {
                         const Icon = confDef.icon
                         return (
-                          <div key={confDef.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fuel-500/10 border border-fuel-500/20 text-fuel-500 snap-start whitespace-nowrap">
+                          <div key={confDef.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fuel-500/10 border border-fuel-500/20 text-fuel-500 transition-all hover:bg-fuel-500/20">
                             <Icon size={12} />
                             <span className="text-[10px] font-mono font-medium">{confDef.label}</span>
                           </div>

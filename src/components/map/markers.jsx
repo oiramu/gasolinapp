@@ -72,44 +72,57 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
         position: 'relative',
       }}>
 
-        {/* Fuel pump badge */}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-          style={{ position: 'absolute', top: -8, right: -8, background: fuelColor, borderRadius: '50%', padding: 2 }}>
-          <path d="M3 22V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round"/>
-          <path d="M15 11h2a2 2 0 0 1 2 2v3a1 1 0 0 0 2 0v-5l-3-3" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M3 22h12" stroke={COLORS.surface} strokeWidth="2" strokeLinecap="round"/>
-          <rect x="6" y="11" width="5" height="4" rx="1" fill={COLORS.surface} stroke={COLORS.surface} strokeWidth="0.5"/>
-        </svg>
+        {/* Top-right: Fuel pump icon badge */}
+        <div style={{ position: 'absolute', top: -8, right: -8, width: 14, height: 14, background: fuelColor, borderRadius: '50%', padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+            style={{ pointerEvents: 'none' }}>
+            <path d="M3 22V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14" stroke={COLORS.surface} strokeWidth="3" strokeLinecap="round"/>
+            <path d="M15 11h2a2 2 0 0 1 2 2v3a1 1 0 0 0 2 0v-5l-3-3" stroke={COLORS.surface} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 22h12" stroke={COLORS.surface} strokeWidth="3" strokeLinecap="round"/>
+            <rect x="6" y="11" width="5" height="4" rx="1" fill={COLORS.surface} stroke={COLORS.surface} strokeWidth="0.5"/>
+          </svg>
+        </div>
 
-        {/* Gas badge — visible siempre que la estación tenga gas */}
-        {hasGnv && (
-          <div style={{
-            position: 'absolute', top: -8, left: -8,
-            background: COLORS.gnv, borderRadius: 4,
-            padding: '1px 4px',
-            fontFamily: FONT_MONO, fontSize: 7, fontWeight: 700,
-            color: '#fff', lineHeight: 1.4,
-            letterSpacing: '0.5px',
-          }}>
-            GAS
-          </div>
-        )}
+        {/* Top-left area: GAS badge and Favorite star */}
+        <div style={{ position: 'absolute', top: -12, left: -12, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {isFavorite && (
+            <div style={{
+              width: 18, height: 18, background: '#FBBF24', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `2px solid ${COLORS.surface}`, boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
+              zIndex: 10
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#000">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+          )}
+
+          {hasGnv && (
+            <div style={{
+              background: COLORS.gnv, borderRadius: 4,
+              padding: '2px 5px',
+              fontFamily: FONT_MONO, fontSize: 8, fontWeight: 800,
+              color: '#fff', lineHeight: 1.1,
+              letterSpacing: '0.5px',
+              border: `1px solid ${COLORS.surface}`,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+            }}>
+              GAS
+            </div>
+          )}
+        </div>
 
         {/* Price */}
         <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13, color: hasData ? fuelColor : '#9CA3AF', lineHeight: 1 }}>
           {displayPrice}
         </span>
 
-        {/* Brand & Favorite Star */}
+        {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <span style={{ fontFamily: FONT_BODY, fontSize: 9, color: fuelColor, opacity: 0.75, lineHeight: 1 }}>
             {station.brand}
           </span>
-          {isFavorite && (
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="#FBBF24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-          )}
         </div>
 
         {/* Fuel type dots */}

@@ -32,45 +32,50 @@ export async function submitPriceReport({ stationId, fuels, comment, modifiedSer
     if (!price || isNaN(parsed)) continue
 
     // Expire the current active price for this fuel type
-    await supabase
+    const { error: expireError } = await supabase
       .from('fuel_prices')
       .update({ is_active: false })
       .eq('station_id', stationId)
       .eq('fuel_type', fuelType)
       .eq('is_active', true)
+    
+    if (expireError) throw expireError
 
     // Insert the new price with appropriate unit
-    await supabase.from('fuel_prices').insert({
+    const { error: insertError } = await supabase.from('fuel_prices').insert({
       station_id: stationId,
       fuel_type:  fuelType,
       price:      parsed,
-      price_unit: getFuelUnit(fuelType),  // 'm3' para GNV, 'gallon' para el resto
+      price_unit: getFuelUnit(fuelType),
       currency:   'COP',
       comment,
       reported_by: reporter,
       is_active:   true,
       expires_at:  expiresAt,
     })
+
+    if (insertError) throw insertError
   }
 
   // Attach a comment/report record if the user wrote something
   if (comment) {
-    await supabase.from('reports').insert({
+    const { error: reportError } = await supabase.from('reports').insert({
       station_id:        stationId,
       type:              'price',
       content:           comment,
       user_display_name: reporter,
     })
+    if (reportError) throw reportError
   }
 
   // Handle boolean flat services and ATMs modification
-  const payload = {}
   if (modifiedServices && Object.keys(modifiedServices).length > 0) {
-    Object.assign(payload, modifiedServices)
-  }
-  
-  if (Object.keys(payload).length > 0) {
-    await supabase.from('stations').update(payload).eq('id', stationId)
+    const { error: stationError } = await supabase
+      .from('stations')
+      .update(modifiedServices)
+      .eq('id', stationId)
+    
+    if (stationError) throw stationError
   }
 }
 

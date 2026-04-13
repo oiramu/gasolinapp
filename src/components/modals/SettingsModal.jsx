@@ -169,7 +169,7 @@ export default function SettingsModal() {
                       />
                     </div>
 
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
+                    <div className="space-y-2 max-h-[320px] overflow-y-auto custom-scrollbar-thin pr-1 -mr-1 border-b border-white/5 pb-3 no-scrollbar">
                       {SETTINGS_BRANDS
                         .filter(b => b === 'Todas' || b.toLowerCase().includes(brandSearchTerm.toLowerCase()))
                         .map((b) => {
@@ -182,13 +182,13 @@ export default function SettingsModal() {
                               className={cn(
                                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left group',
                                 isSelected
-                                  ? 'border-amber-400/40 bg-surface-muted/40'
+                                  ? 'border-amber-400/40 bg-amber-400/10'
                                   : 'border-white/8 bg-surface-muted/10 hover:border-white/15'
                               )}
                             >
                               <div className={cn(
                                 'w-8 h-8 rounded-lg flex items-center justify-center transition-all flex-shrink-0',
-                                isSelected ? 'bg-amber-400/10 text-amber-400' : 'bg-white/5'
+                                isSelected ? 'bg-amber-400/20 text-amber-400' : 'bg-white/5'
                               )}>
                                 <Building2 size={14} className={isSelected ? 'text-amber-400' : 'text-gray-600 group-hover:text-gray-400'} />
                               </div>
@@ -200,7 +200,7 @@ export default function SettingsModal() {
                               </span>
                               <div className={cn(
                                 'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 relative overflow-hidden',
-                                isSelected ? 'border-amber-400/40 bg-amber-400/10' : 'border-white/10'
+                                isSelected ? 'border-amber-400/60 bg-amber-400/10' : 'border-white/10'
                               )}>
                                 {isSelected && <Check size={10} className="text-amber-400" strokeWidth={4} />}
                               </div>
@@ -209,24 +209,24 @@ export default function SettingsModal() {
                         })}
                       
                       {SETTINGS_BRANDS.filter(b => b.toLowerCase().includes(brandSearchTerm.toLowerCase())).length === 0 && (
-                        <div className="py-8 text-center">
-                          <p className="text-[12px] text-gray-500 font-mono">No se encontraron marcas</p>
+                        <div className="py-8 text-center text-gray-700 font-mono text-[11px]">
+                          No se encontraron marcas
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Filter Switches */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 pt-1 font-body">
                     {preferredBrand && (
                       <button
                         onClick={() => setFilterByPreferredBrand(!filterByPreferredBrand)}
                         className={cn(
-                          "w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left",
+                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all text-left",
                           filterByPreferredBrand ? "border-fuel-500/40 bg-fuel-500/10" : "border-white/8 bg-surface-muted/10 hover:border-white/15"
                         )}
                       >
-                        <div className="flex-1">
+                        <div className="flex-1 pr-4">
                           <span className={cn("text-[13px] font-medium block", filterByPreferredBrand ? "text-white" : "text-gray-400")}>Auto-filtrar por marca</span>
                           <span className="text-[10px] text-gray-600 block leading-tight mt-0.5">Muestra solo {preferredBrand} al abrir la app</span>
                         </div>
@@ -250,11 +250,11 @@ export default function SettingsModal() {
                           if (next) setFilterByPreferredBrand(false)
                         }}
                         className={cn(
-                          "w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left",
+                          "w-full flex items-center justify-between px-3.5 py-3 rounded-xl border transition-all text-left",
                           filterByFavorite ? "border-amber-400/40 bg-amber-400/10" : "border-white/8 bg-surface-muted/10 hover:border-white/15"
                         )}
                       >
-                        <div className="flex-1">
+                        <div className="flex-1 pr-4">
                           <span className={cn("text-[13px] font-medium block", filterByFavorite ? "text-amber-400" : "text-gray-400")}>Solo Estación Favorita ★</span>
                           <span className="text-[10px] text-gray-600 block leading-tight mt-0.5">Ignora el resto de estaciones en el mapa</span>
                         </div>
@@ -274,6 +274,7 @@ export default function SettingsModal() {
               </div>
             </div>
           </div>
+
 
           <p className="text-[10px] text-gray-700 text-center pb-1 pt-2 font-mono">
             La preferencia se guarda automáticamente en este dispositivo.

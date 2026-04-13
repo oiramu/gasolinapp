@@ -71,11 +71,13 @@ function MapInitializer({ onBoundsChange }) {
 }
 
 // ── Memoized station marker — avoids re-render when unrelated state changes ──
-const StationMarker = memo(function StationMarker({ station, setSelectedStation }) {
+const StationMarker = memo(function StationMarker({ station, setSelectedStation, favoriteStationId }) {
+  const isFavorite = station.id === favoriteStationId
   const icon = useMemo(() => createStationIcon(station), [
     // eslint-disable-next-line react-hooks/exhaustive-deps
     station.id, station.fuel_prices,
     useAppStore.getState().defaultFuelType,
+    isFavorite
   ])
   // useCallback here is valid — called at component level, not inside .map()
   const handleClick = useCallback(() => setSelectedStation(station), [station, setSelectedStation])
@@ -233,6 +235,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
             key={station.id}
             station={station}
             setSelectedStation={setSelectedStation}
+            favoriteStationId={favoriteStationId}
           />
         ))}
       </MapContainer>

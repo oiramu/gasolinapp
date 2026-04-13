@@ -19,6 +19,9 @@ export const MOCK_STATIONS = [
       { id: 'p2', fuel_type: 'diesel', price: 2.94, currency: 'COP', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'MK', is_active: true },
       { id: 'p3', fuel_type: 'diesel', price: 1.80, currency: 'COP', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 4*60*60*1000).toISOString(), reported_by: 'JR', is_active: true },
     ],
+    svc_montallantas: true,
+    svc_cambio_aceite: true,
+    svc_tienda: true,
     reports: [
       { id: 'r1', type: 'promotion', content: 'Descuento 3% pagando con Nequi. Atención rápida.', votes_up: 8, votes_down: 0, created_at: new Date(Date.now() - 2*60*60*1000).toISOString(), user_display_name: 'MK' },
       { id: 'r2', type: 'comment', content: 'Sin cola a esta hora.', votes_up: 4, votes_down: 1, created_at: new Date(Date.now() - 5*60*60*1000).toISOString(), user_display_name: 'JR' },
@@ -33,6 +36,10 @@ export const MOCK_STATIONS = [
       { id: 'p5', fuel_type: 'corriente', price: 3.45, currency: 'COP', votes_up: 12, votes_down: 1, created_at: new Date(Date.now() - 1*60*60*1000).toISOString(), reported_by: 'AL', is_active: true },
       { id: 'p6', fuel_type: 'diesel', price: 2.98, currency: 'COP', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 90*60*1000).toISOString(), reported_by: 'AL', is_active: true },
     ],
+    svc_tienda: true,
+    svc_cafe: true,
+    svc_bano: true,
+    svc_atm: true,
     reports: [
       { id: 'r3', type: 'promotion', content: '¡Tienen súper! Único en la zona. Un poco caro pero vale.', votes_up: 12, votes_down: 0, created_at: new Date(Date.now() - 60*60*1000).toISOString(), user_display_name: 'AL' },
     ],
@@ -42,6 +49,8 @@ export const MOCK_STATIONS = [
     lat: 10.962, lng: -74.822,
     address: 'Av. Murillo #18-20, Barranquilla',
     fuel_prices: [],
+    svc_montallantas: false,
+    svc_lavadero: true,
     reports: [],
   },
   {
@@ -54,6 +63,9 @@ export const MOCK_STATIONS = [
       { id: 'p9', fuel_type: 'diesel', price: 3.02, currency: 'COP', votes_up: 3, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
       { id: 'p10', fuel_type: 'diesel', price: 1.85, currency: 'COP', votes_up: 2, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), reported_by: 'CG', is_active: true },
     ],
+    svc_bano: true,
+    svc_tienda: true,
+    svc_electrico: true,
     reports: [
       { id: 'r4', type: 'comment', content: 'Pago con tarjeta sin problema. Instalaciones muy limpias.', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 3*60*60*1000).toISOString(), user_display_name: 'CG' },
     ],
@@ -66,6 +78,8 @@ export const MOCK_STATIONS = [
       { id: 'p11', fuel_type: 'extra', price: 3.24, currency: 'COP', votes_up: 9, votes_down: 1, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
       { id: 'p12', fuel_type: 'diesel', price: 2.96, currency: 'COP', votes_up: 7, votes_down: 0, created_at: new Date(Date.now() - 30*60*1000).toISOString(), reported_by: 'FB', is_active: true },
     ],
+    svc_tienda: true,
+    svc_lavadero: true,
     reports: [
       { id: 'r5', type: 'warning', content: 'Cola larga a las 6pm pero el precio está bien. Recomendado venir en la mañana.', votes_up: 9, votes_down: 0, created_at: new Date(Date.now() - 30*60*1000).toISOString(), user_display_name: 'FB' },
     ],
@@ -86,6 +100,9 @@ export const MOCK_STATIONS = [
       { id: 'p14', fuel_type: 'corriente', price: 3.50, currency: 'COP', votes_up: 8, votes_down: 1, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
       { id: 'p15', fuel_type: 'diesel', price: 3.00, currency: 'COP', votes_up: 6, votes_down: 0, created_at: new Date(Date.now() - 45*60*1000).toISOString(), reported_by: 'RO', is_active: true },
     ],
+    svc_tienda: true,
+    svc_cafe: true,
+    svc_atm: true,
     reports: [
       { id: 'r6', type: 'warning', content: '⚠️ Solo efectivo esta mañana, falla en el sistema de tarjetas.', votes_up: 15, votes_down: 0, created_at: new Date(Date.now() - 45*60*1000).toISOString(), user_display_name: 'RO' },
     ],

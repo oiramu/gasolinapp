@@ -11,6 +11,9 @@ import { supabase } from '@/lib/supabase'
 /** Full select clause reused across queries */
 const STATION_SELECT = `
   id, name, brand, address, lat, lng, zone_id, has_gnv,
+  svc_montallantas, svc_cambio_aceite, svc_serviteca,
+  svc_tienda, svc_lavadero, svc_bano, svc_cafe,
+  svc_electrico, svc_atm,
   fuel_prices (
     id, fuel_type, price, price_unit, currency, comment,
     votes_up, votes_down, created_at, reported_by, is_active
@@ -61,5 +64,6 @@ export function subscribeToStationUpdates(onUpdate) {
     .channel('station_updates')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'fuel_prices' }, onUpdate)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, onUpdate)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'stations' }, onUpdate)
     .subscribe()
 }

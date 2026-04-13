@@ -145,10 +145,9 @@ export default function ReportPriceModal({ station, onSuccess }) {
   const handleServiceTap = (key) => {
     setServicesState(prev => {
       const current = prev[key]
-      let next = null
-      if (current === undefined || current === null) next = true
-      else if (current === true) next = false
-      else if (current === false) next = null
+      // Circular toggle: null/false -> true -> false
+      // This allows reporting it is there OR it was removed.
+      const next = current === true ? false : true
       return { ...prev, [key]: next }
     })
   }
@@ -322,29 +321,17 @@ export default function ReportPriceModal({ station, onSuccess }) {
                                 type="button"
                                 onClick={() => handleServiceTap(s.key)}
                                 className={cn(
-                                  "flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1.5 h-16 relative overflow-hidden",
-                                  status === true  ? "bg-fuel-500/20 border-fuel-500/50 text-white" :
-                                  status === false ? "bg-black/40 border-white/5 text-gray-600" :
-                                  "bg-surface-muted/30 border-white/5 text-gray-400 hover:bg-white/5"
+                                  "flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1.5 h-16 relative overflow-hidden group active:scale-95",
+                                  status === true ? "bg-fuel-500 border-fuel-500 text-surface shadow-[0_0_15px_rgba(0,229,160,0.2)]" : "bg-surface-muted/30 border-white/5 text-gray-500 hover:bg-white/8 hover:border-white/10"
                                 )}
                               >
                                 {status === true && (
-                                  <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-xl opacity-20 bg-fuel-500" />
+                                  <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-xl opacity-30 bg-white" />
                                 )}
-                                <div className="relative">
-                                  <Icon size={16} className={status === true ? "text-fuel-500" : ""} />
-                                  {status === false && (
-                                     <div className="absolute inset-[-4px] overflow-visible pointer-events-none">
-                                        <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="w-full h-full text-red-500 opacity-80" strokeLinecap="round">
-                                          <line x1="4" y1="4" x2="20" y2="20" />
-                                          <line x1="20" y1="4" x2="4" y2="20" />
-                                        </svg>
-                                     </div>
-                                  )}
-                                </div>
+                                <Icon size={18} className={cn("transition-transform group-hover:scale-110", status === true ? "text-surface" : "text-gray-500")} />
                                 <span className={cn(
-                                  "text-[9px] font-mono leading-tight text-center",
-                                  status === false && "line-through text-gray-600"
+                                  "text-[9px] font-mono leading-tight text-center font-bold",
+                                  status === true ? "text-surface" : "text-gray-600"
                                 )}>
                                   {s.label}
                                 </span>
