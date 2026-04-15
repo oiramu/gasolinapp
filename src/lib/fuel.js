@@ -16,7 +16,7 @@ export const FUEL_TYPES = {
   gnv:       { label: 'Gas',            color: '#F97316', bgClass: 'bg-orange-500/10',  textClass: 'text-orange-500',  borderClass: 'border-orange-500/40'  },
 }
 
-export const FUEL_ORDER = ['corriente', 'extra', 'diesel', 'urea', 'gnv']
+export const FUEL_ORDER = ['corriente', 'extra', 'diesel', 'gnv', 'urea']
 
 // ── Helpers de unidad ─────────────────────────────────────────────────────────
 

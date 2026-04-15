@@ -261,6 +261,9 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
             {/* ── Fuel prices grid ───────────────────────────── */}
             <div className="p-4 grid grid-cols-2 auto-rows-fr gap-2">
               {FUEL_ORDER.map((ft) => {
+                // Ocultar urea si no hay precio reportado para este combustible
+                if (ft === 'urea' && !latestPrices[ft]) return null
+
                 let zoneAvg = null
                 if (ft === 'diesel')    zoneAvg = zoneData?.avg_diesel
                 else if (ft === 'extra')     zoneAvg = zoneData?.avg_extra

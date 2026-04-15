@@ -31,17 +31,10 @@ export async function submitPriceReport({ stationId, fuels, comment, modifiedSer
     const parsed = parseFloat(price)
     if (!price || isNaN(parsed)) continue
 
-    // Expire the current active price for this fuel type
-    const { error: expireError } = await supabase
-      .from('fuel_prices')
-      .update({ is_active: false })
-      .eq('station_id', stationId)
-      .eq('fuel_type', fuelType)
-      .eq('is_active', true)
-    
-    if (expireError) throw expireError
-
-    // Insert the new price with appropriate unit
+    // Insertar el nuevo precio directamente.
+    // No es necesario expirar el anterior: getLatestPrices() ya toma
+    // el más reciente por created_at, así que el precio viejo queda
+    // ignorado automáticamente en el cliente.
     const { error: insertError } = await supabase.from('fuel_prices').insert({
       station_id: stationId,
       fuel_type:  fuelType,
