@@ -10,8 +10,10 @@ import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
   MAP_TILE_URL,
+  MAP_LABELS_TILE_URL,
   MAP_TILE_ATTRIBUTION,
   MAP_MAX_ZOOM,
+  MAP_TILE_MAX_NATIVE_ZOOM,
   MAP_CLUSTER_ZOOM_THRESHOLD,
 } from '@/config/map'
 
@@ -57,6 +59,29 @@ function MapSync() {
 function MapController({ mapRef }) {
   const map = useMap()
   useEffect(() => { mapRef.current = map }, [map, mapRef])
+  return null
+}
+
+// ── Internal: keeps Leaflet's internal size in sync with its container ──────
+// Leaflet measures its container on mount; if the flex layout hasn't settled
+// yet (fonts, first paint, panel transitions) it caches a stale/short size and
+// only ever renders tiles for that top-left slice until something forces a
+// window resize. A ResizeObserver keeps it correct without relying on that.
+function MapResizeSync() {
+  const map = useMap()
+  useEffect(() => {
+    const container = map.getContainer()
+    map.invalidateSize()
+    const raf = requestAnimationFrame(() => map.invalidateSize())
+
+    const observer = new ResizeObserver(() => map.invalidateSize())
+    observer.observe(container)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      observer.disconnect()
+    }
+  }, [map])
   return null
 }
 
@@ -182,6 +207,12 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
           url={MAP_TILE_URL}
           attribution={MAP_TILE_ATTRIBUTION}
           maxZoom={MAP_MAX_ZOOM}
+          maxNativeZoom={MAP_TILE_MAX_NATIVE_ZOOM}
+        />
+        <TileLayer
+          url={MAP_LABELS_TILE_URL}
+          maxZoom={MAP_MAX_ZOOM}
+          maxNativeZoom={MAP_TILE_MAX_NATIVE_ZOOM}
         />
 
         <MapInitializer onBoundsChange={(b) => { onBoundsChange?.(b); setBounds(b) }} />
@@ -195,6 +226,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
         />
         <MapSync />
         <MapController mapRef={mapRef} />
+        <MapResizeSync />
 
         {/* ── User location ───────────────────────────────────────────── */}
         {userPos && (

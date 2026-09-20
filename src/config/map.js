@@ -15,9 +15,23 @@ export const MAP_DEFAULT_ZOOM = 14
  */
 export const MAP_CLUSTER_ZOOM_THRESHOLD = 13
 
-/** CartoDB dark tile layer — matches the app's dark theme */
+/**
+ * Esri dark basemap — matches the app's dark theme.
+ * Split into a base (shading) layer and a reference (labels/roads) layer,
+ * stacked in that order. No API key required.
+ * CARTO's dark_all tiles (formerly used here) started requiring a paid/free
+ * API key in Aug 2026 and now render an "API KEY REQUIRED" watermark.
+ */
 export const MAP_TILE_URL =
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+  'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
 
-export const MAP_TILE_ATTRIBUTION = '© OpenStreetMap © oiramu'
+export const MAP_LABELS_TILE_URL =
+  'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+
+export const MAP_TILE_ATTRIBUTION = '© Esri © OpenStreetMap © oiramu'
+
+/** Users can zoom in this far — Leaflet upscales tiles past MAP_TILE_MAX_NATIVE_ZOOM */
 export const MAP_MAX_ZOOM = 19
+
+/** Esri's dark canvas tiles are only cached up to this level */
+export const MAP_TILE_MAX_NATIVE_ZOOM = 16
