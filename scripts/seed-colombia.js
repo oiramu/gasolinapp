@@ -239,7 +239,8 @@ ON CONFLICT (osm_id) DO UPDATE SET
 // ── Direct Supabase insert ────────────────────────────────────────────────────
 async function insertToSupabase(zones, stations) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  // service_role only: the anon key has no write access to stations (hotfix 0.0)
+  const key = process.env.SUPABASE_SERVICE_KEY
 
   if (!url || !key) {
     console.error('❌ Faltan variables: SUPABASE_URL y SUPABASE_SERVICE_KEY')

@@ -20,10 +20,9 @@ import { getFuelUnit } from '@/lib/fuel'
  * @param {string} params.stationId
  * @param {Record<string, string|number>} params.fuels  - { extra: '1.20', gnv: '2500' }
  * @param {string} params.comment
- * @param {Object} params.modifiedServices - Map of boolean keys like { svc_tienda: true }
  * @param {string} params.userDisplayName
  */
-export async function submitPriceReport({ stationId, fuels, comment, modifiedServices, userDisplayName }) {
+export async function submitPriceReport({ stationId, fuels, comment, userDisplayName }) {
   const reporter = userDisplayName || 'Anónimo'
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
@@ -59,16 +58,6 @@ export async function submitPriceReport({ stationId, fuels, comment, modifiedSer
       user_display_name: reporter,
     })
     if (reportError) throw reportError
-  }
-
-  // Handle boolean flat services and ATMs modification
-  if (modifiedServices && Object.keys(modifiedServices).length > 0) {
-    const { error: stationError } = await supabase
-      .from('stations')
-      .update(modifiedServices)
-      .eq('id', stationId)
-    
-    if (stationError) throw stationError
   }
 }
 

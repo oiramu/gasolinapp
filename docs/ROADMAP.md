@@ -12,7 +12,9 @@
 
 ## Fase 0 — Base (semanas 1–3)
 
-### [ ] 0.0 Hotfix: cerrar el UPDATE público de `stations`
+### [x] 0.0 Hotfix: cerrar el UPDATE público de `stations`
+**Estado:** código listo. Falta que Mario aplique `database/hotfixes/0.0_cerrar_escrituras_stations.sql` en producción y corra los bloques de verificación.
+
 **Por qué primero:** `database/add_stations_update_policy.sql` crea `FOR UPDATE USING (TRUE)` sobre `stations`. Hoy cualquiera con la anon key puede renombrar, mover o desactivar todas las estaciones.
 **Prompt:**
 > Lee CLAUDE.md. Genera un SQL idempotente (`DROP POLICY IF EXISTS "Public update stations" ON stations;`) para aplicar a mano en producción, más el bloque de verificación contra `pg_policies`. En el frontend, oculta temporalmente la edición de servicios en ReportPriceModal y deja de enviar `modifiedServices` en `submitPriceReport`. La tarea 1.3 lo vuelve a habilitar con una RPC. Cuando exista `supabase/migrations/` (0.1), este cambio queda como migración.

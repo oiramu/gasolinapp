@@ -9,6 +9,7 @@ import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelat
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
+import { features } from '@/config/features'
 import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
 
 const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
@@ -306,6 +307,7 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                           </div>
                         )
                       })}
+                      {features.serviceSuggestions && (
                       <button
                         onClick={() => setReportModalOpen(true, true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-muted/30 border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 snap-start whitespace-nowrap transition-colors"
@@ -313,6 +315,7 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                         <Plus size={12} />
                         <span className="text-[10px] font-mono font-medium">Agregar</span>
                       </button>
+                      )}
                     </div>
                   )
                 }
@@ -320,11 +323,13 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                 // No data
                 return (
                   <div className="flex flex-col items-center py-4 text-center rounded-xl border border-white/5 bg-surface-muted/10">
-                    <p className="text-[11px] text-gray-500 mb-2">Sin información de servicios</p>
+                    <p className={cn('text-[11px] text-gray-500', features.serviceSuggestions && 'mb-2')}>Sin información de servicios</p>
+                    {features.serviceSuggestions && (
                     <button onClick={() => setReportModalOpen(true, true)}
                       className="text-[10px] font-mono text-fuel-500 border border-fuel-500/30 px-3 py-1.5 rounded-lg hover:bg-fuel-500/10 transition-colors">
                       Sé el primero en reportar
                     </button>
+                    )}
                   </div>
                 )
               })()}

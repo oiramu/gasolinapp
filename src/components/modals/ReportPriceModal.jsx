@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier, formatPriceValue } from '@/lib/fuel'
 import { SERVICES, SERVICE_CATEGORIES } from '@/lib/services'
 import { submitPriceReport } from '@/services/reports.service'
+import { features } from '@/config/features'
 import { cn } from '@/lib/utils'
 
 const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
@@ -154,13 +155,9 @@ export default function ReportPriceModal({ station, onSuccess }) {
 
 
   const hasAnyPrice = Object.entries(prices).some(([ft, p]) => activeFuels[ft] && p && parseFloat(p) > 0)
-  
-  const modifiedServices = Object.entries(servicesState)
-    .filter(([_, status]) => status === true || status === false)
-    .reduce((acc, [key, status]) => ({ ...acc, [key]: status }), {})
-    
-  // Permitimos hacer submit si tiene un precio o servicios modificados
-  const canSubmit = hasAnyPrice || Object.keys(modifiedServices).length > 0
+
+  // Services are no longer written from the client; they return via RPC in task 1.3
+  const canSubmit = hasAnyPrice
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -177,7 +174,6 @@ export default function ReportPriceModal({ station, onSuccess }) {
         stationId: station.id,
         fuels: fuelMap,
         comment,
-        modifiedServices,
         userDisplayName: userName || 'Anónimo',
       })
 
@@ -267,6 +263,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
           </div>
 
           {/* ── Services (Collapsible) ── */}
+          {features.serviceSuggestions && (
           <div className="border-y border-white/5 py-1">
             <button
               type="button"
@@ -347,6 +344,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
               </div>
             </div>
           </div>
+          )}
 
           {/* Comment */}
           <div>
