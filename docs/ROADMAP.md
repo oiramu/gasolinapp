@@ -13,7 +13,7 @@
 ## Fase 0 — Base (semanas 1–3)
 
 ### [x] 0.0 Hotfix: cerrar el UPDATE público de `stations`
-**Estado:** código listo. Falta que Mario aplique `database/hotfixes/0.0_cerrar_escrituras_stations.sql` en producción y corra los bloques de verificación.
+**Estado:** aplicada en producción el 2026-11-13 vía MCP (migración `20261113235634_cerrar_escrituras_stations`) y verificada: `stations` solo tiene la política SELECT y `anon`/`authenticated` ya no tienen INSERT, UPDATE ni DELETE.
 
 **Por qué primero:** `database/add_stations_update_policy.sql` crea `FOR UPDATE USING (TRUE)` sobre `stations`. Hoy cualquiera con la anon key puede renombrar, mover o desactivar todas las estaciones.
 **Prompt:**

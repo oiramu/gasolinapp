@@ -76,7 +76,7 @@ Ningún cambio se da por terminado si no cumple todo esto:
 1. Todo cambio de schema va en una migración nueva en `supabase/migrations/`. Nunca edites una migración ya aplicada.
 2. Prohibido crear políticas RLS de `UPDATE` o `DELETE` públicas. Las escrituras del cliente pasan por funciones RPC `SECURITY DEFINER` con `SET search_path = public`, que validan entradas y usan `auth.uid()`.
 3. El cliente solo usa la anon key. La service key no toca el frontend ni el repo.
-4. No ejecutes nada contra la base de producción. Genera el SQL y deja instrucciones: Mario lo revisa y lo aplica.
+4. Producción solo cambia con migraciones de `supabase/migrations/` que Mario ya revisó. Claude puede aplicarlas con el MCP de Supabase (`apply_migration`) solo con la confirmación explícita de Mario en esa sesión, y después las verifica con consultas de solo lectura. Nada de DDL ni DML sueltos con `execute_sql`: esa herramienta es solo para leer. La alternativa manual sigue siendo el SQL Editor.
 5. Toda RPC nueva necesita un test pgTAP (`supabase test db`, en local) que verifique el caso feliz y que el abuso falle.
 
 ## Forma de trabajo
