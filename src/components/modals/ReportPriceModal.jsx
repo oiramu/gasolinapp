@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  X, Fuel, Zap, Droplets, RefreshCw, Wind,
+  X, Fuel, Droplets, RefreshCw, Wind,
   Send, User, MessageSquare, ChevronDown, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
@@ -186,7 +186,7 @@ export default function ReportPriceModal({ station, onSuccess }) {
       setComment('')
       setActiveFuels(INITIAL_ACTIVE_FUELS)
       setServicesState({})
-    } catch (err) {
+    } catch {
       showToast('Error al enviar. Intenta de nuevo.', 'error')
     } finally {
       setSubmitting(false)

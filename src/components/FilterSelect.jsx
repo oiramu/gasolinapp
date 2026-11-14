@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function FilterSelect({ value, options, onChange, icon: Icon, label, activeColor, className, fullWidth }) {
+export default function FilterSelect({ value, options, onChange, icon: Icon, activeColor, className, fullWidth }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Navigation, Clock, MapPin, Building2, ArrowUpDown, Fuel, Wind } from 'lucide-react'
+import { Search, X, Clock, MapPin, Building2, ArrowUpDown, Fuel, Wind } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import FilterSelect from '@/components/FilterSelect'
 import { useAppStore } from '@/store/appStore'
@@ -125,8 +125,6 @@ export default function SpotlightModal({ stations, activeFuelType, userPos, onSe
     close()
     setTimeout(() => onSelect(s), 160)
   }
-
-  const fuelColor = FUEL_TYPES[fuel]?.color || '#00E5A0'
 
   if (!spotlightOpen) return null
 

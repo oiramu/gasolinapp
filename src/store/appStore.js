@@ -13,7 +13,7 @@ function loadPrefs() {
 }
 
 function savePrefs(prefs) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch { /* almacenamiento no disponible: se ignora */ }
 }
 
 const savedPrefs = loadPrefs()

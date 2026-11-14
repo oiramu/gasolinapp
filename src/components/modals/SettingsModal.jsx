@@ -3,7 +3,6 @@ import { X, Settings, Fuel, Droplets, ChevronDown, RefreshCw, Wind, Building2, S
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
 import { cn } from '@/lib/utils'
-import FilterSelect from '@/components/FilterSelect'
 
 const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 const SETTINGS_BRANDS = ['Todas', 'Terpel', 'Biomax', 'Primax', 'Shell', 'Mobil', 'EDS', 'Petrobras', 'Gulf', 'Texaco', 'Zeuss', 'Puma']

@@ -122,6 +122,24 @@ npm run dev
 
 ---
 
+## ✅ Calidad: tests, tipos y lint
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm test` | Tests de vitest (jsdom, Testing Library, MSW) |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run test:coverage` | Tests con cobertura; falla si `src/` baja del 100% en líneas, ramas, funciones o sentencias |
+| `npm run typecheck` | `tsc` strict (`noUncheckedIndexedAccess`) para la app y para `vite.config.ts` |
+| `npm run lint` | ESLint sin warnings permitidos: complejidad, profundidad, tamaño de archivos y funciones, y prohibido importar Supabase desde `features/*/ui` y `app/` |
+| `npm run test:db` | Tests pgTAP de `supabase/tests/` contra la base local (requiere `npx supabase start`) |
+| `npm run check` | lint + typecheck + cobertura + build. Es lo que debe pasar antes de dar una tarea por terminada |
+
+- **Tests de la app:** van junto al código (`*.test.ts(x)`). MSW está activo en todos los tests, y cualquier petición sin handler hace fallar el test, así que nunca se toca la red real.
+- **Tests de SQL:** van en `supabase/tests/database/*.test.sql`. Toda RPC necesita uno con el caso feliz y al menos un caso de abuso que falle.
+- **Transición a TypeScript:** `allowJs` sigue activo mientras dure la migración (tareas 0.3–0.6). Los `.js`/`.jsx` legados solo pasan las reglas base de ESLint; las reglas estrictas aplican a `.ts`/`.tsx`. Hasta terminar la 0.6, `npm run check` falla en el paso de cobertura porque el código legado no tiene tests.
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```

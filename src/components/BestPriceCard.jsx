@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Eye, Wind, Calculator, Plus, Landmark } from 'lucide-react'
-import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
+import { Navigation, Clock, Eye, Wind, Calculator, Landmark } from 'lucide-react'
+import { FUEL_TYPES, getLatestPrices, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
 import { SERVICES } from '@/lib/services'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,7 @@ function haversine(lat1, lng1, lat2, lng2) {
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
 
-export default function BestPriceCard({ station, fuelType, userPos, onSelect, allStations }) {
+export default function BestPriceCard({ station, fuelType, userPos, onSelect }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
   const { setCalculatorOpen, legendOpen, setPanelOpen, setSelectedStation } = useAppStore()

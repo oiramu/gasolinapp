@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ResponsiveContainer, Dot
+  ReferenceLine, ResponsiveContainer
 } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, MessageSquare, BarChart2, Plus, Fuel, Clock } from 'lucide-react'
 import FilterSelect from '@/components/FilterSelect'
 import { supabase } from '@/lib/supabase'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, formatPrice, getFuelUnitLabel, formatPriceValue } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, formatPriceValue } from '@/lib/fuel'
 import { format, subDays, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
 
 // ── Período helpers ────────────────────────────────────────────────────────────
 const PERIODS = [
@@ -48,7 +47,7 @@ function CustomTooltip({ active, payload, label, fuelType }) {
     const dt = typeof label === 'string' ? parseISO(label) : new Date(label)
     fullDate = format(dt, "EEEE d 'de' MMMM", { locale: es })
     fullDate = fullDate.charAt(0).toUpperCase() + fullDate.slice(1)
-  } catch {}
+  } catch { /* fecha inválida: queda sin formato */ }
 
   const unitLabel = getFuelUnitLabel(fuelType)
 

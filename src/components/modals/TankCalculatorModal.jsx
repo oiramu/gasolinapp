@@ -7,7 +7,7 @@ import {
 import { useAppStore } from '@/store/appStore'
 import {
   FUEL_TYPES, FUEL_ORDER, getLatestPrices,
-  formatPrice, getFuelUnitLabel, getFuelUnit, formatPriceValue
+  formatPrice, getFuelUnitLabel, formatPriceValue
 } from '@/lib/fuel'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,7 @@ function lsGet(key) {
   try { return localStorage.getItem(key) } catch { return null }
 }
 function lsSet(key, val) {
-  try { localStorage.setItem(key, String(val)) } catch {}
+  try { localStorage.setItem(key, String(val)) } catch { /* almacenamiento no disponible: se ignora */ }
 }
 
 // ── Capacity chips por tipo de combustible ────────────────────────────────────
@@ -188,6 +188,7 @@ export default function TankCalculatorModal() {
     const handler = (e) => { if (e.key === 'Escape') close() }
     if (calculatorOpen) window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deuda conocida: se resuelve en la 0.6d
   }, [calculatorOpen])
 
   const close = useCallback(() => {

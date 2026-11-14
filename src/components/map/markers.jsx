@@ -49,7 +49,6 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
     ? (price > 100 ? `$${formatPriceValue(price, 0)}` : `$${formatPriceValue(price, 2)}`)
     : 'S/D'
   const fuelCount = Object.keys(latestPrices || {}).length
-  const textColor = hasData ? COLORS.active : '#9CA3AF'
 
   // If we have the requested fuel type price, tint the border with its color
   const fuelColor = latestPrices?.[defaultFuelType]

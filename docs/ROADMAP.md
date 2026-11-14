@@ -29,7 +29,8 @@
 
 **Listo cuando:** el repo refleja producción, hay un informe de diferencias, los tipos de la DB están generados y el README explica cómo crear y aplicar migraciones.
 
-### [ ] 0.2 Tooling: TypeScript, tests y calidad
+### [x] 0.2 Tooling: TypeScript, tests y calidad
+**Estado:** hecha el 2026-11-13. `npm run lint`, `typecheck`, `test`, `test:db` (pgTAP, 10/10) y `build` pasan. `npm run check` falla solo en la cobertura (0% de `src/`, el código legado no tiene tests), como se esperaba hasta la 0.6. Límites de ESLint: complejidad 6, cognitiva 8, profundidad 2, 3 parámetros, 150 líneas por archivo y 60 por función.
 **Prompt:**
 > Lee CLAUDE.md. Configura:
 > - TypeScript strict (`noUncheckedIndexedAccess`, `allowJs` solo durante la transición).

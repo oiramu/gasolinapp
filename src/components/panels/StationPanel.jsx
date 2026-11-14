@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Fuel, MapPin, ThumbsUp, ThumbsDown, Plus, X,
-  AlertTriangle, Clock, Tag, MessageSquare, ChevronRight,
+  AlertTriangle, Clock, Tag, MessageSquare,
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
