@@ -1,5 +1,6 @@
 import type { Tables } from '@/shared/api/database.types'
 import type { FuelType } from '@/shared/domain/fuel'
+import type { VoteTally, VoteTargetType } from '@/shared/domain/votes'
 
 // Columnas que la app lee de cada tabla. El modelo conserva los nombres de la DB hasta la 0.6.
 
@@ -41,6 +42,7 @@ export type StationChange =
   | { readonly kind: 'price-added'; readonly stationId: string; readonly price: FuelPrice }
   | { readonly kind: 'report-added'; readonly stationId: string; readonly report: Report }
   | { readonly kind: 'station-updated'; readonly station: StationFields; readonly isActive: boolean }
+  | { readonly kind: 'votes-updated'; readonly targetType: VoteTargetType; readonly targetId: string; readonly tally: VoteTally }
   | { readonly kind: 'unknown' }
 
 export type Unsubscribe = () => void

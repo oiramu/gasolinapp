@@ -1,4 +1,4 @@
-import { act, waitFor } from '@testing-library/react'
+import { act } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { queryKeys } from '@/shared/api/queryKeys'
@@ -8,7 +8,7 @@ import { createTestClient, postgrestError, REST_URL } from '@/test/supabase'
 import { createMockReportsRepository } from './api/mockReportsRepository'
 import { createSupabaseReportsRepository } from './api/supabaseReportsRepository'
 import type { ReportsRepository } from './api/types'
-import { useSubmitPriceReport, useVoteOnReport } from './model/mutations'
+import { useSubmitPriceReport } from './model/mutations'
 
 const repository = () => createSupabaseReportsRepository(createTestClient())
 const report = { stationId: 's1', fuels: { corriente: '15900', extra: '18900' }, comment: 'Sin cola' }
@@ -38,36 +38,12 @@ describe('submitPriceReport', () => {
   })
 })
 
-describe('vote', () => {
-  it('suma uno a la columna del voto', async () => {
-    let patch: unknown
-    server.use(
-      http.get(`${REST_URL}/reports`, () => HttpResponse.json({ votes_up: 4, votes_down: 1 })),
-      http.patch(`${REST_URL}/reports`, async ({ request }) => {
-        patch = await request.json()
-        return new HttpResponse(null, { status: 204 })
-      }),
-    )
-    await repository().vote({ reportId: 'r1', voteType: 'down' })
-    expect(patch).toEqual({ votes_down: 2 })
-  })
-
-  it('sin conteo previo empieza en cero y propaga errores', async () => {
-    server.use(
-      http.get(`${REST_URL}/reports`, () => HttpResponse.json({ votes_up: null, votes_down: 0 })),
-      http.patch(`${REST_URL}/reports`, () => postgrestError('sin permiso')),
-    )
-    await expect(repository().vote({ reportId: 'r1', voteType: 'up' })).rejects.toThrow('sin permiso')
-  })
-})
-
 describe('createMockReportsRepository', () => {
   it('acepta escrituras sin persistir', async () => {
     const mock = createMockReportsRepository(0)
     await expect(mock.submitPriceReport(report)).resolves.toBeUndefined()
-    await expect(mock.vote({ reportId: 'r1', voteType: 'up' })).resolves.toBeUndefined()
     vi.useFakeTimers()
-    const pending = createMockReportsRepository().vote({ reportId: 'r1', voteType: 'up' })
+    const pending = createMockReportsRepository().submitPriceReport(report)
     await vi.runAllTimersAsync()
     await expect(pending).resolves.toBeUndefined()
     vi.useRealTimers()
@@ -77,7 +53,7 @@ describe('createMockReportsRepository', () => {
 describe('mutaciones', () => {
   const fake = () => {
     const submitPriceReport = vi.fn(() => Promise.resolve())
-    const reports: ReportsRepository = { submitPriceReport, vote: vi.fn(() => Promise.resolve()) }
+    const reports: ReportsRepository = { submitPriceReport }
     return { reports, submitPriceReport }
   }
 
@@ -91,13 +67,4 @@ describe('mutaciones', () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.zoneAverages })
   })
 
-  it('votar invalida las estaciones', async () => {
-    const { reports } = fake()
-    const { result, queryClient } = renderWithProviders(() => useVoteOnReport(), { reports })
-    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
-    await act(() => result.current.mutateAsync({ reportId: 'r1', voteType: 'up' }))
-    await waitFor(() => {
-      expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.stations })
-    })
-  })
 })

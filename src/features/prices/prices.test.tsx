@@ -47,7 +47,7 @@ describe('referencePrice', () => {
   it('sin precio de la estación usa el promedio vigente del combustible', async () => {
     server.use(
       http.get(`${REST_URL}/fuel_prices`, () => HttpResponse.json([])),
-      http.get(`${REST_URL}/latest_prices`, () => HttpResponse.json([{ price: 15900 }, { price: 16000 }, { price: null }])),
+      http.get(`${REST_URL}/latest_prices`, () => HttpResponse.json([{ price: 15900 }, { price: 16000 }])),
     )
     expect(await repository().referencePrice({ stationId: 's1', fuelType: 'corriente' })).toBe(15950)
   })

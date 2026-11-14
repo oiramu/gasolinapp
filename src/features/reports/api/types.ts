@@ -6,14 +6,6 @@ export interface PriceReport {
   readonly userDisplayName?: string
 }
 
-export type VoteType = 'up' | 'down'
-
-export interface Vote {
-  readonly reportId: string
-  readonly voteType: VoteType
-}
-
 export interface ReportsRepository {
   submitPriceReport(report: PriceReport): Promise<void>
-  vote(vote: Vote): Promise<void>
 }

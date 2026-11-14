@@ -46,7 +46,7 @@ export function createSupabasePricesRepository(client: AppSupabaseClient): Price
     const rows = unwrapList(
       await client.from('latest_prices').select('price').eq('fuel_type', fuelType).limit(REFERENCE_SAMPLE_SIZE),
     )
-    return roundedAverage(rows.flatMap(({ price }) => (price === null ? [] : [price])))
+    return roundedAverage(rows.map(({ price }) => price))
   }
 
   return {

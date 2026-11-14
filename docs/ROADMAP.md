@@ -96,6 +96,7 @@
 **Listo cuando:** cada visitante tiene un `auth.uid()` estable en ese navegador.
 
 ### [ ] 1.2 Votos seguros
+**Estado:** hecho en local el 2026-11-14 (ver [Sprint 01](sprints/01-seguridad.md)). Falta aplicar `20261114180000_votos_rpc.sql` en producción y desplegar.
 **Prompt:**
 > Lee CLAUDE.md. El voto actual (`voteOnReport`) lee y escribe +1 desde el cliente, y la RLS permite UPDATE público. Crea una migración con:
 > - Tabla `votes(id, target_type ('report'|'price'), target_id uuid, voter_id uuid default auth.uid(), value smallint check in (-1,1), created_at)` con UNIQUE(target_type, target_id, voter_id).

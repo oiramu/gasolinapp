@@ -3,8 +3,9 @@ import { fuelPrice, report, stationFields } from '@/test/fixtures/stations'
 import { toPriceChange, toReportChange, toStationChange } from './realtimeChanges'
 
 const base = { schema: 'public', commit_timestamp: '2026-11-13T10:00:00Z', errors: [] as string[] }
-const priceRow = { ...fuelPrice(), station_id: 's1', expires_at: null }
-const reportRow = { ...report(), station_id: 's1', is_visible: true }
+const legacy = { legacy_votes_up: 0, legacy_votes_down: 0 }
+const priceRow = { ...fuelPrice(), ...legacy, station_id: 's1', expires_at: null }
+const reportRow = { ...report(), ...legacy, station_id: 's1', is_visible: true }
 const stationRow = { ...stationFields(), is_active: true, location: null, osm_id: null, created_at: null, updated_at: null }
 
 const insert = <T extends object>(table: string, row: T) => ({ ...base, table, eventType: 'INSERT' as const, new: row, old: {} })
@@ -19,7 +20,7 @@ describe('toPriceChange', () => {
   it.each([
     ['inactivo', insert('fuel_prices', { ...priceRow, is_active: false })],
     ['con combustible desconocido', insert('fuel_prices', { ...priceRow, fuel_type: 'super' })],
-    ['UPDATE', update('fuel_prices', priceRow)],
+    ['UPDATE que lo desactiva', update('fuel_prices', { ...priceRow, is_active: false })],
     ['DELETE', remove('fuel_prices', { id: 'p1' })],
   ])('%s → unknown', (_, payload) => {
     expect(toPriceChange(payload)).toEqual({ kind: 'unknown' })
@@ -33,9 +34,19 @@ describe('toReportChange', () => {
 
   it.each([
     ['oculto', insert('reports', { ...reportRow, is_visible: false })],
-    ['UPDATE de votos', update('reports', reportRow)],
+    ['UPDATE que lo oculta', update('reports', { ...reportRow, is_visible: false })],
+    ['DELETE', remove('reports', { id: 'r1' })],
   ])('%s → unknown', (_, payload) => {
     expect(toReportChange(payload)).toEqual({ kind: 'unknown' })
+  })
+
+  it('un UPDATE de un reporte visible o de un precio activo trae sus votos', () => {
+    expect(toReportChange(update('reports', { ...reportRow, votes_up: 7, votes_down: null }))).toEqual({
+      kind: 'votes-updated', targetType: 'report', targetId: 'r1', tally: { votesUp: 7, votesDown: 0 },
+    })
+    expect(toPriceChange(update('fuel_prices', { ...priceRow, votes_down: 3 }))).toEqual({
+      kind: 'votes-updated', targetType: 'price', targetId: 'p1', tally: { votesUp: 0, votesDown: 3 },
+    })
   })
 })
 

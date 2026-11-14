@@ -2,13 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { createQueryClient, STALE_TIME_MS } from './queryClient'
 import { createMockRepositories, createRepositories } from './repositories'
 
-const REPOSITORY_NAMES = ['auth', 'prices', 'reports', 'stations', 'zones']
+const REPOSITORY_NAMES = ['auth', 'prices', 'reports', 'stations', 'votes', 'zones']
 
 describe('createRepositories (Strategy)', () => {
   it('en modo mock usa los repositorios en memoria', () => {
     const repositories = createRepositories({ dataSource: 'mock' })
     expect(Object.keys(repositories).sort()).toEqual(REPOSITORY_NAMES)
     expect(Object.keys(createMockRepositories(0)).sort()).toEqual(REPOSITORY_NAMES)
+  })
+
+  it('los votos mock parten de los contadores de las estaciones mock (o de cero si no existe)', async () => {
+    const { votes } = createMockRepositories(0)
+    await expect(votes.cast({ targetType: 'report', targetId: 'r1', value: -1 })).resolves.toEqual({ votesUp: 0, votesDown: 1, myVote: -1 })
+    await expect(votes.cast({ targetType: 'report', targetId: 'no-existe', value: 1 })).resolves.toEqual({ votesUp: 1, votesDown: 0, myVote: 1 })
   })
 
   it('en modo Supabase crea el cliente y los repositorios remotos', () => {

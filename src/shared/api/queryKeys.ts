@@ -8,4 +8,6 @@ export const queryKeys = {
   zoneAverages: ['zones', 'averages'] as const,
   priceHistory: (stationId: string | null, fuelType: string | null, days: number) => ['prices', 'history', stationId, fuelType, days] as const,
   referencePrice: (stationId: string | null, fuelType: string | null) => ['prices', 'reference', stationId, fuelType] as const,
+  myVotesAll: ['votes', 'mine'] as const,
+  myVotes: (userId: string | null, targetType: string, targetIds: readonly string[]) => ['votes', 'mine', userId, targetType, ...targetIds] as const,
 }

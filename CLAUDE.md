@@ -32,7 +32,7 @@ Estado actual (JS, se migra en la Fase 0):
 - `src/store/appStore.js`: estado global (Zustand).
 - `src/components/`: map/, panels/, modals/ y componentes sueltos.
 - `supabase/migrations/`: migraciones SQL numeradas, fuente de verdad del schema (`database/_legacy/` es solo histórico).
-- `src/shared/api/database.types.ts`: tipos generados de la DB; no se editan a mano.
+- `src/shared/api/database.types.ts`: tipos generados con `npm run db:types` desde la base local (las migraciones); no se editan a mano.
 
 Arquitectura destino (todo archivo nuevo o migrado va aquí, en `.ts`/`.tsx`):
 

@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   public: {
     Tables: {
       fuel_prices: {
@@ -23,6 +18,8 @@ export type Database = {
           fuel_type: string
           id: string
           is_active: boolean | null
+          legacy_votes_down: number
+          legacy_votes_up: number
           price: number
           price_unit: string
           reported_by: string | null
@@ -30,6 +27,7 @@ export type Database = {
           votes_down: number | null
           votes_up: number | null
         }
+        ComputedFields: never
         Insert: {
           comment?: string | null
           created_at?: string | null
@@ -38,6 +36,8 @@ export type Database = {
           fuel_type: string
           id?: string
           is_active?: boolean | null
+          legacy_votes_down?: number
+          legacy_votes_up?: number
           price: number
           price_unit?: string
           reported_by?: string | null
@@ -53,6 +53,8 @@ export type Database = {
           fuel_type?: string
           id?: string
           is_active?: boolean | null
+          legacy_votes_down?: number
+          legacy_votes_up?: number
           price?: number
           price_unit?: string
           reported_by?: string | null
@@ -83,17 +85,22 @@ export type Database = {
           created_at: string | null
           id: string
           is_visible: boolean | null
+          legacy_votes_down: number
+          legacy_votes_up: number
           station_id: string
           type: string | null
           user_display_name: string | null
           votes_down: number | null
           votes_up: number | null
         }
+        ComputedFields: never
         Insert: {
           content?: string | null
           created_at?: string | null
           id?: string
           is_visible?: boolean | null
+          legacy_votes_down?: number
+          legacy_votes_up?: number
           station_id: string
           type?: string | null
           user_display_name?: string | null
@@ -105,6 +112,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_visible?: boolean | null
+          legacy_votes_down?: number
+          legacy_votes_up?: number
           station_id?: string
           type?: string | null
           user_display_name?: string | null
@@ -136,6 +145,7 @@ export type Database = {
           srid: number
           srtext: string | null
         }
+        ComputedFields: never
         Insert: {
           auth_name?: string | null
           auth_srid?: number | null
@@ -177,6 +187,7 @@ export type Database = {
           updated_at: string | null
           zone_id: string | null
         }
+        ComputedFields: never
         Insert: {
           address?: string | null
           brand: string
@@ -235,6 +246,37 @@ export type Database = {
           },
         ]
       }
+      votes: {
+        Row: {
+          created_at: string
+          id: string
+          target_id: string
+          target_type: string
+          updated_at: string
+          value: number
+          voter_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+          value: number
+          voter_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+          value?: number
+          voter_id?: string
+        }
+        Relationships: []
+      }
       zones: {
         Row: {
           bounds: Json | null
@@ -247,6 +289,7 @@ export type Database = {
           lng: number
           name: string
         }
+        ComputedFields: never
         Insert: {
           bounds?: Json | null
           city?: string | null
@@ -276,13 +319,14 @@ export type Database = {
       daily_avg_prices: {
         Row: {
           avg_price: number | null
-          fuel_type: string | null
+          fuel_type: string
           max_price: number | null
           min_price: number | null
           price_date: string | null
           report_count: number | null
-          station_id: string | null
+          station_id: string
         }
+        ComputedFields: never
         Relationships: [
           {
             foreignKeyName: "fuel_prices_station_id_fkey"
@@ -310,6 +354,7 @@ export type Database = {
           srid: number | null
           type: string | null
         }
+        ComputedFields: never
         Relationships: []
       }
       geometry_columns: {
@@ -322,6 +367,7 @@ export type Database = {
           srid: number | null
           type: string | null
         }
+        ComputedFields: never
         Insert: {
           coord_dimension?: number | null
           f_geometry_column?: unknown
@@ -344,13 +390,14 @@ export type Database = {
       }
       latest_prices: {
         Row: {
-          fuel_type: string | null
-          price: number | null
-          price_unit: string | null
+          fuel_type: string
+          price: number
+          price_unit: string
           reported_at: string | null
           reported_by: string | null
-          station_id: string | null
+          station_id: string
         }
+        ComputedFields: never
         Relationships: [
           {
             foreignKeyName: "fuel_prices_station_id_fkey"
@@ -372,20 +419,25 @@ export type Database = {
         Row: {
           active_prices: number | null
           address: string | null
-          brand: string | null
-          id: string | null
+          brand: string
+          id: string
           last_report: string | null
-          lat: number | null
-          lng: number | null
-          name: string | null
+          lat: number
+          lng: number
+          name: string
           zone_city: string | null
           zone_dept: string | null
           zone_name: string | null
         }
+        ComputedFields: never
         Relationships: []
       }
     }
     Functions: {
+      _lock_vote_target: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: undefined
+      }
       _postgis_deprecate: {
         Args: { newname: string; oldname: string; version: string }
         Returns: undefined
@@ -394,8 +446,14 @@ export type Database = {
         Args: { col: string; tbl: unknown }
         Returns: unknown
       }
-      _postgis_pgsql_version: { Args: never; Returns: string }
-      _postgis_scripts_pgsql_version: { Args: never; Returns: string }
+      _postgis_pgsql_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      _postgis_scripts_pgsql_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       _postgis_selectivity: {
         Args: { att_name: string; geom: unknown; mode?: string; tbl: unknown }
         Returns: number
@@ -403,6 +461,13 @@ export type Database = {
       _postgis_stats: {
         Args: { ""?: string; att_name: string; tbl: unknown }
         Returns: string
+      }
+      _refresh_vote_counts: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: {
+          down: number
+          up: number
+        }[]
       }
       _st_3dintersects: {
         Args: { geom1: unknown; geom2: unknown }
@@ -513,7 +578,18 @@ export type Database = {
             }
             Returns: string
           }
-      disablelongtransactions: { Args: never; Returns: string }
+      cast_vote: {
+        Args: { p_target_id: string; p_target_type: string; p_value: number }
+        Returns: {
+          my_vote: number
+          votes_down: number
+          votes_up: number
+        }[]
+      }
+      disablelongtransactions: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       dropgeometrycolumn:
         | {
             Args: {
@@ -544,7 +620,10 @@ export type Database = {
           }
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
-      enablelongtransactions: { Args: never; Returns: string }
+      enablelongtransactions: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
@@ -644,8 +723,16 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_my_votes: {
+        Args: { p_target_ids: string[] }
+        Returns: {
+          target_id: string
+          target_type: string
+          value: number
+        }[]
+      }
       get_zone_averages: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           avg_corriente: number
           avg_diesel: number
@@ -662,8 +749,11 @@ export type Database = {
           station_count: number
         }[]
       }
-      gettransactionid: { Args: never; Returns: unknown }
-      longtransactionsenabled: { Args: never; Returns: boolean }
+      gettransactionid: { Args: Record<PropertyKey, never>; Returns: unknown }
+      longtransactionsenabled: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -679,21 +769,60 @@ export type Database = {
         Args: { geomcolumn: string; geomschema: string; geomtable: string }
         Returns: string
       }
-      postgis_extensions_upgrade: { Args: never; Returns: string }
-      postgis_full_version: { Args: never; Returns: string }
-      postgis_geos_version: { Args: never; Returns: string }
-      postgis_lib_build_date: { Args: never; Returns: string }
-      postgis_lib_revision: { Args: never; Returns: string }
-      postgis_lib_version: { Args: never; Returns: string }
-      postgis_libjson_version: { Args: never; Returns: string }
-      postgis_liblwgeom_version: { Args: never; Returns: string }
-      postgis_libprotobuf_version: { Args: never; Returns: string }
-      postgis_libxml_version: { Args: never; Returns: string }
-      postgis_proj_version: { Args: never; Returns: string }
-      postgis_scripts_build_date: { Args: never; Returns: string }
-      postgis_scripts_installed: { Args: never; Returns: string }
-      postgis_scripts_released: { Args: never; Returns: string }
-      postgis_svn_version: { Args: never; Returns: string }
+      postgis_extensions_upgrade: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_full_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_geos_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_lib_build_date: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_lib_revision: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_lib_version: { Args: Record<PropertyKey, never>; Returns: string }
+      postgis_libjson_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_liblwgeom_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_libprotobuf_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_libxml_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_proj_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_scripts_build_date: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_scripts_installed: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_scripts_released: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      postgis_svn_version: { Args: Record<PropertyKey, never>; Returns: string }
       postgis_type_name: {
         Args: {
           coord_dimension: number
@@ -702,8 +831,11 @@ export type Database = {
         }
         Returns: string
       }
-      postgis_version: { Args: never; Returns: string }
-      postgis_wagyu_version: { Args: never; Returns: string }
+      postgis_version: { Args: Record<PropertyKey, never>; Returns: string }
+      postgis_wagyu_version: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
@@ -1322,12 +1454,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1351,11 +1483,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1376,11 +1508,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1401,11 +1533,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1418,11 +1550,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

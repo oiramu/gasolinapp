@@ -7,8 +7,5 @@ export function createMockReportsRepository(latencyMs = MOCK_LATENCY_MS): Report
     async submitPriceReport() {
       await delay(latencyMs)
     },
-    async vote() {
-      await delay(latencyMs)
-    },
   }
 }

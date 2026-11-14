@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Fuel, MapPin, ThumbsUp, ThumbsDown, Plus, X,
+  Fuel, MapPin, Plus, X,
   AlertTriangle, Clock, Tag, MessageSquare,
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
@@ -10,8 +10,7 @@ import { formatPriceValue } from '@/shared/domain/format'
 import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
-import { useHasSession } from '@/features/auth/model/session'
-import { useVoteOnReport } from '@/features/reports/model/mutations'
+import { ReportVotes } from '@/features/votes/ui/ReportVotes'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
@@ -75,25 +74,9 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
   )
 }
 
-function ReportItem({ report, onVote, canVote }) {
+function ReportItem({ report, reportIds, onVoteError }) {
   const Icon = REPORT_ICONS[report.type] || MessageSquare
   const typeConfig = REPORT_TYPE_LABELS[report.type] || REPORT_TYPE_LABELS.comment
-  const [voted, setVoted] = useState(null)
-  const [baseUp, setBaseUp] = useState(0)
-
-  const handleVote = async (type) => {
-    if (voted || !canVote) return
-    setVoted(type)
-    setBaseUp(report.votes_up ?? 0)
-    try {
-      await onVote({ reportId: report.id, voteType: type })
-    } catch {
-      setVoted(null)
-    }
-  }
-
-  // Cuando llega el conteo del servidor ya incluye este voto: no se suma dos veces
-  const upCount = voted === 'up' ? Math.max(report.votes_up ?? 0, baseUp + 1) : report.votes_up
 
   return (
     <div className="flex gap-3 py-3 border-b border-white/5 last:border-0 animate-fade-up">
@@ -119,41 +102,13 @@ function ReportItem({ report, onVote, canVote }) {
 
         <p className="text-[12px] text-gray-300 leading-relaxed">{report.content}</p>
 
-        {/* Votes */}
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={() => handleVote('up')}
-            className={cn(
-              'flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-full border transition-all',
-              voted === 'up'
-                ? 'border-fuel-500/50 text-fuel-500 bg-fuel-500/10'
-                : 'border-white/10 text-gray-500 hover:border-fuel-500/40 hover:text-fuel-500'
-            )}
-          >
-            <ThumbsUp size={9} />
-            {upCount}
-          </button>
-          <button
-            onClick={() => handleVote('down')}
-            className={cn(
-              'flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-full border transition-all',
-              voted === 'down'
-                ? 'border-red-400/50 text-red-400 bg-red-400/10'
-                : 'border-white/10 text-gray-500 hover:border-red-400/40 hover:text-red-400'
-            )}
-          >
-            <ThumbsDown size={9} />
-            Incorrecto
-          </button>
-        </div>
+        <ReportVotes report={report} reportIds={reportIds} onError={onVoteError} />
       </div>
     </div>
   )
 }
 
 export default function StationPanel({ station, zoneData }) {
-  const { mutateAsync: voteOnReport } = useVoteOnReport()
-  const canVote = useHasSession()
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
@@ -163,6 +118,7 @@ export default function StationPanel({ station, zoneData }) {
   if (!station) return null
 
   const brandColor = BRAND_COLORS[station.brand] || '#6B7280'
+  const reportIds = station.reports?.map((report) => report.id) ?? []
   const isFavorite = favoriteStationId === station.id
 
   const toggleFavorite = () => {
@@ -365,15 +321,8 @@ export default function StationPanel({ station, zoneData }) {
                     <ReportItem
                       key={report.id}
                       report={report}
-                      canVote={canVote}
-                      onVote={async (vote) => {
-                        try {
-                          await voteOnReport(vote)
-                        } catch (err) {
-                          showToast('No se pudo registrar el voto. Intenta de nuevo.', 'error')
-                          throw err
-                        }
-                      }}
+                      reportIds={reportIds}
+                      onVoteError={() => showToast('No se pudo registrar el voto. Intenta de nuevo.', 'error')}
                     />
                   ))}
                 </div>

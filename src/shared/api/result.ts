@@ -13,9 +13,12 @@ export function unwrapList<T>(result: ApiResult<readonly T[]>): T[] {
   return [...(result.data ?? [])]
 }
 
-/** Datos de una respuesta `{ data, error }` (por ejemplo, de `supabase.auth`), o lanza su error. */
-export function unwrap<T>(result: { readonly data: T; readonly error: ApiError | null }): T {
+export const EMPTY_RESPONSE = 'La respuesta llegó vacía'
+
+/** Datos de una respuesta `{ data, error }` (`supabase.auth`, `.single()`), o lanza su error. */
+export function unwrap<T>(result: { readonly data: T | null; readonly error: ApiError | null }): T {
   if (result.error) throw new Error(result.error.message)
+  if (result.data === null) throw new Error(EMPTY_RESPONSE)
   return result.data
 }
 

@@ -95,7 +95,7 @@ Nunca edites una migración que ya está aplicada: escribe una nueva.
 **Regenerar los tipos de TypeScript** después de cada cambio de schema:
 
 ```bash
-npx supabase gen types typescript --linked > src/shared/api/database.types.ts
+npm run db:types   # desde la base local (supabase start + db reset), o sea, desde las migraciones
 ```
 
 ### 4. Configurar variables de entorno

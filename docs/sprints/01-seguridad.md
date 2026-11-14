@@ -59,6 +59,14 @@
 
 ## [ ] 1.2 — Votos seguros (expandir)
 
+**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración corre dos veces sin error, pgTAP 42/42 (30 nuevos en `002_votes_rpc.test.sql`) y `npm run check` en verde.
+
+- Migración `20261114180000_votos_rpc.sql` (el nombre se ajusta a la versión que asigne `apply_migration`): columnas `legacy_votes_up/down` rellenadas una sola vez, tabla `votes` (solo SELECT para el cliente), helpers internos sin EXECUTE público, `cast_vote` y `get_my_votes` (máx. 500 ids). Errores: `NOT_AUTHENTICATED`, `INVALID_VOTE`, `INVALID_TARGET`, `TARGET_NOT_FOUND`, `TOO_MANY_TARGETS`.
+- Frontend: `features/votes` (Repository Supabase/Mock, `useMyVotes`, `useCastVote` como Command con rollback, `ReportVotes` + `VoteButtons` en TSX). La regla del toggle vive en `shared/domain/votes.ts` (predicción) y la respuesta del servidor la reemplaza. El realtime parchea los contadores (`votes-updated`) en lugar de invalidar todo.
+- Tipos: `npm run db:types` los genera desde la base local (las migraciones). Es más preciso que el generador del MCP (sabe que `latest_prices.price` es NOT NULL).
+- **Ventana de transición:** mientras el frontend viejo siga en producción, sus votos por UPDATE directo se pierden con el siguiente voto por RPC sobre ese reporte (el recálculo usa legacy + COUNT). Por eso el deploy va justo después de la migración.
+- **Orden de despliegue:** migración (con OK de Mario) → regenerar tipos → preview → `--prod`. La 1.2 necesita la 1.1 en producción (sin sesión no se vota), así que primero va el toggle de Anonymous sign-ins.
+
 **Migración `..._votos_rpc.sql`:**
 - Tabla `votes(id uuid pk, target_type text check in ('report','price'), target_id uuid, voter_id uuid not null default auth.uid(), value smallint check in (-1,1), created_at, updated_at)` con `UNIQUE(target_type, target_id, voter_id)`.
 - RLS: `SELECT` público y ninguna política de escritura.
