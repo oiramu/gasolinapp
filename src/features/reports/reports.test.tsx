@@ -1,0 +1,103 @@
+import { act, waitFor } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { describe, expect, it, vi } from 'vitest'
+import { queryKeys } from '@/shared/api/queryKeys'
+import { server } from '@/test/msw/server'
+import { renderWithProviders } from '@/test/renderWithProviders'
+import { createTestClient, postgrestError, REST_URL } from '@/test/supabase'
+import { createMockReportsRepository } from './api/mockReportsRepository'
+import { createSupabaseReportsRepository } from './api/supabaseReportsRepository'
+import type { ReportsRepository } from './api/types'
+import { useSubmitPriceReport, useVoteOnReport } from './model/mutations'
+
+const repository = () => createSupabaseReportsRepository(createTestClient())
+const report = { stationId: 's1', fuels: { corriente: '15900', extra: '18900' }, comment: 'Sin cola' }
+
+describe('submitPriceReport', () => {
+  it('inserta todos los precios en un solo INSERT y luego el comentario', async () => {
+    const bodies: { table: string; body: unknown }[] = []
+    server.use(
+      http.post(`${REST_URL}/:table`, async ({ request, params }) => {
+        bodies.push({ table: String(params.table), body: await request.json() })
+        return new HttpResponse(null, { status: 201 })
+      }),
+    )
+    await repository().submitPriceReport(report)
+    expect(bodies.map((b) => b.table)).toEqual(['fuel_prices', 'reports'])
+    expect(bodies[0]?.body).toHaveLength(2)
+    expect(bodies[1]?.body).toMatchObject({ type: 'price', content: 'Sin cola', user_display_name: 'Anónimo' })
+  })
+
+  it('sin precios válidos ni comentario no escribe nada', async () => {
+    await expect(repository().submitPriceReport({ stationId: 's1', fuels: { extra: '' }, comment: '' })).resolves.toBeUndefined()
+  })
+
+  it('propaga el error de la escritura', async () => {
+    server.use(http.post(`${REST_URL}/fuel_prices`, () => postgrestError('fuera de rango')))
+    await expect(repository().submitPriceReport(report)).rejects.toThrow('fuera de rango')
+  })
+})
+
+describe('vote', () => {
+  it('suma uno a la columna del voto', async () => {
+    let patch: unknown
+    server.use(
+      http.get(`${REST_URL}/reports`, () => HttpResponse.json({ votes_up: 4, votes_down: 1 })),
+      http.patch(`${REST_URL}/reports`, async ({ request }) => {
+        patch = await request.json()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    await repository().vote({ reportId: 'r1', voteType: 'down' })
+    expect(patch).toEqual({ votes_down: 2 })
+  })
+
+  it('sin conteo previo empieza en cero y propaga errores', async () => {
+    server.use(
+      http.get(`${REST_URL}/reports`, () => HttpResponse.json({ votes_up: null, votes_down: 0 })),
+      http.patch(`${REST_URL}/reports`, () => postgrestError('sin permiso')),
+    )
+    await expect(repository().vote({ reportId: 'r1', voteType: 'up' })).rejects.toThrow('sin permiso')
+  })
+})
+
+describe('createMockReportsRepository', () => {
+  it('acepta escrituras sin persistir', async () => {
+    const mock = createMockReportsRepository(0)
+    await expect(mock.submitPriceReport(report)).resolves.toBeUndefined()
+    await expect(mock.vote({ reportId: 'r1', voteType: 'up' })).resolves.toBeUndefined()
+    vi.useFakeTimers()
+    const pending = createMockReportsRepository().vote({ reportId: 'r1', voteType: 'up' })
+    await vi.runAllTimersAsync()
+    await expect(pending).resolves.toBeUndefined()
+    vi.useRealTimers()
+  })
+})
+
+describe('mutaciones', () => {
+  const fake = () => {
+    const submitPriceReport = vi.fn(() => Promise.resolve())
+    const reports: ReportsRepository = { submitPriceReport, vote: vi.fn(() => Promise.resolve()) }
+    return { reports, submitPriceReport }
+  }
+
+  it('reportar invalida estaciones y promedios por zona', async () => {
+    const { reports, submitPriceReport } = fake()
+    const { result, queryClient } = renderWithProviders(() => useSubmitPriceReport(), { reports })
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+    await act(() => result.current.mutateAsync(report))
+    expect(submitPriceReport).toHaveBeenCalledWith(report)
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.stations })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.zoneAverages })
+  })
+
+  it('votar invalida las estaciones', async () => {
+    const { reports } = fake()
+    const { result, queryClient } = renderWithProviders(() => useVoteOnReport(), { reports })
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+    await act(() => result.current.mutateAsync({ reportId: 'r1', voteType: 'up' }))
+    await waitFor(() => {
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.stations })
+    })
+  })
+})

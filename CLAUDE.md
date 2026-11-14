@@ -24,8 +24,11 @@ Sin Supabase configurado la app corre con datos mock (`VITE_USE_MOCK_DATA=true`)
 Estado actual (JS, se migra en la Fase 0):
 
 - `src/shared/domain/`: lógica pura y fuente única de verdad, en TS. `fuel.ts` (tipos de combustible, unidades, rangos, precio vigente), `format.ts` (precios), `time.ts` (tiempo relativo), `geo.ts` (distancias, mejor estación), `brands.ts` y `reports.ts`. No dupliques esta lógica en componentes.
-- `src/services/*.service.js`: única capa que habla con Supabase. Los componentes no llaman a `supabase` directamente.
-- `src/hooks/`: fetch + realtime + geolocalización.
+- `src/features/<feature>/api/`: única capa que habla con Supabase. Cada feature (`stations`, `zones`, `prices`, `reports`) tiene una interfaz Repository con implementaciones Supabase y Mock, y su Adapter. Los componentes no llaman a `supabase` directamente.
+- `src/features/<feature>/model/`: hooks de TanStack Query (queries, mutaciones y el realtime que parchea la caché).
+- `src/app/`: composición. `repositories.ts` elige Supabase o Mock según el entorno (Strategy) y `AppProviders.tsx` inyecta la caché y los repositorios.
+- `src/shared/api/`: cliente tipado, `queryKeys.ts` (claves de caché compartidas), `result.ts` y el contexto de inyección de repositorios.
+- `src/hooks/useGeolocation.js`: geolocalización.
 - `src/store/appStore.js`: estado global (Zustand).
 - `src/components/`: map/, panels/, modals/ y componentes sueltos.
 - `supabase/migrations/`: migraciones SQL numeradas, fuente de verdad del schema (`database/_legacy/` es solo histórico).

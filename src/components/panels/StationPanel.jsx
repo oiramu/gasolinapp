@@ -10,7 +10,7 @@ import { formatPriceValue } from '@/shared/domain/format'
 import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
-import { voteOnReport } from '@/services/reports.service'
+import { useVoteOnReport } from '@/features/reports/model/mutations'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
@@ -78,12 +78,21 @@ function ReportItem({ report, onVote }) {
   const Icon = REPORT_ICONS[report.type] || MessageSquare
   const typeConfig = REPORT_TYPE_LABELS[report.type] || REPORT_TYPE_LABELS.comment
   const [voted, setVoted] = useState(null)
+  const [baseUp, setBaseUp] = useState(0)
 
   const handleVote = async (type) => {
     if (voted) return
     setVoted(type)
-    await onVote({ reportId: report.id, voteType: type })
+    setBaseUp(report.votes_up ?? 0)
+    try {
+      await onVote({ reportId: report.id, voteType: type })
+    } catch {
+      setVoted(null)
+    }
   }
+
+  // Cuando llega el conteo del servidor ya incluye este voto: no se suma dos veces
+  const upCount = voted === 'up' ? Math.max(report.votes_up ?? 0, baseUp + 1) : report.votes_up
 
   return (
     <div className="flex gap-3 py-3 border-b border-white/5 last:border-0 animate-fade-up">
@@ -121,7 +130,7 @@ function ReportItem({ report, onVote }) {
             )}
           >
             <ThumbsUp size={9} />
-            {report.votes_up + (voted === 'up' ? 1 : 0)}
+            {upCount}
           </button>
           <button
             onClick={() => handleVote('down')}
@@ -141,8 +150,9 @@ function ReportItem({ report, onVote }) {
   )
 }
 
-export default function StationPanel({ station, zoneData, onRefetch }) {
-  const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId } = useAppStore()
+export default function StationPanel({ station, zoneData }) {
+  const { mutateAsync: voteOnReport } = useVoteOnReport()
+  const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
 
@@ -353,9 +363,13 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                     <ReportItem
                       key={report.id}
                       report={report}
-                      onVote={async ({ reportId, voteType }) => {
-                        await voteOnReport({ reportId, voteType })
-                        onRefetch?.()
+                      onVote={async (vote) => {
+                        try {
+                          await voteOnReport(vote)
+                        } catch (err) {
+                          showToast('No se pudo registrar el voto. Intenta de nuevo.', 'error')
+                          throw err
+                        }
                       }}
                     />
                   ))}

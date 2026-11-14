@@ -1,0 +1,10 @@
+/**
+ * Claves de caché de TanStack Query. Viven en un solo lugar para que una mutación
+ * de un feature pueda invalidar datos de otro sin importarlo.
+ */
+export const queryKeys = {
+  stations: ['stations'] as const,
+  zoneAverages: ['zones', 'averages'] as const,
+  priceHistory: (stationId: string | null, fuelType: string | null, days: number) => ['prices', 'history', stationId, fuelType, days] as const,
+  referencePrice: (stationId: string | null, fuelType: string | null) => ['prices', 'reference', stationId, fuelType] as const,
+}

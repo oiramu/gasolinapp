@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier } from '@/shared/domain/fuel'
 import { formatPriceValue } from '@/shared/domain/format'
 import { SERVICES, SERVICE_CATEGORIES } from '@/lib/services'
-import { submitPriceReport } from '@/services/reports.service'
+import { useSubmitPriceReport } from '@/features/reports/model/mutations'
 import { features } from '@/config/features'
 import { cn } from '@/lib/utils'
 
@@ -122,7 +122,8 @@ function getInitialServicesState(station) {
 }
 
 
-export default function ReportPriceModal({ station, onSuccess }) {
+export default function ReportPriceModal({ station }) {
+  const { mutateAsync: submitPriceReport } = useSubmitPriceReport()
   const { reportModalOpen, reportModalPreExpand, setReportModalOpen, showToast } = useAppStore()
 
   const [activeFuels, setActiveFuels] = useState(INITIAL_ACTIVE_FUELS)
@@ -180,7 +181,6 @@ export default function ReportPriceModal({ station, onSuccess }) {
 
       showToast('✓ ¡Reporte enviado! Gracias por contribuir.', 'success')
       setReportModalOpen(false)
-      onSuccess?.()
 
       // Reset
       setPrices(INITIAL_PRICES)

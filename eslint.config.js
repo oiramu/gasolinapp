@@ -25,6 +25,8 @@ const qualityRules = {
   'max-params': ['error', LIMITS.maxParams],
   'max-lines': ['error', { max: LIMITS.maxLinesPerFile, ...SIZE_OPTIONS }],
   'max-lines-per-function': ['error', { max: LIMITS.maxLinesPerFunction, ...SIZE_OPTIONS }],
+  // '' significa "sin valor" en formularios: `nombre || 'Anónimo'` es intencional
+  '@typescript-eslint/prefer-nullish-coalescing': ['error', { ignorePrimitives: { string: true } }],
   'no-magic-numbers': 'off',
   '@typescript-eslint/no-magic-numbers': [
     'error',
@@ -32,7 +34,7 @@ const qualityRules = {
   ],
 }
 
-// Los componentes y la app no conocen Supabase: dependen de repositorios inyectados
+// Los componentes no conocen Supabase: dependen de repositorios inyectados (solo app/repositories.ts compone)
 const noSupabaseInUi = {
   'no-restricted-imports': [
     'error',
@@ -64,7 +66,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/features/*/ui/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    files: ['src/features/*/ui/**/*.{ts,tsx}', 'src/app/**/*.tsx'],
     rules: noSupabaseInUi,
   },
   {

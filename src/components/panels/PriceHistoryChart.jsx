@@ -5,11 +5,11 @@ import {
 } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, MessageSquare, BarChart2, Plus, Fuel, Clock } from 'lucide-react'
 import FilterSelect from '@/components/FilterSelect'
-import { supabase } from '@/lib/supabase'
+import { usePriceHistory } from '@/features/prices/model/usePriceHistory'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel } from '@/shared/domain/fuel'
 import { formatPriceValue } from '@/shared/domain/format'
-import { format, subDays, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 // ── Período helpers ────────────────────────────────────────────────────────────
@@ -83,80 +83,6 @@ function ChartSkeleton() {
       ))}
     </div>
   )
-}
-
-// ── Hook de datos ─────────────────────────────────────────────────────────────
-function usePriceHistory(stationId, fuelType, days) {
-  const [data, setData]       = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
-
-  useEffect(() => {
-    if (!stationId || !fuelType) return
-    let cancelled = false
-    setLoading(true)
-    setError(null)
-
-    async function fetchHistory() {
-      const startDate = subDays(new Date(), days).toISOString()
-
-      // Intentar con daily_avg_prices primero
-      const { data: matData, error: matErr } = await supabase
-        .from('daily_avg_prices')
-        .select('price_date, avg_price, min_price, max_price, report_count')
-        .eq('station_id', stationId)
-        .eq('fuel_type', fuelType)
-        .gte('price_date', startDate)
-        .order('price_date', { ascending: true })
-
-      if (matErr) {
-        // Fallback: agrupar fuel_prices en cliente
-        const { data: raw, error: rawErr } = await supabase
-          .from('fuel_prices')
-          .select('price, created_at')
-          .eq('station_id', stationId)
-          .eq('fuel_type', fuelType)
-          .eq('is_active', true)
-          .gte('created_at', startDate)
-          .order('created_at', { ascending: true })
-
-        if (!cancelled) {
-          if (rawErr) {
-            setError(rawErr.message)
-            setData([])
-          } else {
-            // Agrupar por día en cliente
-            const byDay = {}
-            for (const row of raw ?? []) {
-              const day = row.created_at.slice(0, 10)
-              if (!byDay[day]) byDay[day] = []
-              byDay[day].push(row.price)
-            }
-            const grouped = Object.entries(byDay).map(([date, prices]) => ({
-              price_date:   date,
-              avg_price:    Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
-              min_price:    Math.min(...prices),
-              max_price:    Math.max(...prices),
-              report_count: prices.length,
-            }))
-            setData(grouped)
-          }
-          setLoading(false)
-        }
-        return
-      }
-
-      if (!cancelled) {
-        setData(matData ?? [])
-        setLoading(false)
-      }
-    }
-
-    fetchHistory()
-    return () => { cancelled = true }
-  }, [stationId, fuelType, days])
-
-  return { data, loading, error }
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────

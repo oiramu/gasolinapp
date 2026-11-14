@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAppStore } from '@/store/appStore'
-import { useStationsData } from '@/hooks/useStationsData'
-import { useZonesData } from '@/hooks/useZonesData'
+import { useStations } from '@/features/stations/model/useStations'
+import { useZones } from '@/features/zones/model/useZones'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/domain/geo'
 import TopBar from '@/components/TopBar'
@@ -28,11 +28,9 @@ export default function App() {
   } = useAppStore()
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { stations, loading, error, refresh: refreshStations } = useStationsData()
-  const { zones, refresh: refreshZones }                        = useZonesData()
-  const { position: userPos }                                   = useGeolocation({})
-
-  const refreshAll = () => { refreshStations(); refreshZones() }
+  const { stations, loading, error } = useStations()
+  const zones                        = useZones()
+  const { position: userPos }        = useGeolocation({})
 
   // Keep the selected station panel in sync with the freshest data
   const syncedStation = selectedStation
@@ -149,7 +147,6 @@ export default function App() {
             <StationPanel
               station={syncedStation}
               zoneData={selectedZone}
-              onRefetch={refreshAll}
             />
           )}
         </div>
@@ -164,10 +161,7 @@ export default function App() {
       </div>
 
       {/* ── Modals & toasts ─────────────────────────────────────────────── */}
-      <ReportPriceModal
-        station={syncedStation}
-        onSuccess={refreshAll}
-      />
+      <ReportPriceModal station={syncedStation} />
       <SettingsModal />
       <SpotlightModal
         stations={filteredStations}
