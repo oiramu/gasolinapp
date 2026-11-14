@@ -86,9 +86,9 @@
 
 ### [ ] 1.3a Expandir: RPCs de escritura
 
-**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261114200000_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_fuel_price_ranges`) y `npm run check` en verde.
+**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261114200000_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_reglas_compartidas`) y `npm run check` en verde.
 
-- Rangos con una sola fuente: `fuel.ts`. `fuelPriceRanges.db.test.ts` genera `003_fuel_price_ranges.test.sql` (`toMatchFileSnapshot`) y ese pgTAP compara la tabla con `fuel.ts`. Probado: cambiar un rango en TS hace fallar vitest; regenerar sin migración hace fallar pgTAP.
+- Rangos con una sola fuente: `fuel.ts`. `sharedRules.db.test.ts` genera `003_reglas_compartidas.test.sql` (`toMatchFileSnapshot`) y ese pgTAP compara la tabla con `fuel.ts`. Probado: cambiar un rango en TS hace fallar vitest; regenerar sin migración hace fallar pgTAP.
 - Servicios: las claves válidas salen del catálogo (columnas booleanas `svc_*` de `stations`); los tipos de reporte, del CHECK `reports_type_check`. Ninguna lista se copia en el SQL.
 - Cada escritura toma un advisory lock por uid: los límites de tasa no tienen carreras. `RATE_LIMIT` usa SQLSTATE `PT429` (PostgREST responde HTTP 429).
 - Errores para el Toast de la 1.3b: `NOT_AUTHENTICATED`, `STATION_NOT_FOUND`, `INVALID_FUEL`, `OUT_OF_RANGE`, `INVALID_COMMENT`, `INVALID_TYPE`, `INVALID_CONTENT`, `INVALID_SERVICES`, `RATE_LIMIT`.
@@ -109,6 +109,18 @@
 ### [ ] 1.3b Desplegar el frontend
 - `ReportPriceModal` y el flujo de comentarios usan las RPC. El modal de servicios vuelve detrás del flag, usando `suggest_station_services`.
 - Migra a TSX solo los componentes que toques.
+
+**Estado (2026-11-14):** hecho en local. `npm run check` en verde (190 tests, TS nuevo al 100%), pgTAP 85/85 y contrato cliente ↔ RPC probado con supabase-js contra el Supabase local (alta anónima real; errores con su código; 429 en el límite; 403 al escribir `stations`).
+
+- `features/reports`: el repositorio usa `report_price`, `add_report` y `suggest_station_services`. El envío es un comando (`submitReport`): precios, luego comentario y al final servicios; si una RPC falla, lo anterior queda guardado y el error llega al Toast.
+- `ReportPriceModal` en TSX (`features/reports/ui`): contenedor de 85 líneas y presentacionales (`ReportDialog`, `FuelPriceField`, `FuelPriceInput`, `ServicesPicker`, `CommentField`, `SubmitButton`). El borrador se deriva del formulario (`reportForm.ts`, funciones puras). `components/modals/ReportPriceModal.jsx` queda como adaptador del store hasta la 0.5.
+- `shared/api/rpcErrors.ts` traduce los códigos de las RPC (tabla de búsqueda); también lo usa el voto.
+- Cambios visibles: se quita "Tu nombre" (el servidor guarda "Anónimo"); un precio fuera de rango bloquea el envío; se puede enviar solo un comentario o solo servicios; el contador de caracteres del comentario; `serviceSuggestions` vuelve a `true`.
+- Realtime: INSERT y UPDATE de `fuel_prices` son `price-saved` (la fila reemplaza a la de la caché), así se ven las correcciones de 30 min y los votos de precios.
+- El pgTAP generado `003_reglas_compartidas` ahora también verifica el largo máximo del comentario (`REPORT_CONTENT_MAX_LENGTH`).
+- Los "no encontrado" de las RPC usan `PT404` (HTTP 404) en lugar de `P0002` (salía HTTP 500). Se cambió en las migraciones de la 1.2 y la 1.3a, que todavía no están en producción.
+- El catálogo de servicios pasó a `features/stations/ui/serviceCatalog.ts`, tipado con las columnas `svc_*`; `lib/services.js` lo reexporta.
+- **Deploy:** requiere la 1.1, la 1.2 y la 1.3a en producción. Después de este deploy, la 1.3c ya puede cerrar las escrituras directas.
 
 ### [ ] 1.3c Contraer
 **Migración `..._cerrar_escrituras_precios_reportes.sql`** (después de que la 1.3b esté en producción):

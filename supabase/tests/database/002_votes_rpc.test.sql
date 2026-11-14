@@ -113,11 +113,11 @@ SELECT results_eq(
 -- Abusos con sesión
 SELECT throws_ok(
   $$SELECT public.cast_vote('report', '00000000-0000-0000-0000-0000000000e2', 1)$$,
-  'P0002', 'TARGET_NOT_FOUND', 'abuso: no se vota un reporte oculto'
+  'PT404', 'TARGET_NOT_FOUND', 'abuso: no se vota un reporte oculto'
 );
 SELECT throws_ok(
   $$SELECT public.cast_vote('report', '00000000-0000-0000-0000-00000000dead', 1)$$,
-  'P0002', 'TARGET_NOT_FOUND', 'abuso: no se vota un objetivo inexistente'
+  'PT404', 'TARGET_NOT_FOUND', 'abuso: no se vota un objetivo inexistente'
 );
 SELECT throws_ok(
   $$SELECT public.cast_vote('station', '00000000-0000-0000-0000-000000000001', 1)$$,

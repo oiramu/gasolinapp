@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.fuel_price_ranges (
 );
 
 -- Valores de src/shared/domain/fuel.ts (FUEL_PRICE_RANGES y FUEL_TYPES[].unit).
--- supabase/tests/database/003_fuel_price_ranges.test.sql se genera desde fuel.ts y verifica que coincidan.
+-- supabase/tests/database/003_reglas_compartidas.test.sql se genera desde fuel.ts y verifica que coincidan.
 INSERT INTO public.fuel_price_ranges (fuel_type, min_price, max_price, price_unit) VALUES
   ('corriente', 12000, 20000, 'gallon'),
   ('extra',     13000, 25000, 'gallon'),
@@ -79,6 +79,7 @@ BEGIN
 END
 $$;
 
+-- PT404: PostgREST responde HTTP 404 (con P0002 respondería 500)
 CREATE OR REPLACE FUNCTION public._require_active_station(p_station_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -87,7 +88,7 @@ AS $$
 BEGIN
   PERFORM 1 FROM stations WHERE id = p_station_id AND is_active IS TRUE;
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'STATION_NOT_FOUND' USING ERRCODE = 'P0002';
+    RAISE EXCEPTION 'STATION_NOT_FOUND' USING ERRCODE = 'PT404';
   END IF;
 END
 $$;

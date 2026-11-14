@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppProviders } from '@/app/AppProviders'
 import { createMockRepositories } from '@/app/repositories'
 import { createMockReportsRepository } from '@/features/reports/api/mockReportsRepository'
-import { useSubmitPriceReport } from '@/features/reports/model/mutations'
+import { useSubmitReport } from '@/features/reports/model/mutations'
 import { queryKeys } from '@/shared/api/queryKeys'
 import { server } from '@/test/msw/server'
 import { createTestQueryClient, renderWithProviders } from '@/test/renderWithProviders'
@@ -127,12 +127,12 @@ describe('useSession', () => {
 })
 
 describe('mutaciones con sesión', () => {
-  const report = { stationId: 's1', fuels: { corriente: '15900' }, comment: '' }
+  const report = { stationId: 's1', prices: [{ fuelType: 'corriente', price: 15900 }], comment: '', services: {} } as const
 
   it('ninguna mutación sale sin sesión', async () => {
     const reports = createMockReportsRepository(0)
-    const submit = vi.spyOn(reports, 'submitPriceReport')
-    const { result } = renderWithProviders(() => useSubmitPriceReport(), { auth: failingAuth().auth, reports })
+    const submit = vi.spyOn(reports, 'reportPrice')
+    const { result } = renderWithProviders(() => useSubmitReport(), { auth: failingAuth().auth, reports })
     await expect(result.current.mutateAsync(report)).rejects.toThrow('sin red')
     expect(submit).not.toHaveBeenCalled()
   })
@@ -141,12 +141,12 @@ describe('mutaciones con sesión', () => {
     const { auth, signIn } = failingAuth()
     signIn.mockRejectedValueOnce(new Error('sin red')).mockResolvedValue({ userId: ANON_UID })
     const reports = createMockReportsRepository(0)
-    const submit = vi.spyOn(reports, 'submitPriceReport')
-    const { result } = renderWithProviders(() => useSubmitPriceReport(), { auth, reports })
+    const submit = vi.spyOn(reports, 'reportPrice')
+    const { result } = renderWithProviders(() => useSubmitReport(), { auth, reports })
     await expect(result.current.mutateAsync(report)).rejects.toThrow('sin red')
     await result.current.mutateAsync(report)
     expect(signIn).toHaveBeenCalledTimes(2)
-    expect(submit).toHaveBeenCalledExactlyOnceWith(report)
+    expect(submit).toHaveBeenCalledExactlyOnceWith({ stationId: 's1', fuelType: 'corriente', price: 15900 })
   })
 })
 

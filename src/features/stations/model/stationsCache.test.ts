@@ -9,13 +9,17 @@ const cache = [s1, s2]
 describe('applyStationChange', () => {
   it('agrega un precio nuevo solo a su estación', () => {
     const price = fuelPrice({ id: 'p2', price: 16000 })
-    const result = applyStationChange(cache, { kind: 'price-added', stationId: 's1', price })
+    const result = applyStationChange(cache, { kind: 'price-saved', stationId: 's1', price })
     expect(result?.[0]?.fuel_prices).toEqual([...s1.fuel_prices, price])
     expect(result?.[1]).toBe(s2)
   })
 
-  it('no duplica un precio o reporte que ya está', () => {
-    expect(applyStationChange(cache, { kind: 'price-added', stationId: 's1', price: fuelPrice() })?.[0]).toBe(s1)
+  it('un precio con el mismo id reemplaza al anterior (corrección en 30 min)', () => {
+    const corrected = fuelPrice({ price: 15950 })
+    expect(applyStationChange(cache, { kind: 'price-saved', stationId: 's1', price: corrected })?.[0]?.fuel_prices).toEqual([corrected])
+  })
+
+  it('no duplica un reporte que ya está', () => {
     expect(applyStationChange(cache, { kind: 'report-added', stationId: 's1', report: report() })?.[0]).toBe(s1)
   })
 

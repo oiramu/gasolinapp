@@ -16,6 +16,9 @@ export const SERVICE_COLUMNS = [
   'svc_atm',
 ] as const
 
+/** Columnas booleanas de servicios. `suggest_station_services` acepta exactamente las `svc_*` de `stations`. */
+export type ServiceKey = (typeof SERVICE_COLUMNS)[number]
+
 export const STATION_KEYS = ['id', 'name', 'brand', 'address', 'lat', 'lng', 'zone_id', 'has_gnv', ...SERVICE_COLUMNS] as const
 
 export const FUEL_PRICE_KEYS = [
@@ -39,7 +42,8 @@ export interface Station extends StationFields {
 
 /** Lo que el realtime puede cambiar de una estación ya cargada. */
 export type StationChange =
-  | { readonly kind: 'price-added'; readonly stationId: string; readonly price: FuelPrice }
+  /** Precio nuevo o corregido (report_price corrige en 30 min con UPDATE): reemplaza la fila por id. */
+  | { readonly kind: 'price-saved'; readonly stationId: string; readonly price: FuelPrice }
   | { readonly kind: 'report-added'; readonly stationId: string; readonly report: Report }
   | { readonly kind: 'station-updated'; readonly station: StationFields; readonly isActive: boolean }
   | { readonly kind: 'votes-updated'; readonly targetType: VoteTargetType; readonly targetId: string; readonly tally: VoteTally }

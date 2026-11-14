@@ -6,6 +6,6 @@
  */
 
 export const features = {
-  /** Users suggesting station services. Off until RPC `suggest_station_services` (task 1.3). */
-  serviceSuggestions: false,
+  /** Users suggesting station services, via RPC `suggest_station_services` (task 1.3a/1.3b). */
+  serviceSuggestions: true,
 }

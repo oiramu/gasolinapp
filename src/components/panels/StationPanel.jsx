@@ -322,7 +322,7 @@ export default function StationPanel({ station, zoneData }) {
                       key={report.id}
                       report={report}
                       reportIds={reportIds}
-                      onVoteError={() => showToast('No se pudo registrar el voto. Intenta de nuevo.', 'error')}
+                      onVoteError={(message) => showToast(message, 'error')}
                     />
                   ))}
                 </div>

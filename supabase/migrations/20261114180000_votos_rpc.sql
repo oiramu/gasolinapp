@@ -63,6 +63,7 @@ GRANT SELECT ON public.votes TO anon, authenticated;
 -- ── Helpers internos (no expuestos) ───────────────────────────────────────────
 
 -- Bloquea el objetivo para serializar los votos concurrentes; falla si no existe o no está activo.
+-- TARGET_NOT_FOUND usa PT404: PostgREST responde HTTP 404 (con P0002 respondería 500).
 CREATE OR REPLACE FUNCTION public._lock_vote_target(p_target_type text, p_target_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -78,7 +79,7 @@ BEGIN
   END IF;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'TARGET_NOT_FOUND' USING ERRCODE = 'P0002';
+    RAISE EXCEPTION 'TARGET_NOT_FOUND' USING ERRCODE = 'PT404';
   END IF;
 END
 $$;

@@ -96,7 +96,7 @@ SELECT throws_ok(
 );
 SELECT throws_ok(
   $$SELECT public.report_price('00000000-0000-0000-0000-000000000003', 'extra', 18000)$$,
-  'P0002', 'STATION_NOT_FOUND', 'abuso: estación inactiva'
+  'PT404', 'STATION_NOT_FOUND', 'abuso: estación inactiva'
 );
 SELECT throws_ok(
   $$INSERT INTO public.fuel_price_ranges VALUES ('super', 1, 2, 'gallon')$$,

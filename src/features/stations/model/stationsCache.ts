@@ -11,10 +11,11 @@ type Patch<K extends Kind> = (stations: readonly Station[], change: ChangeByKind
 const updateStation = (stations: readonly Station[], id: string, update: (station: Station) => Station) =>
   stations.map((station) => (station.id === id ? update(station) : station))
 
-const addPrice: Patch<'price-added'> = (stations, { stationId, price }) =>
-  updateStation(stations, stationId, (station) =>
-    station.fuel_prices.some((p) => p.id === price.id) ? station : { ...station, fuel_prices: [...station.fuel_prices, price] },
-  )
+const savePrice: Patch<'price-saved'> = (stations, { stationId, price }) =>
+  updateStation(stations, stationId, (station) => ({
+    ...station,
+    fuel_prices: [...station.fuel_prices.filter((p) => p.id !== price.id), price],
+  }))
 
 const addReport: Patch<'report-added'> = (stations, { stationId, report }) =>
   updateStation(stations, stationId, (station) =>
@@ -55,7 +56,7 @@ export function patchVotes(stations: readonly Station[], { targetType, targetId 
 const updateVotes: Patch<'votes-updated'> = (stations, change) => patchVotes(stations, change, change.tally)
 
 const PATCHES: { [K in Kind]: Patch<K> } = {
-  'price-added': addPrice,
+  'price-saved': savePrice,
   'report-added': addReport,
   'station-updated': updateFields,
   'votes-updated': updateVotes,

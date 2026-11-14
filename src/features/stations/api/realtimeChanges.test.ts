@@ -14,8 +14,12 @@ const update = <T extends object>(table: string, row: T) => ({ ...base, table, e
 const remove = <T extends object>(table: string, row: Partial<T>) => ({ ...base, table, eventType: 'DELETE' as const, new: {}, old: row })
 
 describe('toPriceChange', () => {
-  it('un INSERT activo es un precio nuevo de la estación', () => {
-    expect(toPriceChange(insert('fuel_prices', priceRow))).toEqual({ kind: 'price-added', stationId: 's1', price: fuelPrice() })
+  it('un INSERT o UPDATE activo guarda la fila completa del precio', () => {
+    expect(toPriceChange(insert('fuel_prices', priceRow))).toEqual({ kind: 'price-saved', stationId: 's1', price: fuelPrice() })
+    // Corrección dentro de 30 min o cambio de votos: llega como UPDATE
+    expect(toPriceChange(update('fuel_prices', { ...priceRow, price: 15950, votes_down: 3 }))).toEqual({
+      kind: 'price-saved', stationId: 's1', price: fuelPrice({ price: 15950, votes_down: 3 }),
+    })
   })
 
   it.each([
@@ -41,12 +45,9 @@ describe('toReportChange', () => {
     expect(toReportChange(payload)).toEqual({ kind: 'unknown' })
   })
 
-  it('un UPDATE de un reporte visible o de un precio activo trae sus votos', () => {
+  it('un UPDATE de un reporte visible trae sus votos', () => {
     expect(toReportChange(update('reports', { ...reportRow, votes_up: 7, votes_down: null }))).toEqual({
       kind: 'votes-updated', targetType: 'report', targetId: 'r1', tally: { votesUp: 7, votesDown: 0 },
-    })
-    expect(toPriceChange(update('fuel_prices', { ...priceRow, votes_down: 3 }))).toEqual({
-      kind: 'votes-updated', targetType: 'price', targetId: 'p1', tally: { votesUp: 0, votesDown: 3 },
     })
   })
 })

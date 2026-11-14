@@ -53,7 +53,7 @@ describe('useStations', () => {
     })
     const price = fuelPrice({ id: 'p2', price: 16100 })
     act(() => {
-      emit({ kind: 'price-added', stationId: 's1', price })
+      emit({ kind: 'price-saved', stationId: 's1', price })
     })
     await waitFor(() => {
       expect(result.current.stations[0]?.fuel_prices).toContainEqual(price)
@@ -86,7 +86,7 @@ describe('useStations', () => {
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
     vi.useFakeTimers()
     act(() => {
-      emit({ kind: 'price-added', stationId: 's1', price: fuelPrice() })
+      emit({ kind: 'price-saved', stationId: 's1', price: fuelPrice() })
     })
     await act(() => vi.advanceTimersByTimeAsync(INVALIDATE_DEBOUNCE_MS))
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.stations })

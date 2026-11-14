@@ -8,3 +8,6 @@ export const REPORT_TYPE_LABELS = {
 } as const
 
 export type ReportType = keyof typeof REPORT_TYPE_LABELS
+
+/** Largo máximo de un comentario. `add_report` y `report_price` lo validan (pgTAP 003, generado desde aquí). */
+export const REPORT_CONTENT_MAX_LENGTH = 280

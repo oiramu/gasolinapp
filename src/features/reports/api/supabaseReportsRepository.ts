@@ -1,20 +1,20 @@
-import { assertOk } from '@/shared/api/result'
+import { assertOk, unwrapList } from '@/shared/api/result'
 import type { AppSupabaseClient } from '@/shared/api/supabaseClient'
-import { toCommentRow, toPriceRows } from './priceRows'
 import type { ReportsRepository } from './types'
 
-/**
- * Escrituras directas a tablas con políticas públicas. La tarea 1.3 las reemplaza
- * por RPCs con auth.uid() y límites de tasa (los votos ya van por RPC: features/votes).
- */
+/** Escrituras por RPC: el servidor valida sesión, rangos, tipos y límites de tasa. */
 export function createSupabaseReportsRepository(client: AppSupabaseClient): ReportsRepository {
   return {
-    async submitPriceReport(report) {
-      // Un solo INSERT para todos los combustibles: es atómico (antes era uno por combustible)
-      const rows = toPriceRows(report)
-      if (rows.length > 0) assertOk(await client.from('fuel_prices').insert(rows))
-      const commentRow = toCommentRow(report)
-      if (commentRow) assertOk(await client.from('reports').insert(commentRow))
+    async reportPrice({ stationId, fuelType, price }) {
+      assertOk(await client.rpc('report_price', { p_station_id: stationId, p_fuel_type: fuelType, p_price: price }))
+    },
+
+    async addReport({ stationId, type, content }) {
+      assertOk(await client.rpc('add_report', { p_station_id: stationId, p_type: type, p_content: content }))
+    },
+
+    async suggestServices({ stationId, services }) {
+      return unwrapList(await client.rpc('suggest_station_services', { p_station_id: stationId, p_services: services }))
     },
   }
 }
