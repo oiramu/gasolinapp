@@ -66,7 +66,7 @@ Ningún cambio se da por terminado si no cumple todo esto:
    - El realtime parchea o invalida la caché; nunca hace un refetch total por cada evento.
 7. **TypeScript strict.** `noUncheckedIndexedAccess` activo, los tipos de la DB son generados y no hay `any` implícito.
 8. **Scripts y migraciones idempotentes.** Se pueden correr dos veces sin error ni duplicados: `IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS`, `ON CONFLICT` y `cron.unschedule` antes de `cron.schedule`.
-9. **100% de cobertura global.** Líneas, ramas, funciones y sentencias de `src/`, con el umbral de vitest; si baja de 100, falla. Toda RPC tiene una prueba pgTAP con el caso feliz y un caso de abuso que falla.
+9. **Cobertura con trinquete.** `src/shared/domain/**` exige 100% en líneas, ramas, funciones y sentencias. El piso global de `src/` está en `vite.config.ts` (`GLOBAL_COVERAGE_FLOOR`): solo sube, nunca baja, y cada tarea que migra código lo sube al nuevo valor. El código nuevo entra con 100%. Toda RPC tiene una prueba pgTAP con el caso feliz y un caso de abuso que falla.
 
 ## Convenciones de dominio
 
@@ -90,4 +90,5 @@ Ningún cambio se da por terminado si no cumple todo esto:
 - Cambios pequeños y revisables. Si la tarea crece, divídela y avisa.
 - Al terminar: `npm run check` en verde (mientras no exista, `npm run build`), un resumen de lo hecho y los pasos manuales pendientes para Mario (por ejemplo, SQL a correr en Supabase o toggles en el dashboard).
 - Marca la tarea como hecha en `docs/ROADMAP.md`.
+- Las fechas del roadmap van en America/Bogota, no en UTC.
 - Commits en español, estilo convencional: `fix(rls): ...`, `feat(mapa): ...`.

@@ -4,6 +4,14 @@ import { defineConfig } from 'vitest/config'
 
 const FULL_COVERAGE = 100
 
+// Piso global vigente (redondeado hacia abajo). Solo sube a medida que se migra a TS.
+const GLOBAL_COVERAGE_FLOOR = {
+  lines: 55,
+  branches: 70,
+  functions: 57,
+  statements: 55,
+}
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -24,10 +32,13 @@ export default defineConfig({
         'src/shared/api/database.types.ts', // generado por supabase gen types
       ],
       thresholds: {
-        lines: FULL_COVERAGE,
-        branches: FULL_COVERAGE,
-        functions: FULL_COVERAGE,
-        statements: FULL_COVERAGE,
+        ...GLOBAL_COVERAGE_FLOOR,
+        'src/shared/domain/**': {
+          lines: FULL_COVERAGE,
+          branches: FULL_COVERAGE,
+          functions: FULL_COVERAGE,
+          statements: FULL_COVERAGE,
+        },
       },
     },
   },

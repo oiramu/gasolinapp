@@ -128,7 +128,7 @@ npm run dev
 | --- | --- |
 | `npm test` | Tests de vitest (jsdom, Testing Library, MSW) |
 | `npm run test:watch` | Tests en modo watch |
-| `npm run test:coverage` | Tests con cobertura; falla si `src/` baja del 100% en líneas, ramas, funciones o sentencias |
+| `npm run test:coverage` | Tests con cobertura; falla si `src/shared/domain/` baja del 100% o si `src/` baja del piso global de `vite.config.ts` |
 | `npm run typecheck` | `tsc` strict (`noUncheckedIndexedAccess`) para la app y para `vite.config.ts` |
 | `npm run lint` | ESLint sin warnings permitidos: complejidad, profundidad, tamaño de archivos y funciones, y prohibido importar Supabase desde `features/*/ui` y `app/` |
 | `npm run test:db` | Tests pgTAP de `supabase/tests/` contra la base local (requiere `npx supabase start`) |
