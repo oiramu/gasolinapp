@@ -9,3 +9,4 @@ seed.sql
 coverage/
 .vercel
 .env*
+!.env.example
