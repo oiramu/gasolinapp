@@ -9,6 +9,28 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      fuel_price_ranges: {
+        Row: {
+          fuel_type: string
+          max_price: number
+          min_price: number
+          price_unit: string
+        }
+        ComputedFields: never
+        Insert: {
+          fuel_type: string
+          max_price: number
+          min_price: number
+          price_unit: string
+        }
+        Update: {
+          fuel_type?: string
+          max_price?: number
+          min_price?: number
+          price_unit?: string
+        }
+        Relationships: []
+      }
       fuel_prices: {
         Row: {
           comment: string | null
@@ -23,6 +45,7 @@ export type Database = {
           price: number
           price_unit: string
           reported_by: string | null
+          reporter_id: string | null
           station_id: string
           votes_down: number | null
           votes_up: number | null
@@ -41,6 +64,7 @@ export type Database = {
           price: number
           price_unit?: string
           reported_by?: string | null
+          reporter_id?: string | null
           station_id: string
           votes_down?: number | null
           votes_up?: number | null
@@ -58,6 +82,7 @@ export type Database = {
           price?: number
           price_unit?: string
           reported_by?: string | null
+          reporter_id?: string | null
           station_id?: string
           votes_down?: number | null
           votes_up?: number | null
@@ -87,6 +112,7 @@ export type Database = {
           is_visible: boolean | null
           legacy_votes_down: number
           legacy_votes_up: number
+          reporter_id: string | null
           station_id: string
           type: string | null
           user_display_name: string | null
@@ -101,6 +127,7 @@ export type Database = {
           is_visible?: boolean | null
           legacy_votes_down?: number
           legacy_votes_up?: number
+          reporter_id?: string | null
           station_id: string
           type?: string | null
           user_display_name?: string | null
@@ -114,6 +141,7 @@ export type Database = {
           is_visible?: boolean | null
           legacy_votes_down?: number
           legacy_votes_up?: number
+          reporter_id?: string | null
           station_id?: string
           type?: string | null
           user_display_name?: string | null
@@ -130,6 +158,43 @@ export type Database = {
           },
           {
             foreignKeyName: "reports_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "v_station_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_suggestions: {
+        Row: {
+          created_at: string
+          services: NonNullable<Json>
+          station_id: string
+          voter_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          services: NonNullable<Json>
+          station_id: string
+          voter_id: string
+        }
+        Update: {
+          created_at?: string
+          services?: NonNullable<Json>
+          station_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_suggestions_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_suggestions_station_id_fkey"
             columns: ["station_id"]
             isOneToOne: false
             referencedRelation: "v_station_summary"
@@ -434,6 +499,10 @@ export type Database = {
       }
     }
     Functions: {
+      _check_rate_limit: {
+        Args: { p_max: number; p_recent: number }
+        Returns: undefined
+      }
       _lock_vote_target: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: undefined
@@ -468,6 +537,10 @@ export type Database = {
           down: number
           up: number
         }[]
+      }
+      _require_active_station: {
+        Args: { p_station_id: string }
+        Returns: undefined
       }
       _st_3dintersects: {
         Args: { geom1: unknown; geom2: unknown }
@@ -540,6 +613,11 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      _writer_uid: { Args: Record<PropertyKey, never>; Returns: string }
+      add_report: {
+        Args: { p_content: string; p_station_id: string; p_type: string }
+        Returns: string
+      }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -834,6 +912,15 @@ export type Database = {
       postgis_version: { Args: Record<PropertyKey, never>; Returns: string }
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      report_price: {
+        Args: {
+          p_comment?: string
+          p_fuel_type: string
+          p_price: number
+          p_station_id: string
+        }
         Returns: string
       }
       st_3dclosestpoint: {
@@ -1416,6 +1503,10 @@ export type Database = {
       st_wrapx: {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
+      }
+      suggest_station_services: {
+        Args: { p_services: Json; p_station_id: string }
+        Returns: string[]
       }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {

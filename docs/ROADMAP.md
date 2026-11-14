@@ -108,6 +108,7 @@
 **Listo cuando:** votar dos veces no suma dos y el contador es correcto con clics concurrentes.
 
 ### [ ] 1.3 Cerrar escrituras directas
+**Estado:** la 1.3a (RPCs de escritura) está hecha en local el 2026-11-14; faltan producción, la 1.3b y la 1.3c (ver [Sprint 01](sprints/01-seguridad.md)). Los rangos siguen en `fuel.ts` como fuente única y un pgTAP generado desde ahí verifica `fuel_price_ranges` (el sprint permite "un test que las compare").
 **Prompt:**
 > Lee CLAUDE.md. Crea una migración que elimine las políticas de UPDATE públicas de `fuel_prices` y `reports` (la de `stations` ya salió en la 0.0), y la de INSERT público de `fuel_prices` y `reports`. Crea una tabla `fuel_price_ranges(fuel_type, min, max)` como fuente única de los rangos: la lee la RPC y la expone al frontend, que deja de duplicar `FUEL_PRICE_RANGES`. Reemplaza las escrituras con RPCs SECURITY DEFINER:
 > - `report_prices(station_id, prices jsonb, comment)`: atómica para varios combustibles; valida rangos contra la tabla, exige auth.uid() y limita a 10 reportes por usuario por hora y 1 por estación y combustible cada 30 min.

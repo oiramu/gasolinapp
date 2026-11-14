@@ -85,6 +85,15 @@
 ## 1.3 — Cerrar escrituras directas
 
 ### [ ] 1.3a Expandir: RPCs de escritura
+
+**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261114200000_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_fuel_price_ranges`) y `npm run check` en verde.
+
+- Rangos con una sola fuente: `fuel.ts`. `fuelPriceRanges.db.test.ts` genera `003_fuel_price_ranges.test.sql` (`toMatchFileSnapshot`) y ese pgTAP compara la tabla con `fuel.ts`. Probado: cambiar un rango en TS hace fallar vitest; regenerar sin migración hace fallar pgTAP.
+- Servicios: las claves válidas salen del catálogo (columnas booleanas `svc_*` de `stations`); los tipos de reporte, del CHECK `reports_type_check`. Ninguna lista se copia en el SQL.
+- Cada escritura toma un advisory lock por uid: los límites de tasa no tienen carreras. `RATE_LIMIT` usa SQLSTATE `PT429` (PostgREST responde HTTP 429).
+- Errores para el Toast de la 1.3b: `NOT_AUTHENTICATED`, `STATION_NOT_FOUND`, `INVALID_FUEL`, `OUT_OF_RANGE`, `INVALID_COMMENT`, `INVALID_TYPE`, `INVALID_CONTENT`, `INVALID_SERVICES`, `RATE_LIMIT`.
+- `service_suggestions` tiene PK (station_id, voter_id): una sugerencia vigente por usuario y estación (repetir la reemplaza). La RPC devuelve las claves que cambiaron en la estación.
+- **Para la 1.3b:** la corrección dentro de 30 min es un UPDATE de `fuel_prices`, y el realtime de la 1.2 lee hoy cualquier UPDATE de precio como un cambio de votos. Hay que convertirlo en `price-updated` (reemplaza la fila completa).
 **Migración `..._rpc_escritura.sql`:**
 - `report_price(p_station_id, p_fuel_type, p_price, p_comment)`:
   - Valida el `fuel_type` contra la lista permitida y el precio contra rangos por tipo, tomados de una tabla `fuel_price_ranges` (seed con los valores de `shared/domain/fuel.ts`, que debe leer la misma fuente o tener un test que las compare).

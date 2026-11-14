@@ -3,9 +3,10 @@ import { fuelPrice, report, stationFields } from '@/test/fixtures/stations'
 import { toPriceChange, toReportChange, toStationChange } from './realtimeChanges'
 
 const base = { schema: 'public', commit_timestamp: '2026-11-13T10:00:00Z', errors: [] as string[] }
-const legacy = { legacy_votes_up: 0, legacy_votes_down: 0 }
-const priceRow = { ...fuelPrice(), ...legacy, station_id: 's1', expires_at: null }
-const reportRow = { ...report(), ...legacy, station_id: 's1', is_visible: true }
+// Columnas de la fila que el modelo de dominio no lee
+const dbOnly = { legacy_votes_up: 0, legacy_votes_down: 0, reporter_id: null }
+const priceRow = { ...fuelPrice(), ...dbOnly, station_id: 's1', expires_at: null }
+const reportRow = { ...report(), ...dbOnly, station_id: 's1', is_visible: true }
 const stationRow = { ...stationFields(), is_active: true, location: null, osm_id: null, created_at: null, updated_at: null }
 
 const insert = <T extends object>(table: string, row: T) => ({ ...base, table, eventType: 'INSERT' as const, new: row, old: {} })

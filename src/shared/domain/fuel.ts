@@ -54,7 +54,10 @@ interface PriceRange {
   readonly max: number
 }
 
-/** Rango de precio esperado por combustible. La tarea 1.3 lo mueve a la base de datos. */
+/**
+ * Rango de precio esperado por combustible (fuente única). `report_price` lo valida en el servidor
+ * con `public.fuel_price_ranges`, que el pgTAP generado por fuelPriceRanges.db.test.ts compara con esto.
+ */
 export const FUEL_PRICE_RANGES = {
   corriente: { min: 12000, max: 20000 },
   extra: { min: 13000, max: 25000 },
