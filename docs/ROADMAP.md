@@ -8,6 +8,8 @@
 
 **Cómo usar este archivo:** abre Claude Code en la raíz del repo, crea la rama de la tarea y pega el prompt. Claude Code ya lee `CLAUDE.md` con las reglas y el criterio de aceptación. Tú revisas el plan, apruebas, revisas el diff y aplicas a mano el SQL en Supabase.
 
+**Sprint en curso:** [Sprint 01 — Producción sincronizada + Fase 1](sprints/01-seguridad.md) (14 al 22 de noviembre de 2026). El estado detallado de S0 y de la Fase 1 vive ahí.
+
 ---
 
 ## Fase 0 — Base (semanas 1–3)
@@ -51,7 +53,7 @@
 **Listo cuando:** `App.jsx` importa desde `shared/domain` y esos módulos tienen 100%.
 
 ### [x] 0.4 Capa de datos: Repository, Strategy y TanStack Query
-**Estado:** código hecho el 2026-11-14. Hay repositorios Supabase y Mock para `stations`, `zones`, `prices` y `reports`, inyectados por `app/repositories.ts` (Strategy). Las lecturas usan TanStack Query y el realtime parchea la caché (lo que no puede parchear se invalida con debounce de 1 s). En modo mock ya no se exigen variables de Supabase. Se borraron `services/`, `lib/supabase.js`, `lib/mockData.js` y `config/env.js`. Se arregló el voto, que estaba roto: la firma de la llamada no coincidía con la del servicio. La migración `20261114030702_realtime_publicacion.sql` se aplicó en producción el 2026-11-14 y se verificó (antes la publicación de realtime estaba vacía).
+**Estado:** código hecho el 2026-11-13. Hay repositorios Supabase y Mock para `stations`, `zones`, `prices` y `reports`, inyectados por `app/repositories.ts` (Strategy). Las lecturas usan TanStack Query y el realtime parchea la caché (lo que no puede parchear se invalida con debounce de 1 s). En modo mock ya no se exigen variables de Supabase. Se borraron `services/`, `lib/supabase.js`, `lib/mockData.js` y `config/env.js`. Se arregló el voto, que estaba roto: la firma de la llamada no coincidía con la del servicio. La migración `20261114030702_realtime_publicacion.sql` se aplicó en producción el 2026-11-13 y se verificó (antes la publicación de realtime estaba vacía).
 **Prompt:**
 > Lee CLAUDE.md.
 > - Crea las interfaces `StationsRepository`, `ZonesRepository` y `PricesRepository`, con implementaciones Supabase y Mock inyectadas por un provider según `env`. Elimina los `if (env.useMockData)` de los hooks.
