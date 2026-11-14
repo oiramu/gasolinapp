@@ -7,3 +7,5 @@ dist/
 .shell.env
 seed.sql
 coverage/
+.vercel
+.env*
