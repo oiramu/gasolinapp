@@ -66,11 +66,37 @@ npm install
 2. Nombre: `gasolinapp`, región: la más cercana a tus usuarios
 3. Guardar la contraseña de la DB
 
-### 3. Ejecutar el schema
+### 3. Crear el schema con las migraciones
 
-1. En Supabase Dashboard → **SQL Editor**
-2. Pegar el contenido de `database/schema.sql`
-3. Ejecutar → crea tablas, índices, RLS, seed data
+El schema vive en `supabase/migrations/`, en archivos numerados por timestamp. `database/_legacy/` es solo histórico.
+
+```bash
+npx supabase login
+npx supabase link --project-ref <ref>   # el ref sale de la URL del proyecto
+npx supabase db push                    # aplica las migraciones pendientes
+```
+
+En local, con Docker:
+
+```bash
+npx supabase start      # Postgres + API locales
+npx supabase db reset   # recrea la base desde cero con todas las migraciones
+```
+
+**Crear una migración nueva:**
+
+1. Genera el archivo: `npx supabase migration new <nombre_en_snake_case>`.
+2. Escríbela idempotente: `IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS` y `ON CONFLICT`.
+3. Pruébala en local con `npx supabase db reset`.
+4. Aplícala en producción con `npx supabase db push`, o con `apply_migration` del MCP de Supabase si ya la revisaste.
+
+Nunca edites una migración que ya está aplicada: escribe una nueva.
+
+**Regenerar los tipos de TypeScript** después de cada cambio de schema:
+
+```bash
+npx supabase gen types typescript --linked > src/shared/api/database.types.ts
+```
 
 ### 4. Configurar variables de entorno
 
@@ -113,7 +139,8 @@ gasolinapp/
 │   │   ├── MapLegend.jsx
 │   │   └── Toast.jsx
 │   ├── hooks/
-│   │   └── useStations.js           # Fetch + realtime + submit helpers
+│   │   ├── useStationsData.js       # Fetch + realtime de estaciones
+│   │   └── useZonesData.js          # Fetch de zonas
 │   ├── lib/
 │   │   ├── supabase.js              # Cliente de Supabase
 │   │   ├── fuel.js                  # Constantes y helpers de combustible
@@ -124,8 +151,10 @@ gasolinapp/
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
+├── supabase/
+│   └── migrations/                  # Fuente de verdad del schema (numeradas)
 ├── database/
-│   └── schema.sql                   # Schema Supabase completo con seed
+│   └── _legacy/                     # Scripts históricos, no usar
 ├── .env.example
 ├── vite.config.js
 ├── tailwind.config.js
