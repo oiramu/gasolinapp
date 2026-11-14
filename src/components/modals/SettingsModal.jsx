@@ -3,6 +3,7 @@ import { X, Settings, Fuel, Droplets, ChevronDown, RefreshCw, Wind, Building2, S
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER } from '@/shared/domain/fuel'
 import { cn } from '@/lib/utils'
+import { DeviceId } from '@/features/auth/ui/DeviceId'
 
 const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 const SETTINGS_BRANDS = ['Todas', 'Terpel', 'Biomax', 'Primax', 'Shell', 'Mobil', 'EDS', 'Petrobras', 'Gulf', 'Texaco', 'Zeuss', 'Puma']
@@ -275,9 +276,12 @@ export default function SettingsModal() {
           </div>
 
 
-          <p className="text-[10px] text-gray-700 text-center pb-1 pt-2 font-mono">
+          <p className="text-[10px] text-gray-700 text-center pt-2 font-mono">
             La preferencia se guarda automáticamente en este dispositivo.
           </p>
+          <div className="pb-1">
+            <DeviceId />
+          </div>
         </div>
       </div>
     </div>

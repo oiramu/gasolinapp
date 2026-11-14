@@ -1,3 +1,6 @@
+import { createMockAuthRepository } from '@/features/auth/api/mockAuthRepository'
+import { createSupabaseAuthRepository } from '@/features/auth/api/supabaseAuthRepository'
+import type { AuthRepository } from '@/features/auth/api/types'
 import { createMockPricesRepository } from '@/features/prices/api/mockPricesRepository'
 import { createSupabasePricesRepository } from '@/features/prices/api/supabasePricesRepository'
 import type { PricesRepository } from '@/features/prices/api/types'
@@ -16,6 +19,7 @@ import type { AppEnv } from '@/shared/config/env'
 import { MOCK_LATENCY_MS } from '@/shared/lib/delay'
 
 export interface Repositories {
+  readonly auth: AuthRepository
   readonly stations: StationsRepository
   readonly zones: ZonesRepository
   readonly prices: PricesRepository
@@ -24,6 +28,7 @@ export interface Repositories {
 
 export function createMockRepositories(latencyMs = MOCK_LATENCY_MS): Repositories {
   return {
+    auth: createMockAuthRepository(),
     stations: createMockStationsRepository(MOCK_STATIONS, latencyMs),
     zones: createMockZonesRepository(MOCK_ZONES, latencyMs),
     prices: createMockPricesRepository(latencyMs),
@@ -33,6 +38,7 @@ export function createMockRepositories(latencyMs = MOCK_LATENCY_MS): Repositorie
 
 export function createSupabaseRepositories(client: AppSupabaseClient): Repositories {
   return {
+    auth: createSupabaseAuthRepository(client),
     stations: createSupabaseStationsRepository(client),
     zones: createSupabaseZonesRepository(client),
     prices: createSupabasePricesRepository(client),

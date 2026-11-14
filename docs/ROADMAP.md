@@ -88,6 +88,7 @@
 ## Fase 1 — Seguridad (semana 4)
 
 ### [ ] 1.1 Identidad anónima
+**Estado:** código hecho el 2026-11-14 (ver [Sprint 01](sprints/01-seguridad.md)). Falta activar Anonymous sign-ins en el dashboard y desplegar.
 **Tú primero:** en el dashboard de Supabase activa Authentication → Anonymous sign-ins.
 **Prompt:**
 > Lee CLAUDE.md. Implementa sesión anónima con `supabase.auth.signInAnonymously()` al cargar la app si no hay sesión, en `features/auth` (repositorio + hook `useAuth`). Toda mutación debe esperar a que exista sesión. Con datos mock no debe romper nada (AuthRepository mock). Muestra en Configuración un "ID de dispositivo" corto (los primeros 6 caracteres del uid) para depurar.

@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier } from '@/shared/domain/fuel'
 import { formatPriceValue } from '@/shared/domain/format'
 import { SERVICES, SERVICE_CATEGORIES } from '@/lib/services'
+import { useHasSession } from '@/features/auth/model/session'
 import { useSubmitPriceReport } from '@/features/reports/model/mutations'
 import { features } from '@/config/features'
 import { cn } from '@/lib/utils'
@@ -124,6 +125,7 @@ function getInitialServicesState(station) {
 
 export default function ReportPriceModal({ station }) {
   const { mutateAsync: submitPriceReport } = useSubmitPriceReport()
+  const hasSession = useHasSession()
   const { reportModalOpen, reportModalPreExpand, setReportModalOpen, showToast } = useAppStore()
 
   const [activeFuels, setActiveFuels] = useState(INITIAL_ACTIVE_FUELS)
@@ -159,7 +161,7 @@ export default function ReportPriceModal({ station }) {
   const hasAnyPrice = Object.entries(prices).some(([ft, p]) => activeFuels[ft] && p && parseFloat(p) > 0)
 
   // Services are no longer written from the client; they return via RPC in task 1.3
-  const canSubmit = hasAnyPrice
+  const canSubmit = hasAnyPrice && hasSession
 
   const handleSubmit = async (e) => {
     e.preventDefault()

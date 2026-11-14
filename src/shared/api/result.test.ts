@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { assertOk, unwrapList } from './result'
+import { assertOk, unwrap, unwrapList } from './result'
+
+describe('unwrap', () => {
+  it('devuelve los datos o lanza el error', () => {
+    expect(unwrap({ data: { session: null }, error: null })).toEqual({ session: null })
+    expect(() => unwrap({ data: null, error: { message: 'sin sesión' } })).toThrow('sin sesión')
+  })
+})
 
 describe('unwrapList', () => {
   it('devuelve las filas o una lista vacía', () => {

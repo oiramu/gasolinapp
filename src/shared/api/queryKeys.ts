@@ -3,6 +3,7 @@
  * de un feature pueda invalidar datos de otro sin importarlo.
  */
 export const queryKeys = {
+  session: ['auth', 'session'] as const,
   stations: ['stations'] as const,
   zoneAverages: ['zones', 'averages'] as const,
   priceHistory: (stationId: string | null, fuelType: string | null, days: number) => ['prices', 'history', stationId, fuelType, days] as const,

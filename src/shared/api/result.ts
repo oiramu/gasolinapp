@@ -13,6 +13,12 @@ export function unwrapList<T>(result: ApiResult<readonly T[]>): T[] {
   return [...(result.data ?? [])]
 }
 
+/** Datos de una respuesta `{ data, error }` (por ejemplo, de `supabase.auth`), o lanza su error. */
+export function unwrap<T>(result: { readonly data: T; readonly error: ApiError | null }): T {
+  if (result.error) throw new Error(result.error.message)
+  return result.data
+}
+
 /** Para escrituras sin datos de vuelta: solo verifica el error. */
 export function assertOk({ error }: { readonly error: ApiError | null }): void {
   if (error) throw new Error(error.message)

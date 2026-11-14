@@ -44,6 +44,11 @@
 
 ## [ ] 1.1 — Identidad anónima
 
+**Estado (2026-11-14):** código, tests y `config.toml` hechos; probado el alta anónima contra el stack local. Pendiente: Mario activa Anonymous sign-ins en el dashboard → preview → `--prod`. **No desplegar antes del toggle:** sin alta anónima, reportar y votar quedan deshabilitados.
+
+- `features/auth/`: `AuthRepository` (Supabase y Mock), `useSession`, `useHasSession` y `useWithSession`, que envuelve el `mutationFn` de reportar y votar para que espere la sesión (o la reintente si el alta falló).
+- Verificado en producción (solo lectura): las políticas de escritura actuales son `TO public`, así que el rol `authenticated` (el de la sesión anónima) sigue pudiendo reportar y votar hasta la 1.3c.
+
 **Mario:** activa Authentication → Anonymous sign-ins en el dashboard. En local: `config.toml` → `enable_anonymous_sign_ins = true`.
 
 - Crea `features/auth/` con un repositorio (Supabase y Mock) inyectado por `app/repositories.ts` y un hook `useSession()` que llame `signInAnonymously()` si no hay sesión.
@@ -92,6 +97,7 @@
 **Migración `..._cerrar_escrituras_precios_reportes.sql`** (después de que la 1.3b esté en producción):
 - Elimina las políticas de INSERT y UPDATE públicas de `fuel_prices` y `reports`.
 - `REVOKE INSERT, UPDATE, DELETE` sobre `fuel_prices`, `reports`, `stations`, `votes` y `service_suggestions` a `anon` y `authenticated`.
+- Hallazgo del 2026-11-14: en producción `anon` y `authenticated` también tienen `TRUNCATE`, `REFERENCES` y `TRIGGER` sobre `fuel_prices`, `reports` y `stations` (TRUNCATE se salta RLS; PostgREST no lo expone, pero no debe quedar). Usar `REVOKE ALL` + `GRANT SELECT` en lugar del REVOKE parcial.
 - **pgTAP:** cada escritura directa con rol anon o authenticated falla.
 
 ## [ ] 1.4 — Prueba de ataque contra producción

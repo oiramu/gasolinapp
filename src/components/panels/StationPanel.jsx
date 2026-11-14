@@ -10,6 +10,7 @@ import { formatPriceValue } from '@/shared/domain/format'
 import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
+import { useHasSession } from '@/features/auth/model/session'
 import { useVoteOnReport } from '@/features/reports/model/mutations'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
@@ -74,14 +75,14 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
   )
 }
 
-function ReportItem({ report, onVote }) {
+function ReportItem({ report, onVote, canVote }) {
   const Icon = REPORT_ICONS[report.type] || MessageSquare
   const typeConfig = REPORT_TYPE_LABELS[report.type] || REPORT_TYPE_LABELS.comment
   const [voted, setVoted] = useState(null)
   const [baseUp, setBaseUp] = useState(0)
 
   const handleVote = async (type) => {
-    if (voted) return
+    if (voted || !canVote) return
     setVoted(type)
     setBaseUp(report.votes_up ?? 0)
     try {
@@ -152,6 +153,7 @@ function ReportItem({ report, onVote }) {
 
 export default function StationPanel({ station, zoneData }) {
   const { mutateAsync: voteOnReport } = useVoteOnReport()
+  const canVote = useHasSession()
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
@@ -363,6 +365,7 @@ export default function StationPanel({ station, zoneData }) {
                     <ReportItem
                       key={report.id}
                       report={report}
+                      canVote={canVote}
                       onVote={async (vote) => {
                         try {
                           await voteOnReport(vote)

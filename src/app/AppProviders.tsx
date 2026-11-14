@@ -1,5 +1,6 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { AuthRepositoryProvider } from '@/features/auth/model/authRepository'
 import { PricesRepositoryProvider } from '@/features/prices/model/pricesRepository'
 import { ReportsRepositoryProvider } from '@/features/reports/model/reportsRepository'
 import { StationsRepositoryProvider } from '@/features/stations/model/stationsRepository'
@@ -16,13 +17,15 @@ interface AppProvidersProps {
 export function AppProviders({ repositories, queryClient, children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <StationsRepositoryProvider value={repositories.stations}>
-        <ZonesRepositoryProvider value={repositories.zones}>
-          <PricesRepositoryProvider value={repositories.prices}>
-            <ReportsRepositoryProvider value={repositories.reports}>{children}</ReportsRepositoryProvider>
-          </PricesRepositoryProvider>
-        </ZonesRepositoryProvider>
-      </StationsRepositoryProvider>
+      <AuthRepositoryProvider value={repositories.auth}>
+        <StationsRepositoryProvider value={repositories.stations}>
+          <ZonesRepositoryProvider value={repositories.zones}>
+            <PricesRepositoryProvider value={repositories.prices}>
+              <ReportsRepositoryProvider value={repositories.reports}>{children}</ReportsRepositoryProvider>
+            </PricesRepositoryProvider>
+          </ZonesRepositoryProvider>
+        </StationsRepositoryProvider>
+      </AuthRepositoryProvider>
     </QueryClientProvider>
   )
 }

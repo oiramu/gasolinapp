@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createQueryClient, STALE_TIME_MS } from './queryClient'
 import { createMockRepositories, createRepositories } from './repositories'
 
-const REPOSITORY_NAMES = ['prices', 'reports', 'stations', 'zones']
+const REPOSITORY_NAMES = ['auth', 'prices', 'reports', 'stations', 'zones']
 
 describe('createRepositories (Strategy)', () => {
   it('en modo mock usa los repositorios en memoria', () => {
