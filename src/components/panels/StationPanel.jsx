@@ -5,7 +5,11 @@ import {
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS, formatPriceValue } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
+import { formatRelativeTime } from '@/shared/domain/time'
+import { BRAND_COLORS } from '@/shared/domain/brands'
+import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
 import { voteOnReport } from '@/services/reports.service'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'

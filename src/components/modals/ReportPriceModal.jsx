@@ -4,7 +4,8 @@ import {
   Send, User, MessageSquare, ChevronDown, AlertTriangle,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier, formatPriceValue } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, FUEL_PRICE_RANGES, isPriceOutlier } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
 import { SERVICES, SERVICE_CATEGORIES } from '@/lib/services'
 import { submitPriceReport } from '@/services/reports.service'
 import { features } from '@/config/features'

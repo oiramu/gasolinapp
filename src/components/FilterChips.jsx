@@ -1,4 +1,4 @@
-import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER } from '@/shared/domain/fuel'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
 import { Fuel } from 'lucide-react'

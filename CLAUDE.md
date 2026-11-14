@@ -23,7 +23,7 @@ Sin Supabase configurado la app corre con datos mock (`VITE_USE_MOCK_DATA=true`)
 
 Estado actual (JS, se migra en la Fase 0):
 
-- `src/lib/fuel.js`: fuente única de verdad para tipos de combustible, unidades, formato de precios, rangos de validación y colores de marca. No dupliques esta lógica en componentes.
+- `src/shared/domain/`: lógica pura y fuente única de verdad, en TS. `fuel.ts` (tipos de combustible, unidades, rangos, precio vigente), `format.ts` (precios), `time.ts` (tiempo relativo), `geo.ts` (distancias, mejor estación), `brands.ts` y `reports.ts`. No dupliques esta lógica en componentes.
 - `src/services/*.service.js`: única capa que habla con Supabase. Los componentes no llaman a `supabase` directamente.
 - `src/hooks/`: fetch + realtime + geolocalización.
 - `src/store/appStore.js`: estado global (Zustand).

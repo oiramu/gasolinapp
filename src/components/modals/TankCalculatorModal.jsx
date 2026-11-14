@@ -5,10 +5,8 @@ import {
   Fuel, Zap, Droplets, Wind, RefreshCw, SlidersHorizontal,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import {
-  FUEL_TYPES, FUEL_ORDER, getLatestPrices,
-  formatPrice, getFuelUnitLabel, formatPriceValue
-} from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, getFuelUnitLabel } from '@/shared/domain/fuel'
+import { formatPrice, formatPriceValue } from '@/shared/domain/format'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 

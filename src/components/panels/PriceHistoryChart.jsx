@@ -7,7 +7,8 @@ import { TrendingUp, TrendingDown, Minus, MessageSquare, BarChart2, Plus, Fuel, 
 import FilterSelect from '@/components/FilterSelect'
 import { supabase } from '@/lib/supabase'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel, formatPriceValue } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER, getFuelUnitLabel } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
 import { format, subDays, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 

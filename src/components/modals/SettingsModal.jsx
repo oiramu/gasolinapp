@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { X, Settings, Fuel, Droplets, ChevronDown, RefreshCw, Wind, Building2, Star, Check, Search } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER } from '@/lib/fuel'
+import { FUEL_TYPES, FUEL_ORDER } from '@/shared/domain/fuel'
 import { cn } from '@/lib/utils'
 
 const FUEL_ICONS = { corriente: ChevronDown, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }

@@ -43,7 +43,8 @@
 
 **Listo cuando:** `npm run check` corre. Va a fallar por cobertura hasta terminar la 0.6; documenta eso en el PR.
 
-### [ ] 0.3 Dominio compartido en TypeScript
+### [x] 0.3 Dominio compartido en TypeScript
+**Estado:** hecha el 2026-11-13. `src/lib/fuel.js` se dividió en `src/shared/domain/{fuel,format,time,geo,brands,reports}.ts` con 100% de cobertura (59 tests). Las tres copias de Haversine y las dos de `formatDistance` se unificaron en `geo.ts`. `getBestStation` resuelve el precio una sola vez por estación. Se eliminaron los exports sin uso `getFuelLabel` y `BRAND_LOGO_ICONS`.
 **Prompt:**
 > Lee CLAUDE.md. Migra `src/lib/fuel.js` a `src/shared/domain/fuel.ts`, con tipos derivados (`FuelType = keyof typeof FUEL_TYPES`). Extrae `distanceMeters` y `getBestStation` de `App.jsx` a `src/shared/domain/geo.ts`; en `getBestStation`, resuelve los precios una sola vez por estación. Tests al 100% para `getLatestPrices`, `formatPrice` (incluye GNV en m³ y null → "Sin reporte"), `isPriceOutlier`, `getFuelUnit`, `distanceMeters` y `getBestStation`. Cero cambios de comportamiento.
 

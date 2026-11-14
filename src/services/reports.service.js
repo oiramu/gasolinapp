@@ -6,7 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase'
-import { getFuelUnit } from '@/lib/fuel'
+import { getFuelUnit } from '@/shared/domain/fuel'
 
 /**
  * Submit a price report for one or more fuel types at a station.
