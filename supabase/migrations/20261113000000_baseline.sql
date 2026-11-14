@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.fuel_prices (
   CONSTRAINT fuel_prices_fuel_type_check CHECK (fuel_type = ANY (ARRAY['extra', 'corriente', 'diesel', 'urea', 'gnv'])),
   CONSTRAINT fuel_prices_price_check     CHECK (price > 0 AND price < 100000),
   CONSTRAINT fuel_prices_currency_check  CHECK (currency = ANY (ARRAY['USD', 'COP', 'PEN', 'MXN'])),
-  CONSTRAINT fuel_prices_price_unit_check CHECK (price_unit::text = ANY (ARRAY['gallon', 'm3']))
+  CONSTRAINT fuel_prices_price_unit_check CHECK (price_unit IN ('gallon', 'm3'))
 );
 
 CREATE TABLE IF NOT EXISTS public.reports (
