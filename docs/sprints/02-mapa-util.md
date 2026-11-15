@@ -43,8 +43,8 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - Tests de comportamiento (Testing Library) para los dos casos.
 
 ## [ ] 2.1 — Frescura en lugar de vencer a 24 h
-**Estado (2026-11-15):** código hecho en la rama; migraciones sin aplicar.
-- Expandir: `20261116000100_frescura_confirmed_at.sql` (columna `confirmed_at` NOT NULL con backfill desde `created_at`, índice, y `report_price` que la llena al reportar y al corregir y ya no toca `expires_at`). pgTAP `009` (9 casos); backfill simulado sobre datos viejos.
+**Estado (2026-11-15):** código hecho en la rama. Expansión aplicada en producción (`20261115054737`, verificada: 247 precios con `confirmed_at` = `created_at`, 0 nulos; `security:check` sin FAIL). La contracción espera al deploy del sprint.
+- Expandir: `20261115054737_frescura_confirmed_at.sql` (columna `confirmed_at` NOT NULL con backfill desde `created_at`, índice, y `report_price` que la llena al reportar y al corregir y ya no toca `expires_at`). pgTAP `009` (9 casos); backfill simulado sobre datos viejos.
 - Contraer: `20261116000200_quitar_expires_at.sql` (DROP COLUMN). Nada en la app ni en las vistas la lee; se aplica después del deploy de la 2.1.
 - Dominio: `shared/domain/freshness.ts` (`getFreshness`, `formatConfirmed`, al 100%). Estilo único en `shared/ui/freshness.ts`. Reloj de UI: `shared/lib/useNow` (cada 10 min).
 - UI: el pin toma la opacidad de la frescura del precio que muestra; el panel muestra "confirmado hace X · Fresco/Reciente/Viejo/Dudoso" (`features/prices/ui/FreshnessTag`); la leyenda suma "Frescura del precio" (`features/map/ui/FreshnessLegend`). Piso de cobertura 69/82/75/69.
