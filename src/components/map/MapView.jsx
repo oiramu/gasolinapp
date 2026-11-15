@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
 import { Locate, LocateFixed, Plus, Minus } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES } from '@/lib/fuel'
+import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { cn } from '@/lib/utils'
 import { createStationIcon, createZoneIcon, createUserLocationIcon } from './markers'
@@ -98,12 +98,13 @@ function MapInitializer({ onBoundsChange }) {
 // ── Memoized station marker — avoids re-render when unrelated state changes ──
 const StationMarker = memo(function StationMarker({ station, setSelectedStation, favoriteStationId }) {
   const isFavorite = station.id === favoriteStationId
+  /* eslint-disable react-hooks/exhaustive-deps -- deuda conocida: la icon factory pura de la 0.5 elimina esto */
   const icon = useMemo(() => createStationIcon(station), [
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     station.id, station.fuel_prices,
     useAppStore.getState().defaultFuelType,
     isFavorite
   ])
+  /* eslint-enable react-hooks/exhaustive-deps */
   // useCallback here is valid — called at component level, not inside .map()
   const handleClick = useCallback(() => setSelectedStation(station), [station, setSelectedStation])
 

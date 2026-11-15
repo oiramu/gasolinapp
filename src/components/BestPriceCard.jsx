@@ -1,27 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Navigation, Clock, Eye, Wind, Calculator, Plus, Landmark } from 'lucide-react'
-import { FUEL_TYPES, getLatestPrices, formatPrice, formatRelativeTime, formatPriceValue } from '@/lib/fuel'
+import { Navigation, Clock, Eye, Wind, Calculator, Landmark } from 'lucide-react'
+import { FUEL_TYPES, getLatestPrices } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
+import { formatRelativeTime } from '@/shared/domain/time'
+import { distanceMeters, formatDistance } from '@/shared/domain/geo'
 import { SERVICES } from '@/lib/services'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
 
-function formatDistance(meters) {
-  if (!meters && meters !== 0) return null
-  if (meters < 1000) return `${Math.round(meters)}m`
-  return `${(meters / 1000).toFixed(1)}km`
-}
-
-function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371000
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-}
-
 const SIX_HOURS = 6 * 60 * 60 * 1000
 
-export default function BestPriceCard({ station, fuelType, userPos, onSelect, allStations }) {
+export default function BestPriceCard({ station, fuelType, userPos, onSelect }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
   const { setCalculatorOpen, legendOpen, setPanelOpen, setSelectedStation } = useAppStore()
@@ -80,7 +69,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect, al
   if (!price) return null
 
   const isOld    = (Date.now() - new Date(price.created_at).getTime()) > SIX_HOURS
-  const distance = userPos ? haversine(userPos.lat, userPos.lng, station.lat, station.lng) : null
+  const distance = userPos ? distanceMeters(userPos, station) : null
   const mapsUrl  = `https://maps.google.com/?q=${station.lat},${station.lng}`
 
   return (

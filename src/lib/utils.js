@@ -1,6 +1,2 @@
-import { clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-export function cn(...inputs) {
-  return twMerge(clsx(inputs))
-}
+// Se mantiene para el código JS legado; la implementación vive en shared/lib/cn.ts
+export { cn } from '@/shared/lib/cn'

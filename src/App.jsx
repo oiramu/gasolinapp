@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAppStore } from '@/store/appStore'
-import { useStationsData } from '@/hooks/useStationsData'
-import { useZonesData } from '@/hooks/useZonesData'
+import { useStations } from '@/features/stations/model/useStations'
+import { useZones } from '@/features/zones/model/useZones'
 import { useGeolocation } from '@/hooks/useGeolocation'
-import { getLatestPrices } from '@/lib/fuel'
+import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/domain/geo'
 import TopBar from '@/components/TopBar'
 import MapView from '@/components/map/MapView'
 import StationPanel from '@/components/panels/StationPanel'
@@ -17,35 +17,6 @@ import BestPriceCard from '@/components/BestPriceCard'
 import Toast from '@/components/Toast'
 import { cn } from '@/lib/utils'
 
-// ── Haversine distance in meters ─────────────────────────────────────────────
-function distanceMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-}
-
-// ── Find best-priced station within the given map bounds ──────────────────────
-function getBestStation(stations, bounds, fuelType) {
-  if (!bounds || !stations.length) return null
-
-  let candidates = stations.filter(s => {
-    if (!s.lat || !s.lng) return false
-    if (!bounds.contains([s.lat, s.lng])) return false
-    const prices = getLatestPrices(s.fuel_prices ?? [])
-    return !!prices[fuelType]
-  })
-
-  if (!candidates.length) return null
-
-  return candidates.reduce((best, s) => {
-    const sPrice = getLatestPrices(s.fuel_prices ?? [])[fuelType]?.price ?? Infinity
-    const bPrice = getLatestPrices(best.fuel_prices ?? [])[fuelType]?.price ?? Infinity
-    return sPrice < bPrice ? s : best
-  })
-}
-
 export default function App() {
   const { 
     selectedStation, 
@@ -57,11 +28,9 @@ export default function App() {
   } = useAppStore()
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { stations, loading, error, refresh: refreshStations } = useStationsData()
-  const { zones, refresh: refreshZones }                        = useZonesData()
-  const { position: userPos }                                   = useGeolocation({})
-
-  const refreshAll = () => { refreshStations(); refreshZones() }
+  const { stations, loading, error } = useStations()
+  const zones                        = useZones()
+  const { position: userPos }        = useGeolocation({})
 
   // Keep the selected station panel in sync with the freshest data
   const syncedStation = selectedStation
@@ -78,13 +47,7 @@ export default function App() {
 
   const filteredStations = useMemo(() => {
     if (distanceMode === 'all' || !userPos) return stations
-    
-    // 15km radius for the "near" filter
-    const RADIUS = 15000 
-    
-    return stations.filter(s => 
-      distanceMeters(userPos.lat, userPos.lng, s.lat, s.lng) <= RADIUS
-    )
+    return stations.filter(s => distanceMeters(userPos, s) <= NEAR_RADIUS_METERS)
   }, [stations, distanceMode, userPos])
 
   // ── Map bounds → best price card ──────────────────────────────────────────
@@ -184,7 +147,6 @@ export default function App() {
             <StationPanel
               station={syncedStation}
               zoneData={selectedZone}
-              onRefetch={refreshAll}
             />
           )}
         </div>
@@ -199,10 +161,7 @@ export default function App() {
       </div>
 
       {/* ── Modals & toasts ─────────────────────────────────────────────── */}
-      <ReportPriceModal
-        station={syncedStation}
-        onSuccess={refreshAll}
-      />
+      <ReportPriceModal station={syncedStation} />
       <SettingsModal />
       <SpotlightModal
         stations={filteredStations}

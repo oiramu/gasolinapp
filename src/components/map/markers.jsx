@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import L from 'leaflet'
-import { FUEL_TYPES, getLatestPrices, hasReportedPrices, formatPriceValue } from '@/lib/fuel'
+import { FUEL_TYPES, getLatestPrices, hasReportedPrices } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
 import { useAppStore } from '@/store/appStore'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,7 +50,6 @@ function StationPinSVG({ station, latestPrices, hasData, defaultFuelType, dimmed
     ? (price > 100 ? `$${formatPriceValue(price, 0)}` : `$${formatPriceValue(price, 2)}`)
     : 'S/D'
   const fuelCount = Object.keys(latestPrices || {}).length
-  const textColor = hasData ? COLORS.active : '#9CA3AF'
 
   // If we have the requested fuel type price, tint the border with its color
   const fuelColor = latestPrices?.[defaultFuelType]

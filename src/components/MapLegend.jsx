@@ -1,6 +1,6 @@
 import { WifiOff, Fuel, Camera, ChevronDown } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES } from '@/lib/fuel'
+import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { MAP_CLUSTER_ZOOM_THRESHOLD } from '@/config/map'
 import { cn } from '@/lib/utils'
 

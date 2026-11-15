@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
-  Fuel, MapPin, ThumbsUp, ThumbsDown, Plus, X,
-  AlertTriangle, Clock, Tag, MessageSquare, ChevronRight,
+  Fuel, MapPin, Plus, X,
+  AlertTriangle, Clock, Tag, MessageSquare,
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices, formatRelativeTime, REPORT_TYPE_LABELS, BRAND_COLORS, formatPriceValue } from '@/lib/fuel'
-import { voteOnReport } from '@/services/reports.service'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices } from '@/shared/domain/fuel'
+import { formatPriceValue } from '@/shared/domain/format'
+import { formatRelativeTime } from '@/shared/domain/time'
+import { BRAND_COLORS } from '@/shared/domain/brands'
+import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
+import { ReportVotes } from '@/features/votes/ui/ReportVotes'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
+import { features } from '@/config/features'
 import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
 
 const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
@@ -69,16 +74,9 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
   )
 }
 
-function ReportItem({ report, onVote }) {
+function ReportItem({ report, reportIds, onVoteError }) {
   const Icon = REPORT_ICONS[report.type] || MessageSquare
   const typeConfig = REPORT_TYPE_LABELS[report.type] || REPORT_TYPE_LABELS.comment
-  const [voted, setVoted] = useState(null)
-
-  const handleVote = async (type) => {
-    if (voted) return
-    setVoted(type)
-    await onVote({ reportId: report.id, voteType: type })
-  }
 
   return (
     <div className="flex gap-3 py-3 border-b border-white/5 last:border-0 animate-fade-up">
@@ -104,40 +102,14 @@ function ReportItem({ report, onVote }) {
 
         <p className="text-[12px] text-gray-300 leading-relaxed">{report.content}</p>
 
-        {/* Votes */}
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={() => handleVote('up')}
-            className={cn(
-              'flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-full border transition-all',
-              voted === 'up'
-                ? 'border-fuel-500/50 text-fuel-500 bg-fuel-500/10'
-                : 'border-white/10 text-gray-500 hover:border-fuel-500/40 hover:text-fuel-500'
-            )}
-          >
-            <ThumbsUp size={9} />
-            {report.votes_up + (voted === 'up' ? 1 : 0)}
-          </button>
-          <button
-            onClick={() => handleVote('down')}
-            className={cn(
-              'flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-full border transition-all',
-              voted === 'down'
-                ? 'border-red-400/50 text-red-400 bg-red-400/10'
-                : 'border-white/10 text-gray-500 hover:border-red-400/40 hover:text-red-400'
-            )}
-          >
-            <ThumbsDown size={9} />
-            Incorrecto
-          </button>
-        </div>
+        <ReportVotes report={report} reportIds={reportIds} onError={onVoteError} />
       </div>
     </div>
   )
 }
 
-export default function StationPanel({ station, zoneData, onRefetch }) {
-  const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId } = useAppStore()
+export default function StationPanel({ station, zoneData }) {
+  const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const latestPrices = getLatestPrices(station?.fuel_prices)
   const hasData = hasReportedPrices(station)
 
@@ -146,6 +118,7 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
   if (!station) return null
 
   const brandColor = BRAND_COLORS[station.brand] || '#6B7280'
+  const reportIds = station.reports?.map((report) => report.id) ?? []
   const isFavorite = favoriteStationId === station.id
 
   const toggleFavorite = () => {
@@ -306,6 +279,7 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                           </div>
                         )
                       })}
+                      {features.serviceSuggestions && (
                       <button
                         onClick={() => setReportModalOpen(true, true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-muted/30 border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 snap-start whitespace-nowrap transition-colors"
@@ -313,6 +287,7 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                         <Plus size={12} />
                         <span className="text-[10px] font-mono font-medium">Agregar</span>
                       </button>
+                      )}
                     </div>
                   )
                 }
@@ -320,11 +295,13 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                 // No data
                 return (
                   <div className="flex flex-col items-center py-4 text-center rounded-xl border border-white/5 bg-surface-muted/10">
-                    <p className="text-[11px] text-gray-500 mb-2">Sin información de servicios</p>
+                    <p className={cn('text-[11px] text-gray-500', features.serviceSuggestions && 'mb-2')}>Sin información de servicios</p>
+                    {features.serviceSuggestions && (
                     <button onClick={() => setReportModalOpen(true, true)}
                       className="text-[10px] font-mono text-fuel-500 border border-fuel-500/30 px-3 py-1.5 rounded-lg hover:bg-fuel-500/10 transition-colors">
                       Sé el primero en reportar
                     </button>
+                    )}
                   </div>
                 )
               })()}
@@ -344,10 +321,8 @@ export default function StationPanel({ station, zoneData, onRefetch }) {
                     <ReportItem
                       key={report.id}
                       report={report}
-                      onVote={async ({ reportId, voteType }) => {
-                        await voteOnReport({ reportId, voteType })
-                        onRefetch?.()
-                      }}
+                      reportIds={reportIds}
+                      onVoteError={(message) => showToast(message, 'error')}
                     />
                   ))}
                 </div>

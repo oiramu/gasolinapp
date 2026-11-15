@@ -6,3 +6,7 @@ dist/
 *.log
 .shell.env
 seed.sql
+coverage/
+.vercel
+.env*
+!.env.example

@@ -5,11 +5,9 @@ import {
   Fuel, Zap, Droplets, Wind, RefreshCw, SlidersHorizontal,
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import {
-  FUEL_TYPES, FUEL_ORDER, getLatestPrices,
-  formatPrice, getFuelUnitLabel, getFuelUnit, formatPriceValue
-} from '@/lib/fuel'
-import { supabase } from '@/lib/supabase'
+import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, getFuelUnitLabel } from '@/shared/domain/fuel'
+import { formatPrice, formatPriceValue } from '@/shared/domain/format'
+import { useReferencePrice } from '@/features/prices/model/useReferencePrice'
 import { cn } from '@/lib/utils'
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -21,7 +19,7 @@ function lsGet(key) {
   try { return localStorage.getItem(key) } catch { return null }
 }
 function lsSet(key, val) {
-  try { localStorage.setItem(key, String(val)) } catch {}
+  try { localStorage.setItem(key, String(val)) } catch { /* almacenamiento no disponible: se ignora */ }
 }
 
 // ── Capacity chips por tipo de combustible ────────────────────────────────────
@@ -43,59 +41,6 @@ const FUEL_CHIPS_LIST = FUEL_ORDER.filter(f => f !== 'urea')
 function fmtCOP(n) {
   if (!n && n !== 0) return '—'
   return `$${formatPriceValue(n, 0)}`
-}
-
-// ── Hook: precio histórico (≈30 días atrás) ───────────────────────────────────
-function useHistoricalPrice(stationId, fuelType, enabled) {
-  const [historicalPrice, setHistoricalPrice] = useState(null)
-
-  useEffect(() => {
-    if (!enabled || !fuelType) return
-    let cancelled = false
-
-    async function fetch30d() {
-      const t35  = new Date(Date.now() - 35 * 86400000).toISOString()
-      const t25  = new Date(Date.now() - 25 * 86400000).toISOString()
-
-      let price = null
-
-      if (stationId) {
-        // Intentar con estación específica
-        const { data } = await supabase
-          .from('fuel_prices')
-          .select('price')
-          .eq('station_id', stationId)
-          .eq('fuel_type', fuelType)
-          .gte('created_at', t35)
-          .lte('created_at', t25)
-          .order('created_at', { ascending: false })
-          .limit(1)
-
-        if (data?.[0]) price = data[0].price
-      }
-
-      if (price == null) {
-        // Fallback: promedio de latest_prices (aproximación de ciudad)
-        const { data } = await supabase
-          .from('latest_prices')
-          .select('price')
-          .eq('fuel_type', fuelType)
-          .limit(50)
-
-        if (data?.length) {
-          const avg = data.reduce((s, r) => s + Number(r.price), 0) / data.length
-          price = Math.round(avg)
-        }
-      }
-
-      if (!cancelled) setHistoricalPrice(price)
-    }
-
-    fetch30d()
-    return () => { cancelled = true }
-  }, [stationId, fuelType, enabled])
-
-  return historicalPrice
 }
 
 // ── Modal principal ───────────────────────────────────────────────────────────
@@ -151,7 +96,7 @@ export default function TankCalculatorModal() {
   const [visible, setVisible] = useState(false)
 
   // ─ Historical price ─
-  const historicalPrice = useHistoricalPrice(
+  const historicalPrice = useReferencePrice(
     hasStation && useStation ? calculatorStation?.id : null,
     fuelType,
     calculatorOpen,
@@ -188,6 +133,7 @@ export default function TankCalculatorModal() {
     const handler = (e) => { if (e.key === 'Escape') close() }
     if (calculatorOpen) window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deuda conocida: se resuelve en la 0.6d
   }, [calculatorOpen])
 
   const close = useCallback(() => {

@@ -66,11 +66,37 @@ npm install
 2. Nombre: `gasolinapp`, región: la más cercana a tus usuarios
 3. Guardar la contraseña de la DB
 
-### 3. Ejecutar el schema
+### 3. Crear el schema con las migraciones
 
-1. En Supabase Dashboard → **SQL Editor**
-2. Pegar el contenido de `database/schema.sql`
-3. Ejecutar → crea tablas, índices, RLS, seed data
+El schema vive en `supabase/migrations/`, en archivos numerados por timestamp. `database/_legacy/` es solo histórico.
+
+```bash
+npx supabase login
+npx supabase link --project-ref <ref>   # el ref sale de la URL del proyecto
+npx supabase db push                    # aplica las migraciones pendientes
+```
+
+En local, con Docker:
+
+```bash
+npx supabase start      # Postgres + API locales
+npx supabase db reset   # recrea la base desde cero con todas las migraciones
+```
+
+**Crear una migración nueva:**
+
+1. Genera el archivo: `npx supabase migration new <nombre_en_snake_case>`.
+2. Escríbela idempotente: `IF NOT EXISTS`, `CREATE OR REPLACE`, `DROP ... IF EXISTS` y `ON CONFLICT`.
+3. Pruébala en local con `npx supabase db reset`.
+4. Aplícala en producción con `npx supabase db push`, o con `apply_migration` del MCP de Supabase si ya la revisaste.
+
+Nunca edites una migración que ya está aplicada: escribe una nueva.
+
+**Regenerar los tipos de TypeScript** después de cada cambio de schema:
+
+```bash
+npm run db:types   # desde la base local (supabase start + db reset), o sea, desde las migraciones
+```
 
 ### 4. Configurar variables de entorno
 
@@ -96,6 +122,40 @@ npm run dev
 
 ---
 
+## ✅ Calidad: tests, tipos y lint
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm test` | Tests de vitest (jsdom, Testing Library, MSW) |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run test:coverage` | Tests con cobertura; falla si `src/shared/domain/` baja del 100% o si `src/` baja del piso global de `vite.config.ts` |
+| `npm run typecheck` | `tsc` strict (`noUncheckedIndexedAccess`) para la app y para `vite.config.ts` |
+| `npm run lint` | ESLint sin warnings permitidos: complejidad, profundidad, tamaño de archivos y funciones, y prohibido importar Supabase desde `features/*/ui` y `app/` |
+| `npm run test:db` | Tests pgTAP de `supabase/tests/` contra la base local (requiere `npx supabase start`) |
+| `npm run check` | lint + typecheck + cobertura + build. Es lo que debe pasar antes de dar una tarea por terminada |
+| `npm run db:types` | Regenera `src/shared/api/database.types.ts` desde la base local (las migraciones) |
+| `npm run security:check` | Prueba de ataque con la anon key contra el proyecto de `.env` (ver abajo) |
+
+- **Tests de la app:** van junto al código (`*.test.ts(x)`). MSW está activo en todos los tests, y cualquier petición sin handler hace fallar el test, así que nunca se toca la red real.
+- **Tests de SQL:** van en `supabase/tests/database/*.test.sql`. Toda RPC necesita uno con el caso feliz y al menos un caso de abuso que falle.
+- **Reglas compartidas TS ↔ SQL:** los rangos de precio, las unidades y el largo del comentario viven en `src/shared/domain`. `sharedRules.db.test.ts` genera el pgTAP `003_reglas_compartidas.test.sql`, que verifica que la base aplique los mismos valores. Si cambias una regla: `npx vitest -u` y una migración nueva.
+- **Transición a TypeScript:** `allowJs` sigue activo mientras dure la migración (tareas 0.3–0.6). Los `.js`/`.jsx` legados solo pasan las reglas base de ESLint; las reglas estrictas aplican a `.ts`/`.tsx`. La cobertura exige 100% en `src/shared/domain/` y un piso global en `vite.config.ts` que sube a medida que se migra.
+
+### Prueba de seguridad (`npm run security:check`)
+
+Ataca el proyecto como lo haría cualquiera con la anon key: crea una sesión anónima e intenta cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.
+
+```bash
+npm run security:check                                        # usa VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY de .env
+SUPABASE_URL=... SUPABASE_ANON_KEY=... npm run security:check # contra otro proyecto (p. ej. el local)
+```
+
+- Solo usa la URL y la anon key; nunca la service key.
+- Escribe únicamente en las tres estaciones de prueba (`is_test = true`, ocultas en la app) y al final borra lo suyo con la RPC `clear_my_test_data`, que solo puede borrar lo que escribió la misma sesión en estaciones de prueba.
+- Cada corrida crea un usuario anónimo nuevo (con sus propios límites de tasa) y queda en `auth.users`.
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -113,7 +173,8 @@ gasolinapp/
 │   │   ├── MapLegend.jsx
 │   │   └── Toast.jsx
 │   ├── hooks/
-│   │   └── useStations.js           # Fetch + realtime + submit helpers
+│   │   ├── useStationsData.js       # Fetch + realtime de estaciones
+│   │   └── useZonesData.js          # Fetch de zonas
 │   ├── lib/
 │   │   ├── supabase.js              # Cliente de Supabase
 │   │   ├── fuel.js                  # Constantes y helpers de combustible
@@ -124,8 +185,10 @@ gasolinapp/
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
+├── supabase/
+│   └── migrations/                  # Fuente de verdad del schema (numeradas)
 ├── database/
-│   └── schema.sql                   # Schema Supabase completo con seed
+│   └── _legacy/                     # Scripts históricos, no usar
 ├── .env.example
 ├── vite.config.js
 ├── tailwind.config.js
