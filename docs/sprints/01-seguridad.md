@@ -147,6 +147,8 @@
 
 **Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261115045457_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
 
+**Listo (2026-11-15):** Mario lo corrió contra producción desde su checkout: 7 PASS, 1 KNOWN (`spatial_ref_sys`, hueco conocido de PostGIS) y ningún FAIL.
+
 ---
 
 ## Paso a producción (hecho el 2026-11-14, hora de Bogotá)
@@ -184,7 +186,7 @@ Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguie
 
 - [ ] Producción = `main` = el repo (sin cambios hechos solo en el dashboard). Producción ya es igual a la rama; falta el MR a `main` (lo abre Mario).
 - [x] `npm run check` y pgTAP en verde (rama, 2026-11-14: 190 tests y 130 pgTAP).
-- [x] `security:check` todo PASS contra producción (2026-11-14).
+- [x] `security:check` sin FAIL contra producción (2026-11-14 y, corrido por Mario, 2026-11-15): los 7 casos del sprint PASS; 1 KNOWN aparte (`spatial_ref_sys`).
 - [x] Ninguna política de INSERT, UPDATE o DELETE pública queda en el schema: pgTAP `005` en local y 0 en producción.
 - [x] ROADMAP.md actualizado y lo siguiente definido: Fase 2 (2.1 frescura, 2.2 precios oficiales, 2.3 pg_cron, 2.4 bugs del mapa).
 
