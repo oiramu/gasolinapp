@@ -27,10 +27,10 @@
 
 ## S0 — Sincronizar producción
 
-### [ ] S0.1 Subir y desplegar
+### [x] S0.1 Subir y desplegar
 - [x] `git push -u origin docs/roadmap-criterios` (2026-11-14).
-- [ ] Preview de la rama contra la base de producción, validado por Mario.
-- [ ] `vercel deploy --prod` desde la rama.
+- [x] Sin preview aparte: la rama completa se desplegó a producción junto con la 1.1, la 1.2 y la 1.3b.
+- [x] `vercel deploy --prod` desde una copia limpia del commit (`git archive`, sin `.env`), con alias `gasolinapp.oiramu.com`.
 - **Listo cuando:** el frontend de producción no hace ninguna escritura a `stations`. Verifícalo en la pestaña de red al reportar un precio.
 
 ### [x] S0.2 Ajustar el gate de cobertura
@@ -42,7 +42,7 @@
 
 ---
 
-## [ ] 1.1 — Identidad anónima
+## [x] 1.1 — Identidad anónima
 
 **Estado (2026-11-14):** código, tests y `config.toml` hechos; probado el alta anónima contra el stack local. Pendiente: Mario activa Anonymous sign-ins en el dashboard → preview → `--prod`. **No desplegar antes del toggle:** sin alta anónima, reportar y votar quedan deshabilitados.
 
@@ -57,7 +57,7 @@
 - Tests: hook con MSW (sesión nueva, sesión existente y error de red).
 - **Listo cuando:** recargar mantiene el mismo uid y ninguna mutación sale sin sesión.
 
-## [ ] 1.2 — Votos seguros (expandir)
+## [x] 1.2 — Votos seguros (expandir)
 
 **Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración corre dos veces sin error, pgTAP 42/42 (30 nuevos en `002_votes_rpc.test.sql`) y `npm run check` en verde.
 
@@ -84,7 +84,7 @@
 
 ## 1.3 — Cerrar escrituras directas
 
-### [ ] 1.3a Expandir: RPCs de escritura
+### [x] 1.3a Expandir: RPCs de escritura
 
 **Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261115044942_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_reglas_compartidas`) y `npm run check` en verde.
 
@@ -106,7 +106,7 @@
 - Columna `reporter_id uuid` en `fuel_prices` y `reports`, que llena la RPC.
 - **pgTAP:** caso feliz de cada RPC, precio fuera de rango, combustible inválido, límite de tasa excedido, sin sesión, claves `svc_*` inventadas, y una sola sugerencia que no debe aplicarse.
 
-### [ ] 1.3b Desplegar el frontend
+### [x] 1.3b Desplegar el frontend
 - `ReportPriceModal` y el flujo de comentarios usan las RPC. El modal de servicios vuelve detrás del flag, usando `suggest_station_services`.
 - Migra a TSX solo los componentes que toques.
 
@@ -122,7 +122,7 @@
 - El catálogo de servicios pasó a `features/stations/ui/serviceCatalog.ts`, tipado con las columnas `svc_*`; `lib/services.js` lo reexporta.
 - **Deploy:** requiere la 1.1, la 1.2 y la 1.3a en producción. Después de este deploy, la 1.3c ya puede cerrar las escrituras directas.
 
-### [ ] 1.3c Contraer
+### [x] 1.3c Contraer
 **Migración `..._cerrar_escrituras_precios_reportes.sql`** (después de que la 1.3b esté en producción):
 - Elimina las políticas de INSERT y UPDATE públicas de `fuel_prices` y `reports`.
 - `REVOKE INSERT, UPDATE, DELETE` sobre `fuel_prices`, `reports`, `stations`, `votes` y `service_suggestions` a `anon` y `authenticated`.
@@ -131,7 +131,7 @@
 
 **Estado (2026-11-14):** hecho en local (`20261115045357_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
 
-## [ ] 1.4 — Prueba de ataque contra producción
+## [x] 1.4 — Prueba de ataque contra producción
 
 - `scripts/security-check.ts`, que corre con `npm run security:check` y usa solo `SUPABASE_URL` y `SUPABASE_ANON_KEY`. Intenta:
   1. UPDATE de `fuel_prices.price` y de `votes_up`
@@ -149,9 +149,9 @@
 
 ---
 
-## Paso a producción (pendiente de autorización)
+## Paso a producción (hecho el 2026-11-14, hora de Bogotá)
 
-Claude Code no tiene permiso para escribir en producción (lo bloqueó el modo automático), así que esto queda para Mario o para cuando se autorice `mcp__supabase__apply_migration` y `vercel deploy --prod`. Orden obligatorio (expandir → desplegar → contraer):
+Se siguió este orden (expandir → desplegar → contraer), con las migraciones aplicadas vía MCP y verificadas con consultas de solo lectura:
 
 1. **Dashboard de Supabase:** Authentication → Sign In / Providers → activar *Anonymous sign-ins*.
 2. **Migraciones aditivas** (el frontend actual sigue funcionando con ellas): `20261115044726_votos_rpc.sql` y `20261115044942_rpc_escritura.sql`, en ese orden (SQL Editor o `apply_migration`). Después, renombrar los archivos con la versión que quede en `supabase_migrations.schema_migrations`.
@@ -160,22 +160,32 @@ Claude Code no tiene permiso para escribir en producción (lo bloqueó el modo a
 5. **Verificar:** `npm run security:check` (usa `.env`) → todo PASS. Revisar los advisors de seguridad.
 6. **MR** de `docs/roadmap-criterios` a `main` (Vercel despliega `main` a producción: ya es el mismo código).
 
-Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguiente voto por RPC en ese reporte; por eso el deploy va enseguida.
+Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguiente voto por RPC en ese reporte; por eso el deploy fue enseguida.
+
+**Resultado:** `security:check` contra producción: los 7 casos PASS y 11 filas de prueba limpiadas. 0 políticas de escritura en `public`. Incidente corto: el toggle de Anonymous sign-ins no se había guardado; entre la 1.3c y el toggle no se pudo reportar ni votar (lectura normal). Lección: verificar el toggle con `security:check` **antes** de contraer.
+
+**Advisors de seguridad (pendientes, vienen de la baseline, fuera del alcance del sprint):**
+- `spatial_ref_sys` (PostGIS): RLS apagada y `anon` con INSERT/UPDATE/DELETE/TRUNCATE. Es de `supabase_admin`: hay que mover PostGIS fuera de `public` (o pedirlo a soporte).
+- `refresh_latest_prices` y `refresh_daily_avg_prices` se pueden llamar con la anon key (riesgo de saturar la base). La app no las usa: REVOKE EXECUTE.
+- `v_station_summary` es SECURITY DEFINER y no filtra reportes ocultos. La app no la usa: `security_invoker = true` o quitarle el SELECT.
+- `search_path` mutable en `refresh_latest_prices`, `refresh_daily_avg_prices`, `sync_station_location` y `get_zone_averages`.
+- Residual sin riesgo: `geography_columns` y `geometry_columns` (vistas de catálogo de PostGIS, no actualizables) conservan privilegios de escritura.
 
 ---
 
 ## Definición de "sprint terminado"
 
-- [ ] Producción = `main` = el repo (sin cambios hechos solo en el dashboard).
+- [ ] Producción = `main` = el repo (sin cambios hechos solo en el dashboard). Producción ya es igual a la rama; falta el MR a `main` (lo abre Mario).
 - [x] `npm run check` y pgTAP en verde (rama, 2026-11-14: 190 tests y 130 pgTAP).
-- [ ] `security:check` todo PASS contra producción.
-- [ ] Ninguna política de INSERT, UPDATE o DELETE pública queda en el schema (agrega a pgTAP un test que lo verifique sobre `pg_policies`). El test ya existe (`005`); falta aplicar la 1.3c en producción.
+- [x] `security:check` todo PASS contra producción (2026-11-14).
+- [x] Ninguna política de INSERT, UPDATE o DELETE pública queda en el schema: pgTAP `005` en local y 0 en producción.
 - [x] ROADMAP.md actualizado y lo siguiente definido: Fase 2 (2.1 frescura, 2.2 precios oficiales, 2.3 pg_cron, 2.4 bugs del mapa).
 
 ## Siguiente: Sprint 02 — Fase 2 (datos vivos)
 
-Arranca cuando este sprint esté en producción y mergeado. Orden propuesto, una tarea por sesión:
+Arranca cuando este sprint esté mergeado. Orden propuesto, una tarea por sesión:
 
+0. **Endurecer lo que marcan los advisors** (ver arriba): una migración chica con REVOKE de las funciones de refresco, `security_invoker` en `v_station_summary` y `search_path` fijo; y decidir qué hacer con PostGIS en `public`.
 1. **2.4 Bugs del mapa** primero: es verificación y deja el mapa estable para lo demás.
 2. **2.1 Frescura en lugar de vencimiento a 24 h**: `report_price` ya renueva `created_at`; falta el modelo de frescura en `shared/domain` y en la UI.
 3. **2.3 Refrescos programados con pg_cron** (`cron.unschedule` antes de `cron.schedule`): refresco de `latest_prices` y `daily_avg_prices`.

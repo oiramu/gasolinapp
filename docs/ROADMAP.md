@@ -8,7 +8,7 @@
 
 **Cómo usar este archivo:** abre Claude Code en la raíz del repo, crea la rama de la tarea y pega el prompt. Claude Code ya lee `CLAUDE.md` con las reglas y el criterio de aceptación. Tú revisas el plan, apruebas, revisas el diff y aplicas a mano el SQL en Supabase.
 
-**Sprint en curso:** [Sprint 01 — Producción sincronizada + Fase 1](sprints/01-seguridad.md) (14 al 22 de noviembre de 2026). El estado detallado de S0 y de la Fase 1 vive ahí.
+**Sprint 01 — Producción sincronizada + Fase 1:** [terminado en producción](sprints/01-seguridad.md) el 2026-11-14; falta el MR a `main`. Lo siguiente (Sprint 02, Fase 2) está definido al final de ese archivo.
 
 ---
 
@@ -87,16 +87,16 @@
 
 ## Fase 1 — Seguridad (semana 4)
 
-### [ ] 1.1 Identidad anónima
-**Estado:** código hecho el 2026-11-14 (ver [Sprint 01](sprints/01-seguridad.md)). Falta activar Anonymous sign-ins en el dashboard y desplegar.
+### [x] 1.1 Identidad anónima
+**Estado:** hecha y en producción el 2026-11-14 (hora de Bogotá), con Anonymous sign-ins activo (ver [Sprint 01](sprints/01-seguridad.md)).
 **Tú primero:** en el dashboard de Supabase activa Authentication → Anonymous sign-ins.
 **Prompt:**
 > Lee CLAUDE.md. Implementa sesión anónima con `supabase.auth.signInAnonymously()` al cargar la app si no hay sesión, en `features/auth` (repositorio + hook `useAuth`). Toda mutación debe esperar a que exista sesión. Con datos mock no debe romper nada (AuthRepository mock). Muestra en Configuración un "ID de dispositivo" corto (los primeros 6 caracteres del uid) para depurar.
 
 **Listo cuando:** cada visitante tiene un `auth.uid()` estable en ese navegador.
 
-### [ ] 1.2 Votos seguros
-**Estado:** hecho en local el 2026-11-14 (ver [Sprint 01](sprints/01-seguridad.md)). Falta aplicar `20261115044726_votos_rpc.sql` en producción y desplegar.
+### [x] 1.2 Votos seguros
+**Estado:** hecha y en producción el 2026-11-14 (hora de Bogotá): `20261115044726_votos_rpc.sql` (ver [Sprint 01](sprints/01-seguridad.md)).
 **Prompt:**
 > Lee CLAUDE.md. El voto actual (`voteOnReport`) lee y escribe +1 desde el cliente, y la RLS permite UPDATE público. Crea una migración con:
 > - Tabla `votes(id, target_type ('report'|'price'), target_id uuid, voter_id uuid default auth.uid(), value smallint check in (-1,1), created_at)` con UNIQUE(target_type, target_id, voter_id).
@@ -107,8 +107,8 @@
 
 **Listo cuando:** votar dos veces no suma dos y el contador es correcto con clics concurrentes.
 
-### [ ] 1.3 Cerrar escrituras directas
-**Estado:** 1.3a (RPCs de escritura), 1.3b (frontend por RPC) y 1.3c (cierre de escrituras) hechas en local el 2026-11-14; falta producción (ver [Sprint 01](sprints/01-seguridad.md)). Los rangos siguen en `fuel.ts` como fuente única y un pgTAP generado desde ahí verifica `fuel_price_ranges` (el sprint permite "un test que las compare").
+### [x] 1.3 Cerrar escrituras directas
+**Estado:** 1.3a, 1.3b y 1.3c hechas y en producción el 2026-11-14 (hora de Bogotá) (ver [Sprint 01](sprints/01-seguridad.md)). Los rangos siguen en `fuel.ts` como fuente única y un pgTAP generado desde ahí verifica `fuel_price_ranges` (el sprint permite "un test que las compare").
 **Prompt:**
 > Lee CLAUDE.md. Crea una migración que elimine las políticas de UPDATE públicas de `fuel_prices` y `reports` (la de `stations` ya salió en la 0.0), y la de INSERT público de `fuel_prices` y `reports`. Crea una tabla `fuel_price_ranges(fuel_type, min, max)` como fuente única de los rangos: la lee la RPC y la expone al frontend, que deja de duplicar `FUEL_PRICE_RANGES`. Reemplaza las escrituras con RPCs SECURITY DEFINER:
 > - `report_prices(station_id, prices jsonb, comment)`: atómica para varios combustibles; valida rangos contra la tabla, exige auth.uid() y limita a 10 reportes por usuario por hora y 1 por estación y combustible cada 30 min.
@@ -119,8 +119,8 @@
 
 **Listo cuando:** todas las escrituras pasan por RPC y los límites devuelven errores claros que la UI muestra en el Toast.
 
-### [ ] 1.4 Prueba de ataque
-**Estado:** `npm run security:check` hecho y probado en local el 2026-11-14 (todo PASS; con un hueco reabierto, FAIL y exit 1). Falta correrlo contra producción después de la 1.3c (ver [Sprint 01](sprints/01-seguridad.md)).
+### [x] 1.4 Prueba de ataque
+**Estado:** `npm run security:check` hecho; contra producción el 2026-11-14 salió todo PASS (ver [Sprint 01](sprints/01-seguridad.md)).
 **Prompt:**
 > Lee CLAUDE.md. Escribe `scripts/security-check.ts`, que use solo la anon key (variables de entorno) e intente:
 > - actualizar el precio de un reporte ajeno,
