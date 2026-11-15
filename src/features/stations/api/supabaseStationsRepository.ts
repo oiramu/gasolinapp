@@ -1,5 +1,5 @@
 import type { Tables } from '@/shared/api/database.types'
-import { unwrapList } from '@/shared/api/result'
+import { fetchAllPages } from '@/shared/api/pagination'
 import type { AppSupabaseClient } from '@/shared/api/supabaseClient'
 import { toPriceChange, toReportChange, toStationChange } from './realtimeChanges'
 import { toStation } from './stationAdapter'
@@ -20,8 +20,11 @@ const changesOn = (table: 'fuel_prices' | 'reports' | 'stations') => ({ event: '
 export function createSupabaseStationsRepository(client: AppSupabaseClient): StationsRepository {
   return {
     async list() {
-      // Las estaciones de prueba (security:check) nunca se muestran
-      const rows = unwrapList(await client.from('stations').select(STATION_SELECT).eq('is_active', true).eq('is_test', false))
+      // Hay más estaciones que el tope de PostgREST: se pagina con un orden fijo.
+      // Las estaciones de prueba (security:check) nunca se muestran.
+      const rows = await fetchAllPages((from, to) =>
+        client.from('stations').select(STATION_SELECT, { count: 'exact' }).eq('is_active', true).eq('is_test', false).order('id').range(from, to),
+      )
       return rows.map(toStation)
     },
 
