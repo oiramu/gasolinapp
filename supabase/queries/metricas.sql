@@ -1,5 +1,7 @@
 -- 3.4 Métricas de producto. Solo lectura: se corren en el SQL Editor (o con execute_sql) cuando se quiera.
 -- Fechas y semanas en hora de Bogotá. Las estaciones de prueba (is_test) no cuentan.
+-- Los eventos de navegadores automatizados (HeadlessChrome: capturas de cada deploy) tampoco: la app ya
+-- no los envía desde el 2026-11-15, y los anteriores se excluyen por el user-agent de su sesión.
 
 -- ── 1. Métrica norte ──────────────────────────────────────────────────────────
 -- % de estaciones activas de Barranquilla con al menos un precio comunitario confirmado en los últimos 7 días.
@@ -25,10 +27,12 @@ SELECT count(*)                                                                A
 
 -- ── 2. Usuarios activos por semana (últimas 8) ────────────────────────────────
 -- Un usuario activo es un uid (anónimo) con al menos un evento en la semana.
+WITH bots AS (SELECT DISTINCT user_id FROM auth.sessions WHERE user_agent ILIKE '%HeadlessChrome%')
 SELECT date_trunc('week', e.created_at AT TIME ZONE 'America/Bogota')::date AS semana,
        count(DISTINCT e.user_id)                                            AS usuarios_activos
   FROM public.events e
  WHERE e.created_at > now() - interval '8 weeks'
+   AND e.user_id NOT IN (SELECT user_id FROM bots)
  GROUP BY 1
  ORDER BY 1 DESC;
 
@@ -63,13 +67,15 @@ SELECT d.dia,
 
 -- ── 4. Conversión de abrir una estación a confirmar o reportar (últimos 30 días) ──
 -- Por día: usuarios que abrieron alguna estación y, de ellos, cuántos confirmaron o reportaron ese mismo día.
-WITH por_usuario_y_dia AS (
+WITH bots AS (SELECT DISTINCT user_id FROM auth.sessions WHERE user_agent ILIKE '%HeadlessChrome%'),
+por_usuario_y_dia AS (
   SELECT (e.created_at AT TIME ZONE 'America/Bogota')::date                      AS dia,
          e.user_id,
          bool_or(e.name = 'station_open')                                        AS abrio,
          bool_or(e.name IN ('price_confirmed', 'price_reported'))                AS aporto
     FROM public.events e
    WHERE e.created_at > now() - interval '30 days'
+     AND e.user_id NOT IN (SELECT user_id FROM bots)
    GROUP BY 1, 2
 )
 SELECT dia,

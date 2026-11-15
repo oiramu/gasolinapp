@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { useEnsureSession } from '@/features/auth/model/session'
 import type { EventName, EventProps } from '../api/types'
 import { useAnalyticsRepository } from './analyticsRepository'
+import { isAutomatedBrowser } from './automation'
 
 export type Track = (name: EventName, props?: EventProps) => void
 
@@ -9,13 +10,15 @@ const NO_PROPS: EventProps = {}
 
 /**
  * Registra un evento sin bloquear la UI: espera la sesión (el uid anónimo es la única
- * identidad) y descarta los errores, porque una métrica nunca rompe la app. Estable entre renders.
+ * identidad) y descarta los errores, porque una métrica nunca rompe la app. Los navegadores
+ * automatizados no se miden. Estable entre renders.
  */
 export function useTrack(): Track {
   const repository = useAnalyticsRepository()
   const ensureSession = useEnsureSession()
   return useCallback<Track>(
     (name, props = NO_PROPS) => {
+      if (isAutomatedBrowser(navigator)) return
       void ensureSession()
         .then(() => repository.track({ name, props }))
         .catch(() => undefined)
