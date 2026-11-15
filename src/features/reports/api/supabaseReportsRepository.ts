@@ -1,4 +1,4 @@
-import { assertOk, unwrapList } from '@/shared/api/result'
+import { assertOk, unwrap, unwrapList } from '@/shared/api/result'
 import type { AppSupabaseClient } from '@/shared/api/supabaseClient'
 import type { ReportsRepository } from './types'
 
@@ -15,6 +15,10 @@ export function createSupabaseReportsRepository(client: AppSupabaseClient): Repo
 
     async suggestServices({ stationId, services }) {
       return unwrapList(await client.rpc('suggest_station_services', { p_station_id: stationId, p_services: services }))
+    },
+
+    async confirmPrice(priceId) {
+      return unwrap(await client.rpc('confirm_price', { p_price_id: priceId }))
     },
   }
 }

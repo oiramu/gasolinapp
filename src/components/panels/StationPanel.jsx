@@ -54,6 +54,7 @@ function ReportItem({ report, reportIds, onVoteError }) {
 
 export default function StationPanel({ station, zoneData }) {
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
+  const openReportFor = useAppStore((state) => state.openReportFor)
   const hasData = hasReportedPrices(station)
 
   const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'
@@ -175,7 +176,13 @@ export default function StationPanel({ station, zoneData }) {
         {activeTab === 'precios' ? (
           <>
             {/* ── Precios: comunitario, oficial de referencia o "Sin precio" ── */}
-            <StationFuelPrices station={station} city={zoneData?.city ?? null} />
+            <StationFuelPrices
+              key={station.id}
+              station={station}
+              city={zoneData?.city ?? null}
+              onReport={openReportFor}
+              notify={showToast}
+            />
 
             {/* ── Services section ───────────────────────────── */}
             <div className="p-4 pt-2">

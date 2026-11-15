@@ -87,7 +87,12 @@ describe('StationFuelPrices', () => {
   const renderPrices = (city: string | null) =>
     render(
       <AppProviders repositories={createMockRepositories(0)} queryClient={createTestQueryClient()}>
-        <StationFuelPrices station={station({ fuel_prices: [fuelPrice({ fuel_type: 'corriente', price: 15900 })] })} city={city} />
+        <StationFuelPrices
+          station={station({ fuel_prices: [fuelPrice({ fuel_type: 'corriente', price: 15900 })] })}
+          city={city}
+          onReport={vi.fn()}
+          notify={vi.fn()}
+        />
       </AppProviders>,
     )
 

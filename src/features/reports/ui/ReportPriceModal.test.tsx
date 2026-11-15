@@ -28,6 +28,7 @@ const reportsWith = (overrides: Partial<ReportsRepository>): ReportsRepository =
   reportPrice: () => Promise.resolve(),
   addReport: () => Promise.resolve(),
   suggestServices: () => Promise.resolve([]),
+  confirmPrice: () => Promise.resolve(''),
   ...overrides,
 })
 

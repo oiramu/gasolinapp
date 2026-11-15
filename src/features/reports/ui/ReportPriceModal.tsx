@@ -2,6 +2,8 @@ import type { FormEvent } from 'react'
 import { useHasSession } from '@/features/auth/model/session'
 import { SERVICE_COLUMNS, type StationFields } from '@/features/stations/api/types'
 import { toUserMessage } from '@/shared/api/rpcErrors'
+import type { FuelType } from '@/shared/domain/fuel'
+import type { Notify } from '@/shared/ui/notify'
 import { useSubmitReport } from '../model/mutations'
 import { canSubmit, REPORTABLE_FUELS } from '../model/reportForm'
 import { submitMessage } from '../model/submitReport'
@@ -12,8 +14,6 @@ import { ReportDialog } from './ReportDialog'
 import { ServicesPicker } from './ServicesPicker'
 import { SubmitButton } from './SubmitButton'
 
-export type ToastType = 'success' | 'error'
-
 const SUBMIT_FAILED = 'Error al enviar. Intenta de nuevo.'
 
 export interface ReportPriceModalProps {
@@ -21,13 +21,15 @@ export interface ReportPriceModalProps {
   /** Feature flag `serviceSuggestions`. */
   readonly servicesEnabled: boolean
   readonly expandServices: boolean
+  /** Combustible que llega activo ("¿Sigue en $X? No"); por defecto, corriente. */
+  readonly initialFuel?: FuelType | null
   readonly onClose: () => void
-  readonly notify: (message: string, type: ToastType) => void
+  readonly notify: Notify
 }
 
 /** Contenedor del reporte de una estación: formulario, sesión, envío por RPC y avisos. */
-export function ReportPriceModal({ station, servicesEnabled, expandServices, onClose, notify }: ReportPriceModalProps) {
-  const report = useReportForm(station)
+export function ReportPriceModal({ station, servicesEnabled, expandServices, initialFuel = null, onClose, notify }: ReportPriceModalProps) {
+  const report = useReportForm(station, initialFuel)
   const hasSession = useHasSession()
   const { mutate, isPending } = useSubmitReport()
   const ready = hasSession && canSubmit(report.draft)

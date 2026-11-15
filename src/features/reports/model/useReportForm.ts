@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ServiceKey, StationFields } from '@/features/stations/api/types'
 import type { FuelType } from '@/shared/domain/fuel'
-import { INITIAL_FORM, serviceValue, toDraft, type ReportDraft, type ReportForm } from './reportForm'
+import { initialForm, serviceValue, toDraft, type ReportDraft, type ReportForm } from './reportForm'
 
 type StationServices = Pick<StationFields, ServiceKey>
 
@@ -16,8 +16,8 @@ export interface ReportFormState {
 }
 
 /** Estado del formulario de reporte de una estación; el borrador se deriva, no se guarda. */
-export function useReportForm(station: StationServices): ReportFormState {
-  const [form, setForm] = useState(INITIAL_FORM)
+export function useReportForm(station: StationServices, initialFuel: FuelType | null = null): ReportFormState {
+  const [form, setForm] = useState(() => initialForm(initialFuel))
   const isServiceOn = (key: ServiceKey) => serviceValue(form, station, key)
 
   return {

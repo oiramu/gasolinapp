@@ -1,4 +1,5 @@
 import { ChevronDown, Droplets, Fuel, RefreshCw, Wind, type LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { formatReferenceMonth, type DisplayPrice } from '@/shared/domain/displayPrice'
 import { formatPriceValue } from '@/shared/domain/format'
 import { FUEL_TYPES, type FuelType } from '@/shared/domain/fuel'
@@ -14,10 +15,12 @@ export interface FuelPriceCardProps {
   readonly display: DisplayPrice
   /** Confirmación del precio comunitario (para su frescura). */
   readonly confirmedAt: string | null
+  /** Debajo del precio (la pregunta "¿Sigue en $X?"). */
+  readonly children?: ReactNode
 }
 
 /** Precio de un combustible en el panel: comunitario con su frescura, oficial de referencia o "Sin precio". */
-export function FuelPriceCard({ fuelType, display, confirmedAt }: FuelPriceCardProps) {
+export function FuelPriceCard({ fuelType, display, confirmedAt, children }: FuelPriceCardProps) {
   const config = FUEL_TYPES[fuelType]
   const Icon = FUEL_ICONS[fuelType]
   const hasPrice = display.source !== 'none'
@@ -38,6 +41,7 @@ export function FuelPriceCard({ fuelType, display, confirmedAt }: FuelPriceCardP
         </span>
       </div>
       <PriceBody display={display} color={config.color} confirmedAt={confirmedAt} />
+      {children}
     </div>
   )
 }

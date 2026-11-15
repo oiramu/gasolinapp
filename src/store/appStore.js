@@ -35,7 +35,10 @@ export const useAppStore = create((set, get) => ({
   // Report modal
   reportModalOpen: false,
   reportModalPreExpand: false,
-  setReportModalOpen: (open, preExpand = false) => set({ reportModalOpen: open, reportModalPreExpand: preExpand }),
+  // Combustible preseleccionado ("¿Sigue en $X? No"); null = el de siempre
+  reportModalFuel: null,
+  setReportModalOpen: (open, preExpand = false) => set({ reportModalOpen: open, reportModalPreExpand: preExpand, reportModalFuel: null }),
+  openReportFor: (fuelType) => set({ reportModalOpen: true, reportModalPreExpand: false, reportModalFuel: fuelType }),
 
   // Settings modal
   settingsModalOpen: false,

@@ -53,6 +53,16 @@ export function patchVotes(stations: readonly Station[], { targetType, targetId 
   return stations.map(tallyPatch(VOTABLE_LISTS[targetType], targetId, tally))
 }
 
+const confirmIn = (priceId: string, confirmedAt: string) => (station: Station): Station =>
+  station.fuel_prices.some((price) => price.id === priceId)
+    ? { ...station, fuel_prices: station.fuel_prices.map((price) => (price.id === priceId ? { ...price, confirmed_at: confirmedAt } : price)) }
+    : station
+
+/** Nueva confirmación de un precio en caché (confirm_price); las demás estaciones no se recrean. */
+export function patchConfirmed(stations: readonly Station[], priceId: string, confirmedAt: string): readonly Station[] {
+  return stations.map(confirmIn(priceId, confirmedAt))
+}
+
 const updateVotes: Patch<'votes-updated'> = (stations, change) => patchVotes(stations, change, change.tally)
 
 const PATCHES: { [K in Kind]: Patch<K> } = {

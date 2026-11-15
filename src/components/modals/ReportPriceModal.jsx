@@ -9,6 +9,7 @@ import { ReportPriceModal as ReportPriceModalView } from '@/features/reports/ui/
 export default function ReportPriceModal({ station }) {
   const open = useAppStore((state) => state.reportModalOpen)
   const expandServices = useAppStore((state) => state.reportModalPreExpand)
+  const initialFuel = useAppStore((state) => state.reportModalFuel)
   const setReportModalOpen = useAppStore((state) => state.setReportModalOpen)
   const showToast = useAppStore((state) => state.showToast)
 
@@ -19,6 +20,7 @@ export default function ReportPriceModal({ station }) {
       station={station}
       servicesEnabled={features.serviceSuggestions}
       expandServices={expandServices}
+      initialFuel={initialFuel}
       onClose={() => setReportModalOpen(false)}
       notify={showToast}
     />

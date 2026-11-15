@@ -10,7 +10,7 @@ import { createMockReportsRepository } from './api/mockReportsRepository'
 import { createSupabaseReportsRepository } from './api/supabaseReportsRepository'
 import type { ReportsRepository } from './api/types'
 import { useSubmitReport } from './model/mutations'
-import { canSubmit, INITIAL_FORM, parsePrice, priceEntries, toDraft, type ReportForm } from './model/reportForm'
+import { canSubmit, INITIAL_FORM, initialForm, parsePrice, priceEntries, toDraft, type ReportForm } from './model/reportForm'
 import { submitMessage, submitReport, type ReportSubmission } from './model/submitReport'
 
 const repository = () => createSupabaseReportsRepository(createTestClient())
@@ -46,6 +46,12 @@ describe('createSupabaseReportsRepository', () => {
     expect(calls).toEqual([{ p_station_id: 's1', p_services: { svc_bano: true } }])
   })
 
+  it('confirmPrice llama confirm_price y devuelve el confirmed_at nuevo', async () => {
+    const calls = captureRpc('confirm_price', '2026-11-15T12:00:00+00:00')
+    await expect(repository().confirmPrice('p1')).resolves.toBe('2026-11-15T12:00:00+00:00')
+    expect(calls).toEqual([{ p_price_id: 'p1' }])
+  })
+
   it('propaga el código de error de la RPC', async () => {
     server.use(http.post(`${REST_URL}/rpc/report_price`, () => postgrestError('RATE_LIMIT')))
     await expect(repository().reportPrice({ stationId: 's1', fuelType: 'extra', price: 18000 })).rejects.toThrow('RATE_LIMIT')
@@ -57,6 +63,7 @@ describe('createMockReportsRepository', () => {
     const mock = createMockReportsRepository(0)
     await expect(mock.reportPrice({ stationId: 's1', fuelType: 'extra', price: 18000 })).resolves.toBeUndefined()
     await expect(mock.addReport({ stationId: 's1', type: 'comment', content: 'x' })).resolves.toBeUndefined()
+    expect(Date.parse(await mock.confirmPrice('p1'))).not.toBeNaN()
     vi.useFakeTimers()
     const pending = createMockReportsRepository().suggestServices({ stationId: 's1', services: { svc_bano: true } })
     await vi.runAllTimersAsync()
@@ -69,6 +76,11 @@ describe('reportForm', () => {
   // svc_cafe en null: sin dato, así que proponer false sí es un cambio
   const station = stationFields({ svc_tienda: true, svc_bano: false, svc_cafe: null })
   const form = (overrides: Partial<ReportForm>): ReportForm => ({ ...INITIAL_FORM, ...overrides })
+
+  it('arranca con un solo combustible activo: el pedido o, si no se reporta (urea), corriente', () => {
+    const active = (form: ReportForm) => Object.entries(form.activeFuels).filter(([, on]) => on).map(([fuel]) => fuel)
+    expect([INITIAL_FORM, initialForm('diesel'), initialForm('urea')].map(active)).toEqual([['corriente'], ['diesel'], ['corriente']])
+  })
 
   it('parsePrice acepta COP enteros positivos', () => {
     expect(['15900', '15900.6', '', '  ', '0', '-5', 'abc'].map(parsePrice)).toEqual([15900, 15901, null, null, null, null, null])
@@ -111,6 +123,7 @@ describe('submitReport', () => {
         calls.push('servicios')
         return Promise.resolve(['svc_bano'])
       },
+      confirmPrice: () => Promise.resolve(''),
     }
     return { reports, calls }
   }

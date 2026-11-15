@@ -16,12 +16,21 @@ export interface ReportForm {
   readonly comment: string
 }
 
-export const INITIAL_FORM: ReportForm = {
-  activeFuels: { corriente: true, extra: false, diesel: false, urea: false, gnv: false },
-  prices: { corriente: '', extra: '', diesel: '', urea: '', gnv: '' },
-  services: {},
-  comment: '',
+const DEFAULT_FUEL: FuelType = 'corriente'
+const NO_FUELS: ReportForm['activeFuels'] = { corriente: false, extra: false, diesel: false, urea: false, gnv: false }
+
+/** Formulario vacío con un combustible activo: el pedido si se puede reportar; si no, corriente. */
+export function initialForm(fuel: FuelType | null = null): ReportForm {
+  const active = fuel !== null && REPORTABLE_FUELS.includes(fuel) ? fuel : DEFAULT_FUEL
+  return {
+    activeFuels: { ...NO_FUELS, [active]: true },
+    prices: { corriente: '', extra: '', diesel: '', urea: '', gnv: '' },
+    services: {},
+    comment: '',
+  }
 }
+
+export const INITIAL_FORM: ReportForm = initialForm()
 
 /** Lo que se va a enviar. Se deriva del formulario en cada render; nunca se guarda. */
 export interface ReportDraft {
