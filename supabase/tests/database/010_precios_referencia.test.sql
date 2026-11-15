@@ -22,6 +22,8 @@ SELECT ok(
 SELECT ok(NOT has_function_privilege('anon', 'public._check_reference_price_range()', 'execute'), 'el trigger no es ejecutable por el cliente');
 
 -- ── Caso feliz: vigente = último valid_from que ya empezó ────────────────────
+-- Datos propios: se descarta la carga mensual real (el ROLLBACK final la devuelve)
+DELETE FROM public.reference_prices;
 INSERT INTO public.reference_prices (city, fuel_type, valid_from, price, source_url) VALUES
   ('Barranquilla', 'corriente', DATE '2026-10-01', 15964, 'https://creg.gov.co/publicaciones/15565/precios-de-combustibles-liquidos/'),
   ('Barranquilla', 'corriente', DATE '2026-11-01', 15970, 'https://creg.gov.co/publicaciones/15565/precios-de-combustibles-liquidos/'),

@@ -142,7 +142,7 @@
 **Prompt:**
 > Lee CLAUDE.md. Hoy `fuel_prices.expires_at` vence a las 24 h y eso deja el mapa vacío. Cambia el modelo: un precio sigue vigente hasta que llega uno más nuevo para esa estación y combustible. Agrega `confirmed_at` (último momento en que alguien lo confirmó) y en `shared/domain/freshness.ts` una función `getFreshness(confirmed_at)` basada en una tabla de umbrales (sin cadena de if) que devuelva 'fresco' (<3 días), 'reciente' (<10), 'viejo' (<30) o 'dudoso'. La UI muestra "confirmado hace X días" y baja la opacidad del pin según la frescura. Actualiza la leyenda. Migración + tests al 100%.
 
-### [ ] 2.2 Precios oficiales de referencia
+### [x] 2.2 Precios oficiales de referencia
 **Prompt:**
 > Lee CLAUDE.md. El Gobierno publica cada mes precios de referencia por ciudad (resolución de MinEnergía/Hacienda que rige desde el día 1). Crea la tabla `reference_prices(city, fuel_type, valid_from date, price, source_url)` con UNIQUE(city, fuel_type, valid_from) y lectura pública. Crea `scripts/import-reference-prices.ts`, que lee un CSV (`city,fuel_type,price`) más la fecha y la URL de la fuente y genera un SQL idempotente (`ON CONFLICT ... DO UPDATE`). En la UI, si una estación no tiene precio fresco, muestra el oficial de su ciudad con la etiqueta "Precio de referencia oficial" en lugar del promedio de zona. Mapea `stations.city` a las ciudades de la resolución, empezando por Barranquilla.
 
@@ -152,7 +152,7 @@
 **Prompt:**
 > Lee CLAUDE.md. Las vistas materializadas `latest_prices` y `daily_avg_prices` se refrescan con un trigger por cada INSERT. Migración: quita esos triggers (`DROP TRIGGER IF EXISTS`) y programa con pg_cron un refresh CONCURRENTLY cada 5 minutos, de forma idempotente (`cron.unschedule` si ya existe y luego `cron.schedule`). Documenta que hay que activar pg_cron en el dashboard.
 
-### [ ] 2.4 Bugs del mapa (verificación)
+### [x] 2.4 Bugs del mapa (verificación)
 **Prompt:**
 > Lee CLAUDE.md. Verifica que en la 0.6a quedaron resueltos: (1) el filtro "cerca" se aplica al mapa, y (2) cambiar de combustible no vuelve a montar el mapa ni pierde centro y zoom. Agrega tests de regresión si faltan.
 
@@ -160,7 +160,7 @@
 
 ## Fase 3 — Que reportar sea fácil (semanas 6–7)
 
-### [ ] 3.1 Botón "¿Sigue en $X?"
+### [x] 3.1 Botón "¿Sigue en $X?"
 **Prompt:**
 > Lee CLAUDE.md. En StationPanel, junto a cada precio, agrega "¿Sigue en $15.900? Sí / No". "Sí" llama una RPC `confirm_price(price_id)` que actualiza `confirmed_at` y registra la confirmación (una por usuario por precio por día, con UNIQUE). "No" abre ReportPriceModal con el combustible preseleccionado. Usa una mutación optimista con rollback y un Toast "¡Gracias! Confirmaste el precio". Test pgTAP de la RPC.
 
@@ -172,7 +172,7 @@
 **Prompt:**
 > Lee CLAUDE.md. Agrega "Compartir" en StationPanel y en BestPriceCard usando la Web Share API, con respaldo a `https://wa.me/?text=` (Strategy). El texto sale de una función pura testeada: "⛽ Corriente a $15.900 en Terpel El Recreo (confirmado hoy). Míralo en GasolinApp: <link con ?estacion=>". Agrega meta tags Open Graph y una imagen OG estática en `public/` para que el link se vea bien en WhatsApp.
 
-### [ ] 3.4 Medir
+### [x] 3.4 Medir
 **Prompt:**
 > Lee CLAUDE.md. Crea una tabla `events(name, props jsonb, user_id, created_at)` con INSERT solo vía RPC `track(name, props)`, con límite de tasa. Registra: app_open, station_open, price_reported, price_confirmed, vote, share, a través de un puerto `Analytics` (con implementación no-op en mock). Crea `supabase/queries/metricas.sql` con la métrica norte (% de estaciones de Barranquilla con precio confirmado en 7 días), los reportantes activos de la semana y los reportes por día.
 

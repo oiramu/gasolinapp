@@ -53,12 +53,12 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - UI: "confirmado hace X días", opacidad del pin según la frescura y leyenda actualizada.
 - Quita cualquier lógica que dependa de `expires_at`. La columna se elimina en una migración de contracción aparte, después del deploy.
 
-## [ ] 2.2 — Precios oficiales de referencia (la tarea más importante del sprint)
-**Estado (2026-11-15):** datos, dominio y UI hechos en la rama; falta aplicar la migración y cargar noviembre en producción.
+## [x] 2.2 — Precios oficiales de referencia (la tarea más importante del sprint)
+**Estado (2026-11-15):** hecha. Mario validó noviembre; migración y carga aplicadas en producción vía MCP con su OK (`20261115154924_precios_referencia` y `20261115155009_precios_referencia_2026_11`). Verificado con solo lectura: 26 filas vigentes (Barranquilla: corriente 15.964, diésel 11.291), job `check_reference_prices` activo, el cliente solo lee. La UI llega a producción con el merge del sprint.
 - UI: el pin usa `resolveDisplayPrice` para el combustible elegido (el oficial va con borde punteado, insignia REF y opacidad 0.9); el panel muestra cada combustible con `StationFuelPrices`/`FuelPriceCard` (comunitario con frescura, "Precio de referencia oficial (nov 2026)" + "Cada estación puede variar", o "Sin precio"); se quitó el promedio de zona como precio de la estación (`StationPanel` bajó de 409 a 283 líneas); la leyenda suma "Precio oficial". La ciudad de cada estación sale de su zona. Piso de cobertura 71/84/77/71.
 - Fuente: CREG, "Precios vigentes a partir del 1 de noviembre del 2026 (13 ciudades principales)", solo gasolina corriente y ACPM (diésel). Extra, GNV y urea no tienen precio oficial.
-- Migración `20261116000300_precios_referencia.sql` (sin aplicar): tabla `reference_prices` (FK a `fuel_price_ranges`, trigger con `INVALID_FUEL`/`OUT_OF_RANGE`, fuente https), vista `current_reference_prices` (vigente según la fecha de Bogotá), lectura pública y job mensual `check_reference_prices` (día 2, 06:00) que **no carga datos**: solo alerta en `ops_alerts` si el mes empezó sin precios. pgTAP `010` (17 casos).
-- Carga manual mensual: `npm run reference-prices:import` (vite-node) valida el CSV y genera el SQL; README "Precios oficiales de referencia (cada mes)". Noviembre: `data/reference-prices/2026-11.csv` → `2026-11.sql` (26 filas), **pendiente de validación de Mario contra la fuente**.
+- Migración `20261115154924_precios_referencia.sql`: tabla `reference_prices` (FK a `fuel_price_ranges`, trigger con `INVALID_FUEL`/`OUT_OF_RANGE`, fuente https), vista `current_reference_prices` (vigente según la fecha de Bogotá), lectura pública y job mensual `check_reference_prices` (día 2, 06:00) que **no carga datos**: solo alerta en `ops_alerts` si el mes empezó sin precios. pgTAP `010` (17 casos).
+- Carga manual mensual: `npm run reference-prices:import` (vite-node) valida el CSV y genera el SQL; README "Precios oficiales de referencia (cada mes)". Noviembre: `data/reference-prices/2026-11.csv` → `2026-11.sql` (26 filas), validado por Mario. La carga de noviembre va como migración (`20261115155009_precios_referencia_2026_11.sql`) para no correr DML suelto; pgTAP `010` ahora vacía la tabla dentro de su transacción para no depender de los datos cargados.
 - Ciudades: 13 de nuestras 25 tienen precio oficial (Barranquilla incluida). Sin precio oficial: Armenia, Sincelejo, Santa Marta, Popayán, Tunja, Riohacha, Neiva, Yopal, Valledupar, Buenaventura, Caldas y Bello (test en `displayPrice.test.ts`).
 - Dominio: `resolveDisplayPrice` (comunitario fresco/reciente → oficial → comunitario viejo → none) y `formatReferenceMonth`, al 100%; `cityKey` para comparar ciudades.
 - Tabla `reference_prices(city, fuel_type, valid_from date, price, source_url)` con PK (city, fuel_type, valid_from), lectura pública y sin escritura para el cliente.
@@ -68,20 +68,20 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - UI: el pin y el panel muestran "Precio de referencia oficial (nov 2026)" con un estilo distinto al comunitario, más una nota de que cada estación puede variar. El promedio de zona deja de presentarse como precio de la estación.
 - **Listo cuando:** en producción, todas las estaciones de Barranquilla muestran un precio, sea comunitario o de referencia, y la etiqueta de fuente es correcta.
 
-## [ ] 3.1 — "¿Sigue en $X?"
-**Estado (2026-11-15):** base de datos y frontend hechos en la rama; falta aplicar `20261116000400` en producción (sin ella, "Sí" sobre un precio comunitario da error y la UI lo avisa).
+## [x] 3.1 — "¿Sigue en $X?"
+**Estado (2026-11-15):** hecha. `20261115154938_confirmar_precio` aplicada en producción con el OK de Mario (verificada: RLS activa, el cliente no toca `price_confirmations` y ejecuta `confirm_price`). El frontend llega con el merge del sprint.
 - Frontend: `ReportsRepository.confirmPrice` (Supabase y mock), `useConfirmPrice` (Command con rollback: renueva `confirmed_at` en caché al instante con `patchConfirmed` y lo revierte si la RPC falla), `usePriceCheck` (Sí comunitario → `confirm_price`; Sí oficial → `report_price` con el valor de referencia; Toast "¡Gracias!" o el error traducido) y `PriceCheckPrompt` en cada tarjeta de `StationFuelPrices`. "No" → `openReportFor(fuel)` en el store y el modal arranca con ese combustible (`initialForm`). Los mensajes de `PRICE_NOT_FOUND` y `ALREADY_CONFIRMED` van en `rpcErrors`. Otros dispositivos ven la confirmación por realtime (el UPDATE llega como `price-saved`). Tests: `features/prices/priceCheck.test.tsx`; piso de cobertura 72/85/78/72.
-- Migración `20261116000400_confirmar_precio.sql`: tabla `price_confirmations` (PK precio + usuario + día de Bogotá, sin acceso del cliente) y RPC `confirm_price` (sesión obligatoria, precio activo en estación activa → si no `PRICE_NOT_FOUND`/404; doble confirmación el mismo día → `ALREADY_CONFIRMED`/409; reportes + confirmaciones comparten el límite de 10 por hora → `RATE_LIMIT`/429; renueva `confirmed_at`). pgTAP `011` (13 casos).
+- Migración `20261115154938_confirmar_precio.sql`: tabla `price_confirmations` (PK precio + usuario + día de Bogotá, sin acceso del cliente) y RPC `confirm_price` (sesión obligatoria, precio activo en estación activa → si no `PRICE_NOT_FOUND`/404; doble confirmación el mismo día → `ALREADY_CONFIRMED`/409; reportes + confirmaciones comparten el límite de 10 por hora → `RATE_LIMIT`/429; renueva `confirmed_at`). pgTAP `011` (13 casos).
 - RPC `confirm_price(p_price_id)`: sesión obligatoria, una confirmación por uid por precio por día, actualiza `confirmed_at` y se cuenta para el límite de tasa general. Tabla `price_confirmations` sin escritura directa. Lleva GRANT explícito y pgTAP (caso feliz, confirmación doble, sin sesión, precio inactivo).
 - Panel: "¿Sigue en $15.900? **Sí** / **No**". "Sí" actualiza en forma optimista y muestra el Toast "¡Gracias!". "No" abre el modal con el combustible preseleccionado.
 - Sobre un precio de referencia oficial, el botón dice "¿Es este el precio? Sí / No". "Sí" crea un reporte comunitario con ese valor por `report_price`.
 
-## [ ] 3.4 — Medir desde el día uno
-**Estado (2026-11-15):** hecha en la rama; falta aplicar `20261116000500_eventos.sql` en producción (sin ella, `track` falla en silencio: la app no se entera).
+## [x] 3.4 — Medir desde el día uno
+**Estado (2026-11-15):** hecha. `20261115154953_eventos` aplicada en producción con el OK de Mario (verificada: enum con los 6 eventos, el cliente no toca `events` y ejecuta `track`). Los eventos empiezan a llegar con el merge del sprint. Después de aplicar: `security:check` contra producción 9 PASS, 1 KNOWN, 0 FAIL; advisors sin ERROR nuevo (solo el conocido de `spatial_ref_sys`; los INFO/WARN nuevos son las RPC públicas y las tablas solo-RPC, por diseño).
 - Migración: enum `event_name` (la lista cerrada; TS la lee de `database.types.ts`), tabla `events` con RLS, sin políticas ni privilegios del cliente, y `CHECK` de props = objeto de ≤ 1 KB. RPC `track(p_name, p_props)`: sesión obligatoria, `INVALID_EVENT` / `INVALID_PROPS` (22023), 300 eventos por usuario por hora (`RATE_LIMIT`). pgTAP `012` (18 casos). Idempotente (probada dos veces en local).
 - Frontend: feature `analytics` (Repository Supabase/Mock + `useTrack`, que espera la sesión y descarta errores; `useEnsureSession` nuevo en `auth`). `app_open` en `App`, `station_open` en el panel, `price_reported` (solo con precios), `price_confirmed` y `vote` en sus mutaciones, `share` en "Compartir en WhatsApp" de la calculadora. Props sin datos personales (ids, combustibles, valor del voto).
 - `supabase/queries/metricas.sql`: métrica norte, usuarios activos por semana, reportes y confirmaciones por día (de las tablas) y conversión `station_open` → confirmar o reportar el mismo día. **Línea base en producción (2026-11-15, solo lectura): 162 estaciones activas en Barranquilla, 0 con precio confirmado en 7 días (0,0 %).**
-- `security:check`: caso nuevo "Leer o escribir directo en events y price_confirmations" (exige 42501; falla en producción hasta aplicar 0400 y 0500). En local: 9 PASS, 1 KNOWN.
+- `security:check`: caso nuevo "Leer o escribir directo en events y price_confirmations" (exige 42501). En local y en producción: 9 PASS, 1 KNOWN.
 - Tabla `events(name, props jsonb, user_id, created_at)` con escritura solo por la RPC `track(p_name, p_props)`: `name` dentro de una lista cerrada, `props` de máximo 1 KB y límite de tasa. Sin datos personales, solo el uid anónimo.
 - Eventos: `app_open`, `station_open`, `price_reported`, `price_confirmed`, `vote`, `share`.
 - `supabase/queries/metricas.sql`:
@@ -101,6 +101,6 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - [ ] Producción = `main` = repo.
 - [ ] Todas las estaciones de Barranquilla muestran precio con su fuente y su frescura.
 - [ ] Se puede confirmar un precio con un toque y queda registrado.
-- [ ] `metricas.sql` corre contra producción y entrega la métrica norte.
-- [ ] `npm run check`, pgTAP y `security:check` en verde (incluido el chequeo de 4326).
+- [x] `metricas.sql` corre contra producción y entrega la métrica norte (línea base 2026-11-15: 0,0 % de 162).
+- [x] `npm run check`, pgTAP y `security:check` en verde (incluido el chequeo de 4326).
 - [ ] Mario hizo QA en el celular.
