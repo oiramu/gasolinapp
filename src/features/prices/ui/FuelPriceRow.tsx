@@ -27,7 +27,7 @@ export function FuelPriceRow({ fuelType, display, confirmedAt, children }: FuelP
   const Icon = FUEL_ICONS[fuelType]
   const color = display.source === 'none' ? MUTED : config.color
   return (
-    <li data-source={display.source} className="flex flex-col gap-1.5 px-3.5 py-3">
+    <li data-source={display.source} className="flex flex-col gap-2.5 px-3.5 py-3">
       <div className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider" style={{ color }}>
           <Icon size={ICON_SIZE} aria-hidden />
