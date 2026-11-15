@@ -2,7 +2,8 @@ import { subDays } from 'date-fns'
 import { unwrapList } from '@/shared/api/result'
 import type { AppSupabaseClient } from '@/shared/api/supabaseClient'
 import { groupByDay, roundedAverage, toDailyPrice } from './priceHistory'
-import type { HistoryQuery, PricesRepository, ReferenceQuery } from './types'
+import { isFuelType } from '@/shared/domain/fuel'
+import type { CityOfficialPrice, HistoryQuery, PricesRepository, ReferenceQuery } from './types'
 
 /** Ventana de "hace un mes" para la calculadora: entre 35 y 25 días atrás. */
 export const REFERENCE_WINDOW_DAYS = { from: 35, to: 25 } as const
@@ -67,6 +68,14 @@ export function createSupabasePricesRepository(client: AppSupabaseClient): Price
     async referencePrice({ stationId, fuelType }: ReferenceQuery) {
       const stationPrice = stationId ? await stationPriceAMonthAgo(stationId, fuelType) : null
       return stationPrice ?? currentAverage(fuelType)
+    },
+
+    async officialPrices() {
+      const rows = unwrapList(await client.from('current_reference_prices').select('city, fuel_type, price, valid_from'))
+      // fuel_type viene de fuel_price_ranges; el filtro solo lo estrecha al tipo de dominio
+      return rows.flatMap(({ city, fuel_type, price, valid_from }): CityOfficialPrice[] =>
+        isFuelType(fuel_type) ? [{ city, fuelType: fuel_type, price, validFrom: valid_from }] : [],
+      )
     },
   }
 }

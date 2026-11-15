@@ -44,10 +44,11 @@ function createHtmlCache<T extends object>(): HtmlCache<T> {
 const stationHtml = createHtmlCache<Station>()
 const zoneHtml = createHtmlCache<ZoneAverage>()
 
-/** El pin se vuelve a pintar cuando cambian el combustible, el favorito o el nivel de frescura. */
+/** El pin se vuelve a pintar cuando cambian el combustible, el favorito, la fuente, la frescura o el precio. */
 export function createStationIcon(station: Station, options: PinOptions): L.DivIcon {
   const model = stationPinModel(station, options)
-  const html = stationHtml(station, `${options.fuelType}:${String(options.isFavorite)}:${model.freshness}`, () =>
+  const key = [options.fuelType, String(options.isFavorite), model.source, model.freshness ?? '-', model.label].join(':')
+  const html = stationHtml(station, key, () =>
     renderToStaticMarkup(<StationPin model={model} />),
   )
   return L.divIcon({ ...STATION_ICON, html, className: '' })

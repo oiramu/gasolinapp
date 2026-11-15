@@ -75,7 +75,7 @@ describe('hooks de precios', () => {
   const fake = () => {
     const history = vi.fn(() => Promise.resolve([daily]))
     const referencePrice = vi.fn(() => Promise.resolve(15500))
-    const prices: PricesRepository = { history, referencePrice }
+    const prices: PricesRepository = { history, referencePrice, officialPrices: () => Promise.resolve([]) }
     return { prices, history, referencePrice }
   }
 

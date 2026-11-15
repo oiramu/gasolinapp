@@ -3,6 +3,9 @@ import { PIN_COLORS, type StationPinModel } from '../model/pins'
 const FONT_MONO = '"JetBrains Mono", monospace'
 const FONT_BODY = '"DM Sans", sans-serif'
 
+/** El precio oficial va con borde punteado: no es un precio confirmado en esta estación. */
+const BORDER_STYLE = { true: 'dashed', false: 'solid' } as const
+
 /** Con precio: fondo oscuro y halo del color; sin datos: fondo apagado y texto gris. */
 const TONE = {
   true: { background: PIN_COLORS.surface, shadow: (color: string) => `0 4px 16px ${color}40`, label: (color: string) => color },
@@ -15,13 +18,14 @@ const TONE = {
  * mouseover/mouseout de cada hijo (causaba el temblor al pasar el mouse).
  */
 export function StationPin({ model }: { readonly model: StationPinModel }) {
-  const { label, brand, color, hasData, opacity, hasGnv, isFavorite, fuelDots } = model
+  const { label, brand, color, hasData, opacity, hasGnv, isFavorite, fuelDots, source } = model
+  const isReference = source === 'reference'
   const tone = TONE[String(hasData) as `${boolean}`]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none', opacity, transition: 'opacity 0.2s' }}>
       <div style={{
         background: tone.background,
-        border: `2px solid ${color}`,
+        border: `2px ${BORDER_STYLE[String(isReference) as `${boolean}`]} ${color}`,
         borderRadius: 10, padding: '5px 9px', minWidth: 62,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
         boxShadow: tone.shadow(color),
@@ -30,6 +34,7 @@ export function StationPin({ model }: { readonly model: StationPinModel }) {
         <FuelBadge color={color} />
         <div style={{ position: 'absolute', top: -12, left: -12, display: 'flex', alignItems: 'center', gap: 2 }}>
           {isFavorite && <FavoriteStar />}
+          {isReference && <ReferenceBadge />}
           {hasGnv && <GasBadge />}
         </div>
         <span style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13, color: tone.label(color), lineHeight: 1 }}>{label}</span>
@@ -74,6 +79,14 @@ function GasBadge() {
   return (
     <div style={{ background: PIN_COLORS.gnv, borderRadius: 4, padding: '2px 5px', fontFamily: FONT_MONO, fontSize: 8, fontWeight: 800, color: '#fff', lineHeight: 1.1, letterSpacing: '0.5px', border: `1px solid ${PIN_COLORS.surface}`, boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
       GAS
+    </div>
+  )
+}
+
+function ReferenceBadge() {
+  return (
+    <div data-reference style={{ background: PIN_COLORS.surfaceMuted, borderRadius: 4, padding: '2px 4px', fontFamily: FONT_MONO, fontSize: 8, fontWeight: 800, color: PIN_COLORS.muted, lineHeight: 1.1, letterSpacing: '0.5px', border: `1px solid ${PIN_COLORS.muted}` }}>
+      REF
     </div>
   )
 }
