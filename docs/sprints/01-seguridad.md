@@ -61,7 +61,7 @@
 
 **Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración corre dos veces sin error, pgTAP 42/42 (30 nuevos en `002_votes_rpc.test.sql`) y `npm run check` en verde.
 
-- Migración `20261114180000_votos_rpc.sql` (el nombre se ajusta a la versión que asigne `apply_migration`): columnas `legacy_votes_up/down` rellenadas una sola vez, tabla `votes` (solo SELECT para el cliente), helpers internos sin EXECUTE público, `cast_vote` y `get_my_votes` (máx. 500 ids). Errores: `NOT_AUTHENTICATED`, `INVALID_VOTE`, `INVALID_TARGET`, `TARGET_NOT_FOUND`, `TOO_MANY_TARGETS`.
+- Migración `20261115044726_votos_rpc.sql` (el nombre se ajusta a la versión que asigne `apply_migration`): columnas `legacy_votes_up/down` rellenadas una sola vez, tabla `votes` (solo SELECT para el cliente), helpers internos sin EXECUTE público, `cast_vote` y `get_my_votes` (máx. 500 ids). Errores: `NOT_AUTHENTICATED`, `INVALID_VOTE`, `INVALID_TARGET`, `TARGET_NOT_FOUND`, `TOO_MANY_TARGETS`.
 - Frontend: `features/votes` (Repository Supabase/Mock, `useMyVotes`, `useCastVote` como Command con rollback, `ReportVotes` + `VoteButtons` en TSX). La regla del toggle vive en `shared/domain/votes.ts` (predicción) y la respuesta del servidor la reemplaza. El realtime parchea los contadores (`votes-updated`) en lugar de invalidar todo.
 - Tipos: `npm run db:types` los genera desde la base local (las migraciones). Es más preciso que el generador del MCP (sabe que `latest_prices.price` es NOT NULL).
 - **Ventana de transición:** mientras el frontend viejo siga en producción, sus votos por UPDATE directo se pierden con el siguiente voto por RPC sobre ese reporte (el recálculo usa legacy + COUNT). Por eso el deploy va justo después de la migración.
@@ -86,7 +86,7 @@
 
 ### [ ] 1.3a Expandir: RPCs de escritura
 
-**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261114200000_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_reglas_compartidas`) y `npm run check` en verde.
+**Estado (2026-11-14):** hecho en local. `db reset` limpio, la migración `20261115044942_rpc_escritura.sql` corre tres veces sin error ni constraints duplicados, pgTAP 82/82 (39 en `004_rpc_escritura`, 1 en `003_reglas_compartidas`) y `npm run check` en verde.
 
 - Rangos con una sola fuente: `fuel.ts`. `sharedRules.db.test.ts` genera `003_reglas_compartidas.test.sql` (`toMatchFileSnapshot`) y ese pgTAP compara la tabla con `fuel.ts`. Probado: cambiar un rango en TS hace fallar vitest; regenerar sin migración hace fallar pgTAP.
 - Servicios: las claves válidas salen del catálogo (columnas booleanas `svc_*` de `stations`); los tipos de reporte, del CHECK `reports_type_check`. Ninguna lista se copia en el SQL.
@@ -129,7 +129,7 @@
 - Hallazgo del 2026-11-14: en producción `anon` y `authenticated` también tienen `TRUNCATE`, `REFERENCES` y `TRIGGER` sobre `fuel_prices`, `reports` y `stations` (TRUNCATE se salta RLS; PostgREST no lo expone, pero no debe quedar). Usar `REVOKE ALL` + `GRANT SELECT` en lugar del REVOKE parcial.
 - **pgTAP:** cada escritura directa con rol anon o authenticated falla.
 
-**Estado (2026-11-14):** hecho en local (`20261114220000_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
+**Estado (2026-11-14):** hecho en local (`20261115060000_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
 
 ## [ ] 1.4 — Prueba de ataque contra producción
 
@@ -145,7 +145,7 @@
 - Documéntalo en el README.
 - **Listo cuando:** Mario lo corre contra producción y todo sale PASS.
 
-**Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261114230000_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
+**Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261115060100_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
 
 ---
 
@@ -154,9 +154,9 @@
 Claude Code no tiene permiso para escribir en producción (lo bloqueó el modo automático), así que esto queda para Mario o para cuando se autorice `mcp__supabase__apply_migration` y `vercel deploy --prod`. Orden obligatorio (expandir → desplegar → contraer):
 
 1. **Dashboard de Supabase:** Authentication → Sign In / Providers → activar *Anonymous sign-ins*.
-2. **Migraciones aditivas** (el frontend actual sigue funcionando con ellas): `20261114180000_votos_rpc.sql` y `20261114200000_rpc_escritura.sql`, en ese orden (SQL Editor o `apply_migration`). Después, renombrar los archivos con la versión que quede en `supabase_migrations.schema_migrations`.
+2. **Migraciones aditivas** (el frontend actual sigue funcionando con ellas): `20261115044726_votos_rpc.sql` y `20261115044942_rpc_escritura.sql`, en ese orden (SQL Editor o `apply_migration`). Después, renombrar los archivos con la versión que quede en `supabase_migrations.schema_migrations`.
 3. **Deploy:** `npx vercel deploy --prod` desde la rama (o promover el preview del último commit). Sale todo junto: S0.1, 1.1, 1.2 y 1.3b. Probar en producción: reportar un precio, votar y ver el ID de dispositivo en Configuración.
-4. **Contraer:** `20261114220000_cerrar_escrituras_precios_reportes.sql` y `20261114230000_estaciones_de_prueba.sql`.
+4. **Contraer:** `20261115060000_cerrar_escrituras_precios_reportes.sql` y `20261115060100_estaciones_de_prueba.sql`.
 5. **Verificar:** `npm run security:check` (usa `.env`) → todo PASS. Revisar los advisors de seguridad.
 6. **MR** de `docs/roadmap-criterios` a `main` (Vercel despliega `main` a producción: ya es el mismo código).
 
