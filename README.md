@@ -133,10 +133,26 @@ npm run dev
 | `npm run lint` | ESLint sin warnings permitidos: complejidad, profundidad, tamaño de archivos y funciones, y prohibido importar Supabase desde `features/*/ui` y `app/` |
 | `npm run test:db` | Tests pgTAP de `supabase/tests/` contra la base local (requiere `npx supabase start`) |
 | `npm run check` | lint + typecheck + cobertura + build. Es lo que debe pasar antes de dar una tarea por terminada |
+| `npm run db:types` | Regenera `src/shared/api/database.types.ts` desde la base local (las migraciones) |
+| `npm run security:check` | Prueba de ataque con la anon key contra el proyecto de `.env` (ver abajo) |
 
 - **Tests de la app:** van junto al código (`*.test.ts(x)`). MSW está activo en todos los tests, y cualquier petición sin handler hace fallar el test, así que nunca se toca la red real.
 - **Tests de SQL:** van en `supabase/tests/database/*.test.sql`. Toda RPC necesita uno con el caso feliz y al menos un caso de abuso que falle.
-- **Transición a TypeScript:** `allowJs` sigue activo mientras dure la migración (tareas 0.3–0.6). Los `.js`/`.jsx` legados solo pasan las reglas base de ESLint; las reglas estrictas aplican a `.ts`/`.tsx`. Hasta terminar la 0.6, `npm run check` falla en el paso de cobertura porque el código legado no tiene tests.
+- **Reglas compartidas TS ↔ SQL:** los rangos de precio, las unidades y el largo del comentario viven en `src/shared/domain`. `sharedRules.db.test.ts` genera el pgTAP `003_reglas_compartidas.test.sql`, que verifica que la base aplique los mismos valores. Si cambias una regla: `npx vitest -u` y una migración nueva.
+- **Transición a TypeScript:** `allowJs` sigue activo mientras dure la migración (tareas 0.3–0.6). Los `.js`/`.jsx` legados solo pasan las reglas base de ESLint; las reglas estrictas aplican a `.ts`/`.tsx`. La cobertura exige 100% en `src/shared/domain/` y un piso global en `vite.config.ts` que sube a medida que se migra.
+
+### Prueba de seguridad (`npm run security:check`)
+
+Ataca el proyecto como lo haría cualquiera con la anon key: crea una sesión anónima e intenta cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.
+
+```bash
+npm run security:check                                        # usa VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY de .env
+SUPABASE_URL=... SUPABASE_ANON_KEY=... npm run security:check # contra otro proyecto (p. ej. el local)
+```
+
+- Solo usa la URL y la anon key; nunca la service key.
+- Escribe únicamente en las tres estaciones de prueba (`is_test = true`, ocultas en la app) y al final borra lo suyo con la RPC `clear_my_test_data`, que solo puede borrar lo que escribió la misma sesión en estaciones de prueba.
+- Cada corrida crea un usuario anónimo nuevo (con sus propios límites de tasa) y queda en `auth.users`.
 
 ---
 

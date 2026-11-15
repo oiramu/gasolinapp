@@ -14,8 +14,8 @@ SELECT set_eq(
 -- Abuso: el realtime no abre lectura extra; anon sigue viendo solo lo que su RLS permite
 SELECT policies_are(
   'public', 'fuel_prices',
-  ARRAY['Public read fuel_prices', 'Public insert fuel_prices', 'Public vote fuel_prices'],
-  'publicar fuel_prices no cambia sus políticas (las cierra la 1.3)'
+  ARRAY['Public read fuel_prices'],
+  'publicar fuel_prices no abre políticas: solo la lectura (la 1.3c cerró las de escritura)'
 );
 
 SELECT * FROM finish();

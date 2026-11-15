@@ -19,6 +19,7 @@ describe('createSupabaseStationsRepository.list', () => {
     )
     const stations = await createSupabaseStationsRepository(createTestClient()).list()
     expect(query?.get('is_active')).toBe('eq.true')
+    expect(query?.get('is_test')).toBe('eq.false')
     expect(query?.get('select')).toContain('fuel_prices')
     expect(stations).toEqual([{ ...stationFields(), fuel_prices: [fuelPrice()], reports: [report()] }])
   })

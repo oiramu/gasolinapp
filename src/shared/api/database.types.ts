@@ -235,6 +235,7 @@ export type Database = {
           has_gnv: boolean
           id: string
           is_active: boolean | null
+          is_test: boolean
           lat: number
           lng: number
           location: unknown
@@ -260,6 +261,7 @@ export type Database = {
           has_gnv?: boolean
           id?: string
           is_active?: boolean | null
+          is_test?: boolean
           lat: number
           lng: number
           location?: unknown
@@ -284,6 +286,7 @@ export type Database = {
           has_gnv?: boolean
           id?: string
           is_active?: boolean | null
+          is_test?: boolean
           lat?: number
           lng?: number
           location?: unknown
@@ -664,6 +667,7 @@ export type Database = {
           votes_up: number
         }[]
       }
+      clear_my_test_data: { Args: Record<PropertyKey, never>; Returns: number }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string

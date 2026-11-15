@@ -20,7 +20,8 @@ const changesOn = (table: 'fuel_prices' | 'reports' | 'stations') => ({ event: '
 export function createSupabaseStationsRepository(client: AppSupabaseClient): StationsRepository {
   return {
     async list() {
-      const rows = unwrapList(await client.from('stations').select(STATION_SELECT).eq('is_active', true))
+      // Las estaciones de prueba (security:check) nunca se muestran
+      const rows = unwrapList(await client.from('stations').select(STATION_SELECT).eq('is_active', true).eq('is_test', false))
       return rows.map(toStation)
     },
 

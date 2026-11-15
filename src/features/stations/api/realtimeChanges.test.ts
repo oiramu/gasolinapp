@@ -7,7 +7,7 @@ const base = { schema: 'public', commit_timestamp: '2026-11-13T10:00:00Z', error
 const dbOnly = { legacy_votes_up: 0, legacy_votes_down: 0, reporter_id: null }
 const priceRow = { ...fuelPrice(), ...dbOnly, station_id: 's1', expires_at: null }
 const reportRow = { ...report(), ...dbOnly, station_id: 's1', is_visible: true }
-const stationRow = { ...stationFields(), is_active: true, location: null, osm_id: null, created_at: null, updated_at: null }
+const stationRow = { ...stationFields(), is_active: true, is_test: false, location: null, osm_id: null, created_at: null, updated_at: null }
 
 const insert = <T extends object>(table: string, row: T) => ({ ...base, table, eventType: 'INSERT' as const, new: row, old: {} })
 const update = <T extends object>(table: string, row: T) => ({ ...base, table, eventType: 'UPDATE' as const, new: row, old: {} })
