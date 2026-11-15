@@ -42,10 +42,10 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - Cambiar de combustible no vuelve a montar el mapa: se conservan el centro y el zoom.
 - Tests de comportamiento (Testing Library) para los dos casos.
 
-## [ ] 2.1 — Frescura en lugar de vencer a 24 h
-**Estado (2026-11-15):** código hecho en la rama. Expansión aplicada en producción (`20261115054737`, verificada: 247 precios con `confirmed_at` = `created_at`, 0 nulos; `security:check` sin FAIL). La contracción espera al deploy del sprint.
+## [x] 2.1 — Frescura en lugar de vencer a 24 h
+**Estado (2026-11-15):** hecha. Contracción `20261115160445_quitar_expires_at` aplicada después del deploy del merge (PR #3, deploy de producción en `success`, el bundle ya no lee la columna; ninguna vista, función ni índice dependía de ella). Verificado: columna eliminada, 247 precios activos con `confirmed_at`, la lectura de la app (repositorios reales contra producción) y `security:check` (9 PASS, 1 KNOWN, 0 FAIL) siguen bien. Antes: expansión aplicada en producción (`20261115054737`, verificada: 247 precios con `confirmed_at` = `created_at`, 0 nulos; `security:check` sin FAIL). La contracción espera al deploy del sprint.
 - Expandir: `20261115054737_frescura_confirmed_at.sql` (columna `confirmed_at` NOT NULL con backfill desde `created_at`, índice, y `report_price` que la llena al reportar y al corregir y ya no toca `expires_at`). pgTAP `009` (9 casos); backfill simulado sobre datos viejos.
-- Contraer: `20261116000200_quitar_expires_at.sql` (DROP COLUMN). Nada en la app ni en las vistas la lee; se aplica después del deploy de la 2.1.
+- Contraer: `20261115160445_quitar_expires_at.sql` (DROP COLUMN), aplicada el 2026-11-15 después del deploy.
 - Dominio: `shared/domain/freshness.ts` (`getFreshness`, `formatConfirmed`, al 100%). Estilo único en `shared/ui/freshness.ts`. Reloj de UI: `shared/lib/useNow` (cada 10 min).
 - UI: el pin toma la opacidad de la frescura del precio que muestra; el panel muestra "confirmado hace X · Fresco/Reciente/Viejo/Dudoso" (`features/prices/ui/FreshnessTag`); la leyenda suma "Frescura del precio" (`features/map/ui/FreshnessLegend`). Piso de cobertura 69/82/75/69.
 - `confirmed_at` en `fuel_prices` (expandir: columna nueva con backfill desde `created_at`). `report_price` la llena.
@@ -98,7 +98,7 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 3.2 enlaces directos, 3.3 compartir por WhatsApp con Open Graph, 4.1 limpieza de estaciones de Barranquilla, 4.2 PWA y Lighthouse, y lanzamiento en grupos de moteros, domiciliarios y taxistas.
 
 ## Definición de "sprint terminado"
-- [ ] Producción = `main` = repo.
+- [x] Producción = `main` = repo (con el merge de este cierre).
 - [ ] Todas las estaciones de Barranquilla muestran precio con su fuente y su frescura.
 - [ ] Se puede confirmar un precio con un toque y queda registrado.
 - [x] `metricas.sql` corre contra producción y entrega la métrica norte (línea base 2026-11-15: 0,0 % de 162).

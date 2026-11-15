@@ -138,7 +138,7 @@
 
 ## Fase 2 — Datos vivos (semana 5)
 
-### [ ] 2.1 Frescura en lugar de vencimiento a 24 h
+### [x] 2.1 Frescura en lugar de vencimiento a 24 h
 **Prompt:**
 > Lee CLAUDE.md. Hoy `fuel_prices.expires_at` vence a las 24 h y eso deja el mapa vacío. Cambia el modelo: un precio sigue vigente hasta que llega uno más nuevo para esa estación y combustible. Agrega `confirmed_at` (último momento en que alguien lo confirmó) y en `shared/domain/freshness.ts` una función `getFreshness(confirmed_at)` basada en una tabla de umbrales (sin cadena de if) que devuelva 'fresco' (<3 días), 'reciente' (<10), 'viejo' (<30) o 'dudoso'. La UI muestra "confirmado hace X días" y baja la opacidad del pin según la frescura. Actualiza la leyenda. Migración + tests al 100%.
 
