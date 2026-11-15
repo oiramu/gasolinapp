@@ -25,7 +25,9 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 ### [x] S0.1 MR a `main`
 - PR #2 mergeado (`main` = e98094c, sin diferencias con f30aa57). Vercel desplegó desde `main` y producción sirve el mismo bundle (`index-BgrRWFCO.js`, hash de contenido idéntico). Rama `docs/roadmap-criterios` borrada.
 
-### [ ] S0.2 `spatial_ref_sys`: ticket y vigilancia (sin mover PostGIS)
+### [x] S0.2 `spatial_ref_sys`: ticket y vigilancia (sin mover PostGIS)
+**Estado (2026-11-15):** hecha. Mario abrió el ticket a soporte de Supabase. Migración `20261115052835_vigilar_srid_4326` aplicada vía MCP con su OK: pg_cron 1.6.4, un job `check_srid_4326` activo (`0 11 * * *`, 06:00 en Bogotá), `ops_alerts` con RLS y sin acceso del cliente, fila 4326 intacta y 0 alertas. Restauración en `supabase/rollbacks/restaurar_srid_4326.sql` (usa `restore_srid_4326()`, probada en local). `security:check` contra producción: 8 PASS (incluida la fila 4326), 1 KNOWN y ningún FAIL. pgTAP `008` (15 casos).
+
 - **Mario:** abre un ticket a soporte de Supabase con la salida del advisor y la línea KNOWN de `security:check`.
 - Job de pg_cron diario (`cron.unschedule` antes de `cron.schedule`) que verifique que la fila `srid = 4326` existe y que su `srtext` coincide con el valor esperado. Si no, registra el problema en una tabla `ops_alerts`.
 - `supabase/rollbacks/restaurar_srid_4326.sql`: el INSERT o UPDATE estándar de 4326, listo para correr.
