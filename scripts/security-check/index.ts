@@ -36,19 +36,29 @@ async function runCase(ctx: Context, run: (ctx: Context) => Promise<Verdict>): P
   }
 }
 
+/** Un hueco conocido se informa como KNOWN y no cuenta como falla. */
+const statusOf = (pass: boolean, knownIssue: string | undefined): 'PASS' | 'FAIL' | 'KNOWN' => {
+  if (pass) return 'PASS'
+  return knownIssue ? 'KNOWN' : 'FAIL'
+}
+
 async function main(): Promise<number> {
   const ctx = await connect()
   console.log(`Sesión anónima ${ctx.uid}\n`)
   let failures = 0
-  for (const { name, run } of ATTACK_CASES) {
+  let known = 0
+  for (const { name, run, knownIssue } of ATTACK_CASES) {
     const { pass, detail } = await runCase(ctx, run)
-    if (!pass) failures += 1
-    console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${pass ? '' : `\n      ${detail}`}`)
+    const status = statusOf(pass, knownIssue)
+    if (status === 'FAIL') failures += 1
+    if (status === 'KNOWN') known += 1
+    console.log(`${status.padEnd(5)} ${name}${pass ? '' : `\n      ${detail}${knownIssue ? ` — conocido: ${knownIssue}` : ''}`}`)
   }
   const { data: deleted, error } = await ctx.client.rpc('clear_my_test_data')
   console.log(`\nLimpieza: ${error ? `ERROR ${error.message}` : `${String(deleted)} filas de prueba borradas`}`)
   await ctx.client.auth.signOut()
-  console.log(failures === 0 ? 'Todo PASS' : `${String(failures)} caso(s) FAIL`)
+  const knownNote = known > 0 ? ` (${String(known)} hueco(s) conocido(s), ver KNOWN)` : ''
+  console.log(failures === 0 ? `Sin FAIL${knownNote}` : `${String(failures)} caso(s) FAIL${knownNote}`)
   return failures === 0 ? 0 : 1
 }
 

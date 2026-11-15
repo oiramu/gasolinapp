@@ -18,12 +18,16 @@ export interface Verdict {
 export interface AttackCase {
   readonly name: string
   readonly run: (ctx: Context) => Promise<Verdict>
+  /** Hueco conocido y documentado que hoy no podemos cerrar: se reporta como KNOWN y no falla la corrida. */
+  readonly knownIssue?: string
 }
 
 const FORGED_PRICE = 1
 const FORGED_VOTES = 9999
 const OUT_OF_RANGE_PRICE = 999_999
 const MAX_PRICES_PER_HOUR = 10
+/** SRID que no existe: el UPDATE/DELETE de prueba no toca ninguna fila aunque tenga permiso. */
+const NO_SUCH_SRID = -1
 
 const verdict = (pass: boolean, detail: string): Verdict => ({ pass, detail })
 
@@ -109,5 +113,16 @@ const directTables: AttackCase = {
   },
 }
 
+const spatialRefSys: AttackCase = {
+  name: 'Privilegios de escritura de anon sobre spatial_ref_sys (PostGIS)',
+  knownIssue: 'sus privilegios son de supabase_admin; ver docs/sprints/01-seguridad.md (advisors)',
+  async run(ctx) {
+    // Sondas sin efecto: el filtro no coincide con ninguna fila. Solo importa si PostgREST deja intentarlo.
+    const update = await ctx.client.from('spatial_ref_sys').update({ auth_name: 'security-check' }).eq('srid', NO_SUCH_SRID)
+    const remove = await ctx.client.from('spatial_ref_sys').delete().eq('srid', NO_SUCH_SRID)
+    return verdict(update.error !== null && remove.error !== null, `UPDATE: ${String(update.error?.code ?? 'permitido')}; DELETE: ${String(remove.error?.code ?? 'permitido')}`)
+  },
+}
+
 /** En el orden del sprint, salvo el límite de tasa: va al final porque agota los reportes de la sesión. */
-export const ATTACK_CASES: readonly AttackCase[] = [forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, rateLimit]
+export const ATTACK_CASES: readonly AttackCase[] = [forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, spatialRefSys, rateLimit]

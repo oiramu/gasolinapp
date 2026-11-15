@@ -82,6 +82,7 @@ Ningún cambio se da por terminado si no cumple todo esto:
 3. El cliente solo usa la anon key. La service key no toca el frontend ni el repo.
 4. Producción solo cambia con migraciones de `supabase/migrations/` que Mario ya revisó. Claude puede aplicarlas con el MCP de Supabase (`apply_migration`) solo con la confirmación explícita de Mario en esa sesión, y después las verifica con consultas de solo lectura. Nada de DDL ni DML sueltos con `execute_sql`: esa herramienta es solo para leer. La alternativa manual sigue siendo el SQL Editor.
 5. Toda RPC nueva necesita un test pgTAP (`supabase test db`, en local) que verifique el caso feliz y que el abuso falle.
+6. Privilegios explícitos en toda migración nueva. Desde `20261115050329_endurecer_advisors` lo que crea `postgres` en `public` nace cerrado para el cliente: las tablas sin escritura y las funciones sin EXECUTE (ni para `PUBLIC`). Cada tabla, vista o función nueva lleva su `GRANT` explícito (`GRANT SELECT ... TO anon, authenticated`, `GRANT EXECUTE ... TO anon, authenticated` solo en RPCs públicas) y su test pgTAP de privilegios: qué pueden leer o ejecutar `anon` y `authenticated` y que no pueden escribir (`has_table_privilege`, `has_function_privilege`).
 
 ## Forma de trabajo
 

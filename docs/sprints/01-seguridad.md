@@ -164,12 +164,19 @@ Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguie
 
 **Resultado:** `security:check` contra producción: los 7 casos PASS y 11 filas de prueba limpiadas. 0 políticas de escritura en `public`. Incidente corto: el toggle de Anonymous sign-ins no se había guardado; entre la 1.3c y el toggle no se pudo reportar ni votar (lectura normal). Lección: verificar el toggle con `security:check` **antes** de contraer.
 
-**Advisors de seguridad (pendientes, vienen de la baseline, fuera del alcance del sprint):**
-- `spatial_ref_sys` (PostGIS): RLS apagada y `anon` con INSERT/UPDATE/DELETE/TRUNCATE. Es de `supabase_admin`: hay que mover PostGIS fuera de `public` (o pedirlo a soporte).
-- `refresh_latest_prices` y `refresh_daily_avg_prices` se pueden llamar con la anon key (riesgo de saturar la base). La app no las usa: REVOKE EXECUTE.
-- `v_station_summary` es SECURITY DEFINER y no filtra reportes ocultos. La app no la usa: `security_invoker = true` o quitarle el SELECT.
-- `search_path` mutable en `refresh_latest_prices`, `refresh_daily_avg_prices`, `sync_station_location` y `get_zone_averages`.
-- Residual sin riesgo: `geography_columns` y `geometry_columns` (vistas de catálogo de PostGIS, no actualizables) conservan privilegios de escritura.
+**Advisors de seguridad (venían de la baseline).** Endurecidos el 2026-11-15 con `20261115050329_endurecer_advisors.sql` (pgTAP `007`; aplicada vía MCP con OK de Mario; `security:check` sigue todo PASS):
+- [x] `refresh_latest_prices`, `refresh_daily_avg_prices`, `mark_station_has_gnv` y `sync_station_location` sin EXECUTE para el cliente (los triggers siguen corriendo).
+- [x] `search_path` fijo en las funciones heredadas.
+- [x] `v_station_summary` con `security_invoker` (ya no se salta la RLS).
+- [x] Privilegios por defecto de `postgres`: tablas nuevas sin escritura ni MAINTAIN y funciones nuevas sin EXECUTE para el cliente hasta un GRANT explícito.
+
+**Quedan, por diseño o fuera de nuestro alcance:**
+- `spatial_ref_sys` (PostGIS): RLS apagada y `anon` con escritura. Sus privilegios los otorgó `supabase_admin` y `postgres` no puede revocarlos. Opciones: ticket a soporte de Supabase o mover PostGIS fuera de `public` (implica recrear la extensión y las columnas `geography`).
+- `extension_in_public` (PostGIS): mismo origen.
+- Las RPC de la app ejecutables por `anon`/`authenticated` y la lectura pública de tablas y vistas materializadas: es el diseño (validan sesión y entradas dentro).
+- `service_suggestions` con RLS y sin políticas: a propósito, solo la toca la RPC.
+- Protección de contraseñas filtradas: no aplica (no hay contraseñas; la sesión es anónima).
+- Residual sin riesgo: `geography_columns` y `geometry_columns` (vistas de catálogo de PostGIS, no actualizables).
 
 ---
 
@@ -185,10 +192,10 @@ Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguie
 
 Arranca cuando este sprint esté mergeado. Orden propuesto, una tarea por sesión:
 
-0. **Endurecer lo que marcan los advisors** (ver arriba): una migración chica con REVOKE de las funciones de refresco, `security_invoker` en `v_station_summary` y `search_path` fijo; y decidir qué hacer con PostGIS en `public`.
+0. **PostGIS en `public`** (ver arriba): decidir entre ticket a soporte de Supabase o mover la extensión. Los demás advisors ya se endurecieron.
 1. **2.4 Bugs del mapa** primero: es verificación y deja el mapa estable para lo demás.
 2. **2.1 Frescura en lugar de vencimiento a 24 h**: `report_price` ya renueva `created_at`; falta el modelo de frescura en `shared/domain` y en la UI.
 3. **2.3 Refrescos programados con pg_cron** (`cron.unschedule` antes de `cron.schedule`): refresco de `latest_prices` y `daily_avg_prices`.
 4. **2.2 Precios oficiales de referencia**.
 
-Deuda que queda anotada: la 0.5 (slices del store; el adaptador `components/modals/ReportPriceModal.jsx` se va con ella), la 0.6a–e, y el ajuste de los privilegios por defecto de `public` para que las tablas nuevas no nazcan con escritura para el cliente.
+Deuda que queda anotada: la 0.5 (slices del store; el adaptador `components/modals/ReportPriceModal.jsx` se va con ella) y la 0.6a–e. La 2.3 (pg_cron) además debe reemplazar los triggers que refrescan las vistas materializadas en cada escritura de `fuel_prices`.
