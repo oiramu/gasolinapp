@@ -54,6 +54,12 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - Quita cualquier lógica que dependa de `expires_at`. La columna se elimina en una migración de contracción aparte, después del deploy.
 
 ## [ ] 2.2 — Precios oficiales de referencia (la tarea más importante del sprint)
+**Estado (2026-11-15):** datos y dominio hechos en la rama; falta la UI.
+- Fuente: CREG, "Precios vigentes a partir del 1 de noviembre del 2026 (13 ciudades principales)", solo gasolina corriente y ACPM (diésel). Extra, GNV y urea no tienen precio oficial.
+- Migración `20261116000300_precios_referencia.sql` (sin aplicar): tabla `reference_prices` (FK a `fuel_price_ranges`, trigger con `INVALID_FUEL`/`OUT_OF_RANGE`, fuente https), vista `current_reference_prices` (vigente según la fecha de Bogotá), lectura pública y job mensual `check_reference_prices` (día 2, 06:00) que **no carga datos**: solo alerta en `ops_alerts` si el mes empezó sin precios. pgTAP `010` (17 casos).
+- Carga manual mensual: `npm run reference-prices:import` (vite-node) valida el CSV y genera el SQL; README "Precios oficiales de referencia (cada mes)". Noviembre: `data/reference-prices/2026-11.csv` → `2026-11.sql` (26 filas), **pendiente de validación de Mario contra la fuente**.
+- Ciudades: 13 de nuestras 25 tienen precio oficial (Barranquilla incluida). Sin precio oficial: Armenia, Sincelejo, Santa Marta, Popayán, Tunja, Riohacha, Neiva, Yopal, Valledupar, Buenaventura, Caldas y Bello (test en `displayPrice.test.ts`).
+- Dominio: `resolveDisplayPrice` (comunitario fresco/reciente → oficial → comunitario viejo → none) y `formatReferenceMonth`, al 100%; `cityKey` para comparar ciudades.
 - Tabla `reference_prices(city, fuel_type, valid_from date, price, source_url)` con PK (city, fuel_type, valid_from), lectura pública y sin escritura para el cliente.
 - `scripts/import-reference-prices.ts`: recibe un CSV `city,fuel_type,price` más `--valid-from` y `--source`, valida contra los rangos de `shared/domain/fuel.ts` y genera el SQL. **Mario** lo aplica cada mes.
 - Mapeo de la ciudad de la estación (`zones.city`) a las ciudades de la resolución, con test. Confirma que Barranquilla está en la lista y deja anotadas las ciudades sin precio oficial.

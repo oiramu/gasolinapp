@@ -126,6 +126,42 @@ export type Database = {
         }
         Relationships: []
       }
+      reference_prices: {
+        Row: {
+          city: string
+          created_at: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        ComputedFields: never
+        Insert: {
+          city: string
+          created_at?: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          fuel_type?: string
+          price?: number
+          source_url?: string
+          valid_from?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_prices_fuel_type_fkey"
+            columns: ["fuel_type"]
+            isOneToOne: false
+            referencedRelation: "fuel_price_ranges"
+            referencedColumns: ["fuel_type"]
+          },
+        ]
+      }
       reports: {
         Row: {
           content: string | null
@@ -406,6 +442,25 @@ export type Database = {
       }
     }
     Views: {
+      current_reference_prices: {
+        Row: {
+          city: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        ComputedFields: never
+        Relationships: [
+          {
+            foreignKeyName: "reference_prices_fuel_type_fkey"
+            columns: ["fuel_type"]
+            isOneToOne: false
+            referencedRelation: "fuel_price_ranges"
+            referencedColumns: ["fuel_type"]
+          },
+        ]
+      }
       daily_avg_prices: {
         Row: {
           avg_price: number | null
@@ -697,6 +752,10 @@ export type Database = {
           votes_down: number
           votes_up: number
         }[]
+      }
+      check_reference_prices_current: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       check_srid_4326: { Args: Record<PropertyKey, never>; Returns: boolean }
       clear_my_test_data: { Args: Record<PropertyKey, never>; Returns: number }
