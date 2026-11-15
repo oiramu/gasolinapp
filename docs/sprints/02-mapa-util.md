@@ -36,7 +36,8 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 
 ---
 
-## [ ] 2.4 — Bugs del mapa
+## [x] 2.4 — Bugs del mapa
+**Estado (2026-11-15):** hecha en la rama (sin migraciones; llega a producción con el merge del sprint). `App.jsx` pasa `filteredStations` al mapa y ya no lo monta con `key`. La fábrica de íconos pasó a `features/map` en TS y es pura: recibe combustible y favorito por parámetro y cachea el HTML por objeto (WeakMap), así una corrección de precio vuelve a pintar el pin (antes el caché usaba la cantidad de precios y se quedaba con el viejo). Se quitó `clearIconCache` del store (se rompe el ciclo store ↔ markers). `MapView` usa `useShallow`. Tests: `App.map.test.tsx` (comportamiento, fallan con el código anterior) y `features/map/map.test.tsx`; piso de cobertura 68/81/73/68.
 - El filtro "cerca" tiene que aplicarse a los marcadores del mapa, no solo a la tarjeta y a la búsqueda.
 - Cambiar de combustible no vuelve a montar el mapa: se conservan el centro y el zoom.
 - Tests de comportamiento (Testing Library) para los dos casos.

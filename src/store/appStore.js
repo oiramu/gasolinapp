@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { clearIconCache } from '@/components/map/markers'
 
 const STORAGE_KEY = 'gasolinapp_prefs'
 
@@ -71,7 +70,6 @@ export const useAppStore = create((set, get) => ({
   filterByFavorite: savedPrefs.filterByFavorite ?? false,
 
   setDefaultFuelType: (ft) => {
-    clearIconCache()
     savePrefs({ ...loadPrefs(), defaultFuelType: ft })
     set({ defaultFuelType: ft })
   },
@@ -85,7 +83,6 @@ export const useAppStore = create((set, get) => ({
   },
   
   setFavoriteStationId: (id) => {
-    clearIconCache()
     savePrefs({ ...loadPrefs(), favoriteStationId: id })
     set({ favoriteStationId: id })
   },

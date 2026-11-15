@@ -92,9 +92,9 @@ export default function App() {
           'flex-1 relative transition-all duration-300',
           panelOpen ? 'sm:mr-[360px]' : ''
         )}>
+          {/* Sin key: cambiar de combustible no vuelve a montar el mapa (se conservan centro y zoom) */}
           <MapView
-            key={defaultFuelType}
-            stations={stations}
+            stations={filteredStations}
             zones={zones}
             onBoundsChange={handleBoundsChange}
           />
