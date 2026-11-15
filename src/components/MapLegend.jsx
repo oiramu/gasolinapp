@@ -3,6 +3,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { MAP_CLUSTER_ZOOM_THRESHOLD } from '@/config/map'
 import { cn } from '@/lib/utils'
+import { FreshnessLegend } from '@/features/map/ui/FreshnessLegend'
 
 export default function MapLegend({ loading, realtimeConnected = true }) {
   const { defaultFuelType, mapZoom, setMapZoom, setSettingsModalOpen, legendOpen, setLegendOpen } = useAppStore()
@@ -105,6 +106,9 @@ export default function MapLegend({ loading, realtimeConnected = true }) {
             <span>Sin datos</span>
           </div>
           </div>
+
+        <div className="h-[1px] w-full bg-white/5" />
+        <FreshnessLegend color={fuelColor} />
         </div>
       </div>
     </div>

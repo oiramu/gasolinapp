@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Fuel, MapPin, Plus, X,
-  AlertTriangle, Clock, Tag, MessageSquare,
+  AlertTriangle, Tag, MessageSquare,
   Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
@@ -11,6 +11,7 @@ import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
 import { ReportVotes } from '@/features/votes/ui/ReportVotes'
+import { FreshnessTag } from '@/features/prices/ui/FreshnessTag'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
@@ -50,12 +51,7 @@ function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
           <span className="font-display font-bold text-2xl leading-none" style={{ color: config.color }}>
             ${formatPriceValue(priceData.price)}
           </span>
-          <div className="flex items-center gap-1 mt-0.5">
-            <Clock size={9} className="text-gray-600" />
-            <span className="text-[9px] text-gray-600 font-mono">
-              {formatRelativeTime(priceData.created_at)} · {priceData.reported_by}
-            </span>
-          </div>
+          <FreshnessTag confirmedAt={priceData.confirmed_at} />
         </>
       ) : (
         <div className="flex flex-col gap-0.5">

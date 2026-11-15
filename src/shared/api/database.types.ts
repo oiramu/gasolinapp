@@ -34,9 +34,9 @@ export type Database = {
       fuel_prices: {
         Row: {
           comment: string | null
+          confirmed_at: string
           created_at: string | null
           currency: string | null
-          expires_at: string | null
           fuel_type: string
           id: string
           is_active: boolean | null
@@ -53,9 +53,9 @@ export type Database = {
         ComputedFields: never
         Insert: {
           comment?: string | null
+          confirmed_at?: string
           created_at?: string | null
           currency?: string | null
-          expires_at?: string | null
           fuel_type: string
           id?: string
           is_active?: boolean | null
@@ -71,9 +71,9 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          confirmed_at?: string
           created_at?: string | null
           currency?: string | null
-          expires_at?: string | null
           fuel_type?: string
           id?: string
           is_active?: boolean | null

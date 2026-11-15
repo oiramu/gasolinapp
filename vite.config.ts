@@ -6,10 +6,10 @@ const FULL_COVERAGE = 100
 
 // Piso global vigente (redondeado hacia abajo). Solo sube a medida que se migra a TS.
 const GLOBAL_COVERAGE_FLOOR = {
-  lines: 68,
-  branches: 81,
-  functions: 73,
-  statements: 68,
+  lines: 69,
+  branches: 82,
+  functions: 75,
+  statements: 69,
 }
 
 export default defineConfig({

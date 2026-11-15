@@ -7,6 +7,7 @@ import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { cn } from '@/lib/utils'
 import { createStationIcon, createZoneIcon, createUserLocationIcon } from '@/features/map/ui/mapIcons'
+import { useNow } from '@/shared/lib/useNow'
 import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
@@ -98,8 +99,8 @@ function MapInitializer({ onBoundsChange }) {
 
 // ── Memoized station marker — avoids re-render when unrelated state changes ──
 // El ícono depende solo de sus props: una estación que cambia en la caché llega como objeto nuevo
-const StationMarker = memo(function StationMarker({ station, fuelType, isFavorite, setSelectedStation }) {
-  const icon = useMemo(() => createStationIcon(station, { fuelType, isFavorite }), [station, fuelType, isFavorite])
+const StationMarker = memo(function StationMarker({ station, fuelType, isFavorite, now, setSelectedStation }) {
+  const icon = useMemo(() => createStationIcon(station, { fuelType, isFavorite, now }), [station, fuelType, isFavorite, now])
   // useCallback here is valid — called at component level, not inside .map()
   const handleClick = useCallback(() => setSelectedStation(station), [station, setSelectedStation])
 
@@ -123,6 +124,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
     })),
   )
   const mapRef       = useRef(null)
+  const now          = useNow()
   const [bounds, setBounds] = useState(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
   const [isLocked, setIsLocked] = useState(false)
@@ -270,6 +272,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
             station={station}
             fuelType={defaultFuelType}
             isFavorite={station.id === favoriteStationId}
+            now={now}
             setSelectedStation={setSelectedStation}
           />
         ))}

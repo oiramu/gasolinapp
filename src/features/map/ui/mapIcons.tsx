@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import type { Station } from '@/features/stations/api/types'
 import type { ZoneAverage } from '@/features/zones/api/types'
 import type { FuelType } from '@/shared/domain/fuel'
-import { stationPinModel, zonePinModel } from '../model/pins'
+import { stationPinModel, zonePinModel, type PinOptions } from '../model/pins'
 import { StationPin } from './StationPin'
 import { UserLocationDot, ZonePin } from './ZonePin'
 
@@ -44,14 +44,11 @@ function createHtmlCache<T extends object>(): HtmlCache<T> {
 const stationHtml = createHtmlCache<Station>()
 const zoneHtml = createHtmlCache<ZoneAverage>()
 
-export interface StationIconOptions {
-  readonly fuelType: FuelType
-  readonly isFavorite: boolean
-}
-
-export function createStationIcon(station: Station, { fuelType, isFavorite }: StationIconOptions): L.DivIcon {
-  const html = stationHtml(station, `${fuelType}:${String(isFavorite)}`, () =>
-    renderToStaticMarkup(<StationPin model={stationPinModel(station, fuelType, isFavorite)} />),
+/** El pin se vuelve a pintar cuando cambian el combustible, el favorito o el nivel de frescura. */
+export function createStationIcon(station: Station, options: PinOptions): L.DivIcon {
+  const model = stationPinModel(station, options)
+  const html = stationHtml(station, `${options.fuelType}:${String(options.isFavorite)}:${model.freshness}`, () =>
+    renderToStaticMarkup(<StationPin model={model} />),
   )
   return L.divIcon({ ...STATION_ICON, html, className: '' })
 }

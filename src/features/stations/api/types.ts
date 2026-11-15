@@ -22,7 +22,7 @@ export type ServiceKey = (typeof SERVICE_COLUMNS)[number]
 export const STATION_KEYS = ['id', 'name', 'brand', 'address', 'lat', 'lng', 'zone_id', 'has_gnv', ...SERVICE_COLUMNS] as const
 
 export const FUEL_PRICE_KEYS = [
-  'id', 'fuel_type', 'price', 'price_unit', 'currency', 'comment', 'votes_up', 'votes_down', 'created_at', 'reported_by', 'is_active',
+  'id', 'fuel_type', 'price', 'price_unit', 'currency', 'comment', 'votes_up', 'votes_down', 'created_at', 'confirmed_at', 'reported_by', 'is_active',
 ] as const
 
 export const REPORT_KEYS = ['id', 'type', 'content', 'votes_up', 'votes_down', 'created_at', 'user_display_name'] as const

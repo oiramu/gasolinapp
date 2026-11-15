@@ -1,7 +1,9 @@
 import type { Station } from '@/features/stations/api/types'
 import type { ZoneAverage } from '@/features/zones/api/types'
 import { formatPriceValue } from '@/shared/domain/format'
+import { getFreshness, type Freshness } from '@/shared/domain/freshness'
 import { FUEL_TYPES, getLatestPrices, isFuelType, type FuelType } from '@/shared/domain/fuel'
+import { FRESHNESS_OPACITY } from '@/shared/ui/freshness'
 
 // Qué muestra cada pin del mapa (funciones puras: sin store, sin Leaflet).
 
@@ -16,6 +18,7 @@ export const PIN_COLORS = {
 } as const
 
 const NO_PRICE = 'S/D'
+const DIMMED_OPACITY = 0.3
 
 /** Si la estación no tiene el combustible elegido, el pin muestra el primero de estos que tenga. */
 const FALLBACK_FUELS: readonly FuelType[] = ['corriente', 'extra', 'diesel']
@@ -25,8 +28,10 @@ export interface StationPinModel {
   readonly brand: string
   readonly color: string
   readonly hasData: boolean
-  /** Con GNV elegido, las estaciones sin GNV se atenúan. */
-  readonly dimmed: boolean
+  /** Frescura del precio que muestra el pin (sin precio: dudoso). */
+  readonly freshness: Freshness
+  /** Según la frescura; con GNV elegido, las estaciones sin GNV se atenúan del todo. */
+  readonly opacity: number
   readonly hasGnv: boolean
   readonly isFavorite: boolean
   /** Un punto de color por combustible con precio (solo si hay más de uno). */
@@ -41,18 +46,34 @@ function pinColor(hasChosenFuel: boolean, fuelType: FuelType, hasData: boolean):
   return hasData ? PIN_COLORS.active : PIN_COLORS.inactive
 }
 
-export function stationPinModel(station: Station, fuelType: FuelType, isFavorite: boolean): StationPinModel {
+type LatestPrices = ReturnType<typeof getLatestPrices<Station['fuel_prices'][number]>>
+
+/** El precio del combustible elegido o, si la estación no lo tiene, el primero de respaldo. */
+const shownPrice = (latest: LatestPrices, fuelType: FuelType) =>
+  latest[fuelType] ?? FALLBACK_FUELS.map((fuel) => latest[fuel]).find((price) => price !== undefined)
+
+/** Con GNV elegido, una estación sin GNV se atenúa del todo; si no, manda la frescura. */
+const pinOpacity = (dimmed: boolean, freshness: Freshness): number => (dimmed ? DIMMED_OPACITY : FRESHNESS_OPACITY[freshness])
+
+export interface PinOptions {
+  readonly fuelType: FuelType
+  readonly isFavorite: boolean
+  /** Hora de referencia para la frescura (useNow). */
+  readonly now: number
+}
+
+export function stationPinModel(station: Station, { fuelType, isFavorite, now }: PinOptions): StationPinModel {
   const latest = getLatestPrices(station.fuel_prices)
   const fuels = Object.keys(latest).filter(isFuelType)
-  const chosen = latest[fuelType]
-  const shown = chosen ?? FALLBACK_FUELS.map((fuel) => latest[fuel]).find((price) => price !== undefined)
-  const hasData = fuels.length > 0
+  const shown = shownPrice(latest, fuelType)
+  const freshness = getFreshness(shown?.confirmed_at, now)
   return {
     label: priceLabel(shown?.price),
     brand: station.brand,
-    color: pinColor(chosen !== undefined, fuelType, hasData),
-    hasData,
-    dimmed: fuelType === 'gnv' && !station.has_gnv,
+    color: pinColor(latest[fuelType] !== undefined, fuelType, fuels.length > 0),
+    hasData: fuels.length > 0,
+    freshness,
+    opacity: pinOpacity(fuelType === 'gnv' && !station.has_gnv, freshness),
     hasGnv: station.has_gnv,
     isFavorite,
     fuelDots: fuels.length > 1 ? fuels.map((fuel) => FUEL_TYPES[fuel].color) : [],

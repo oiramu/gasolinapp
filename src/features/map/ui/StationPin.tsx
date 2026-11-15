@@ -2,7 +2,6 @@ import { PIN_COLORS, type StationPinModel } from '../model/pins'
 
 const FONT_MONO = '"JetBrains Mono", monospace'
 const FONT_BODY = '"DM Sans", sans-serif'
-const OPACITY = { true: 0.3, false: 1 } as const
 
 /** Con precio: fondo oscuro y halo del color; sin datos: fondo apagado y texto gris. */
 const TONE = {
@@ -16,10 +15,10 @@ const TONE = {
  * mouseover/mouseout de cada hijo (causaba el temblor al pasar el mouse).
  */
 export function StationPin({ model }: { readonly model: StationPinModel }) {
-  const { label, brand, color, hasData, dimmed, hasGnv, isFavorite, fuelDots } = model
+  const { label, brand, color, hasData, opacity, hasGnv, isFavorite, fuelDots } = model
   const tone = TONE[String(hasData) as `${boolean}`]
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none', opacity: OPACITY[String(dimmed) as `${boolean}`], transition: 'opacity 0.2s' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, pointerEvents: 'none', opacity, transition: 'opacity 0.2s' }}>
       <div style={{
         background: tone.background,
         border: `2px solid ${color}`,
