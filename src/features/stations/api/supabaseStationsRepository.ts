@@ -9,7 +9,7 @@ import type { StationsRepository } from './types'
 export const STATION_SELECT = `
   id, name, brand, address, lat, lng, zone_id, has_gnv,
   svc_montallantas, svc_cambio_aceite, svc_serviteca, svc_tienda, svc_lavadero, svc_bano, svc_cafe, svc_electrico, svc_atm,
-  fuel_prices (id, fuel_type, price, price_unit, currency, comment, votes_up, votes_down, created_at, reported_by, is_active),
+  fuel_prices (id, fuel_type, price, price_unit, currency, comment, votes_up, votes_down, created_at, confirmed_at, reported_by, is_active),
   reports (id, type, content, votes_up, votes_down, created_at, user_display_name)
 `
 

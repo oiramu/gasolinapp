@@ -9,6 +9,31 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      events: {
+        Row: {
+          created_at: string
+          id: number
+          name: Database["public"]["Enums"]["event_name"]
+          props: NonNullable<Json>
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: never
+          name: Database["public"]["Enums"]["event_name"]
+          props?: NonNullable<Json>
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          name?: Database["public"]["Enums"]["event_name"]
+          props?: NonNullable<Json>
+          user_id?: string
+        }
+        Relationships: []
+      }
       fuel_price_ranges: {
         Row: {
           fuel_type: string
@@ -34,9 +59,9 @@ export type Database = {
       fuel_prices: {
         Row: {
           comment: string | null
+          confirmed_at: string
           created_at: string | null
           currency: string | null
-          expires_at: string | null
           fuel_type: string
           id: string
           is_active: boolean | null
@@ -53,9 +78,9 @@ export type Database = {
         ComputedFields: never
         Insert: {
           comment?: string | null
+          confirmed_at?: string
           created_at?: string | null
           currency?: string | null
-          expires_at?: string | null
           fuel_type: string
           id?: string
           is_active?: boolean | null
@@ -71,9 +96,9 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          confirmed_at?: string
           created_at?: string | null
           currency?: string | null
-          expires_at?: string | null
           fuel_type?: string
           id?: string
           is_active?: boolean | null
@@ -101,6 +126,94 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_station_summary"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_alerts: {
+        Row: {
+          check_name: string
+          created_at: string
+          detail: NonNullable<Json>
+          id: number
+        }
+        ComputedFields: never
+        Insert: {
+          check_name: string
+          created_at?: string
+          detail?: NonNullable<Json>
+          id?: never
+        }
+        Update: {
+          check_name?: string
+          created_at?: string
+          detail?: NonNullable<Json>
+          id?: never
+        }
+        Relationships: []
+      }
+      price_confirmations: {
+        Row: {
+          confirmed_on: string
+          created_at: string
+          price_id: string
+          voter_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          confirmed_on?: string
+          created_at?: string
+          price_id: string
+          voter_id: string
+        }
+        Update: {
+          confirmed_on?: string
+          created_at?: string
+          price_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_confirmations_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "fuel_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reference_prices: {
+        Row: {
+          city: string
+          created_at: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        ComputedFields: never
+        Insert: {
+          city: string
+          created_at?: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          fuel_type?: string
+          price?: number
+          source_url?: string
+          valid_from?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_prices_fuel_type_fkey"
+            columns: ["fuel_type"]
+            isOneToOne: false
+            referencedRelation: "fuel_price_ranges"
+            referencedColumns: ["fuel_type"]
           },
         ]
       }
@@ -384,6 +497,25 @@ export type Database = {
       }
     }
     Views: {
+      current_reference_prices: {
+        Row: {
+          city: string
+          fuel_type: string
+          price: number
+          source_url: string
+          valid_from: string
+        }
+        ComputedFields: never
+        Relationships: [
+          {
+            foreignKeyName: "reference_prices_fuel_type_fkey"
+            columns: ["fuel_type"]
+            isOneToOne: false
+            referencedRelation: "fuel_price_ranges"
+            referencedColumns: ["fuel_type"]
+          },
+        ]
+      }
       daily_avg_prices: {
         Row: {
           avg_price: number | null
@@ -505,6 +637,15 @@ export type Database = {
       _check_rate_limit: {
         Args: { p_max: number; p_recent: number }
         Returns: undefined
+      }
+      _expected_srid_4326: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          auth_name: string
+          auth_srid: number
+          proj4text: string
+          srtext: string
+        }[]
       }
       _lock_vote_target: {
         Args: { p_target_id: string; p_target_type: string }
@@ -667,7 +808,13 @@ export type Database = {
           votes_up: number
         }[]
       }
+      check_reference_prices_current: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      check_srid_4326: { Args: Record<PropertyKey, never>; Returns: boolean }
       clear_my_test_data: { Args: Record<PropertyKey, never>; Returns: number }
+      confirm_price: { Args: { p_price_id: string }; Returns: string }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -927,6 +1074,11 @@ export type Database = {
         }
         Returns: string
       }
+      restore_srid_4326: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      srid_4326_intact: { Args: Record<PropertyKey, never>; Returns: boolean }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
@@ -1512,6 +1664,7 @@ export type Database = {
         Args: { p_services: Json; p_station_id: string }
         Returns: string[]
       }
+      track: { Args: { p_name: string; p_props?: Json }; Returns: undefined }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
@@ -1525,7 +1678,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      event_name:
+        | "app_open"
+        | "station_open"
+        | "price_reported"
+        | "price_confirmed"
+        | "vote"
+        | "share"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1660,6 +1819,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_name: [
+        "app_open",
+        "station_open",
+        "price_reported",
+        "price_confirmed",
+        "vote",
+        "share",
+      ],
+    },
   },
 } as const

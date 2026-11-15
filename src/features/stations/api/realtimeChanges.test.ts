@@ -5,7 +5,7 @@ import { toPriceChange, toReportChange, toStationChange } from './realtimeChange
 const base = { schema: 'public', commit_timestamp: '2026-11-13T10:00:00Z', errors: [] as string[] }
 // Columnas de la fila que el modelo de dominio no lee
 const dbOnly = { legacy_votes_up: 0, legacy_votes_down: 0, reporter_id: null }
-const priceRow = { ...fuelPrice(), ...dbOnly, station_id: 's1', expires_at: null }
+const priceRow = { ...fuelPrice(), ...dbOnly, station_id: 's1' }
 const reportRow = { ...report(), ...dbOnly, station_id: 's1', is_visible: true }
 const stationRow = { ...stationFields(), is_active: true, is_test: false, location: null, osm_id: null, created_at: null, updated_at: null }
 

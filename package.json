@@ -14,7 +14,8 @@
     "test:db": "npx supabase test db",
     "check": "npm run lint && npm run typecheck && npm run test:coverage && vite build",
     "db:types": "npx supabase gen types typescript --local --schema public > src/shared/api/database.types.ts && prettier --no-semi --write src/shared/api/database.types.ts",
-    "security:check": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning scripts/security-check/index.ts"
+    "security:check": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning scripts/security-check/index.ts",
+    "reference-prices:import": "vite-node scripts/import-reference-prices.ts --"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

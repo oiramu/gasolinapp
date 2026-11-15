@@ -30,6 +30,7 @@ const price = ({ id, fuel, price: value, minutes, by }: MockPrice): FuelPrice =>
   votes_up: 0,
   votes_down: 0,
   created_at: minutesAgo(minutes),
+  confirmed_at: minutesAgo(minutes),
   reported_by: by,
   is_active: true,
 })

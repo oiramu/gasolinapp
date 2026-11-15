@@ -1,11 +1,14 @@
 import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, Circle } from 'react-leaflet'
 import { Locate, LocateFixed, Plus, Minus } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { cn } from '@/lib/utils'
-import { createStationIcon, createZoneIcon, createUserLocationIcon } from './markers'
+import { createStationIcon, createZoneIcon, createUserLocationIcon } from '@/features/map/ui/mapIcons'
+import { useNow } from '@/shared/lib/useNow'
+import { useOfficialPrices } from '@/features/prices/model/useOfficialPrices'
 import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM,
@@ -96,15 +99,9 @@ function MapInitializer({ onBoundsChange }) {
 }
 
 // ── Memoized station marker — avoids re-render when unrelated state changes ──
-const StationMarker = memo(function StationMarker({ station, setSelectedStation, favoriteStationId }) {
-  const isFavorite = station.id === favoriteStationId
-  /* eslint-disable react-hooks/exhaustive-deps -- deuda conocida: la icon factory pura de la 0.5 elimina esto */
-  const icon = useMemo(() => createStationIcon(station), [
-    station.id, station.fuel_prices,
-    useAppStore.getState().defaultFuelType,
-    isFavorite
-  ])
-  /* eslint-enable react-hooks/exhaustive-deps */
+// El ícono depende solo de sus props: una estación que cambia en la caché llega como objeto nuevo
+const StationMarker = memo(function StationMarker({ station, fuelType, isFavorite, now, official, setSelectedStation }) {
+  const icon = useMemo(() => createStationIcon(station, { fuelType, isFavorite, now, official }), [station, fuelType, isFavorite, now, official])
   // useCallback here is valid — called at component level, not inside .map()
   const handleClick = useCallback(() => setSelectedStation(station), [station, setSelectedStation])
 
@@ -120,8 +117,18 @@ const StationMarker = memo(function StationMarker({ station, setSelectedStation,
 
 // ── Main MapView ─────────────────────────────────────────────────────────────
 export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBoundsChange }) {
-  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType, activeBrand, filterByFavorite, favoriteStationId, setVisibleBrands } = useAppStore()
+  const { mapZoom, setMapZoom, setSelectedStation, setMapCenter, panelOpen, defaultFuelType, activeBrand, filterByFavorite, favoriteStationId, setVisibleBrands } = useAppStore(
+    useShallow((s) => ({
+      mapZoom: s.mapZoom, setMapZoom: s.setMapZoom, setSelectedStation: s.setSelectedStation, setMapCenter: s.setMapCenter,
+      panelOpen: s.panelOpen, defaultFuelType: s.defaultFuelType, activeBrand: s.activeBrand, filterByFavorite: s.filterByFavorite,
+      favoriteStationId: s.favoriteStationId, setVisibleBrands: s.setVisibleBrands,
+    })),
+  )
   const mapRef       = useRef(null)
+  const now          = useNow()
+  const officialPriceFor = useOfficialPrices()
+  // La ciudad de la estación sale de su zona (no existe stations.city)
+  const cityByZone   = useMemo(() => new Map(zones.map((zone) => [zone.id, zone.city])), [zones])
   const [bounds, setBounds] = useState(null)
   const showClusters = mapZoom < MAP_CLUSTER_ZOOM_THRESHOLD
   const [isLocked, setIsLocked] = useState(false)
@@ -252,7 +259,7 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
           <Marker
             key={zone.id}
             position={[zone.lat, zone.lng]}
-            icon={createZoneIcon(zone)}
+            icon={createZoneIcon(zone, defaultFuelType)}
             eventHandlers={{
               click: () => {
                 setMapCenter([zone.lat, zone.lng])
@@ -267,8 +274,11 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
           <StationMarker
             key={station.id}
             station={station}
+            fuelType={defaultFuelType}
+            isFavorite={station.id === favoriteStationId}
+            now={now}
+            official={officialPriceFor(cityByZone.get(station.zone_id), defaultFuelType)}
             setSelectedStation={setSelectedStation}
-            favoriteStationId={favoriteStationId}
           />
         ))}
       </MapContainer>

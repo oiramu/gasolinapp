@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { clearIconCache } from '@/components/map/markers'
 
 const STORAGE_KEY = 'gasolinapp_prefs'
 
@@ -36,7 +35,10 @@ export const useAppStore = create((set, get) => ({
   // Report modal
   reportModalOpen: false,
   reportModalPreExpand: false,
-  setReportModalOpen: (open, preExpand = false) => set({ reportModalOpen: open, reportModalPreExpand: preExpand }),
+  // Combustible preseleccionado ("¿Sigue en $X? No"); null = el de siempre
+  reportModalFuel: null,
+  setReportModalOpen: (open, preExpand = false) => set({ reportModalOpen: open, reportModalPreExpand: preExpand, reportModalFuel: null }),
+  openReportFor: (fuelType) => set({ reportModalOpen: true, reportModalPreExpand: false, reportModalFuel: fuelType }),
 
   // Settings modal
   settingsModalOpen: false,
@@ -71,7 +73,6 @@ export const useAppStore = create((set, get) => ({
   filterByFavorite: savedPrefs.filterByFavorite ?? false,
 
   setDefaultFuelType: (ft) => {
-    clearIconCache()
     savePrefs({ ...loadPrefs(), defaultFuelType: ft })
     set({ defaultFuelType: ft })
   },
@@ -85,7 +86,6 @@ export const useAppStore = create((set, get) => ({
   },
   
   setFavoriteStationId: (id) => {
-    clearIconCache()
     savePrefs({ ...loadPrefs(), favoriteStationId: id })
     set({ favoriteStationId: id })
   },

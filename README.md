@@ -141,6 +141,21 @@ npm run dev
 - **Reglas compartidas TS ↔ SQL:** los rangos de precio, las unidades y el largo del comentario viven en `src/shared/domain`. `sharedRules.db.test.ts` genera el pgTAP `003_reglas_compartidas.test.sql`, que verifica que la base aplique los mismos valores. Si cambias una regla: `npx vitest -u` y una migración nueva.
 - **Transición a TypeScript:** `allowJs` sigue activo mientras dure la migración (tareas 0.3–0.6). Los `.js`/`.jsx` legados solo pasan las reglas base de ESLint; las reglas estrictas aplican a `.ts`/`.tsx`. La cobertura exige 100% en `src/shared/domain/` y un piso global en `vite.config.ts` que sube a medida que se migra.
 
+### Precios oficiales de referencia (cada mes)
+
+La CREG publica a fin de mes los precios de referencia de gasolina corriente y ACPM para 13 ciudades, en https://creg.gov.co/publicaciones/15565/precios-de-combustibles-liquidos/. La app los muestra cuando una estación no tiene un precio comunitario fresco o reciente. La carga es manual a propósito: los valores se validan contra la fuente antes de aplicarlos.
+
+1. Copia la tabla "Precios vigentes a partir del 1 de …" en `data/reference-prices/AAAA-MM.csv`, con el encabezado `city,fuel_type,price`. Usa `corriente` para gasolina y `diesel` para ACPM. El precio puede ir con punto de miles (`15.964`).
+2. Genera el SQL:
+   ```bash
+   npm run reference-prices:import -- data/reference-prices/2026-12.csv --valid-from 2026-12-01 \
+     --source https://creg.gov.co/publicaciones/15565/precios-de-combustibles-liquidos/ --out data/reference-prices/2026-12.sql
+   ```
+   El script rechaza combustibles desconocidos, precios fuera de rango (`shared/domain/fuel.ts`), filas repetidas y fechas o fuentes inválidas.
+3. Revisa el `.sql` y córrelo en el SQL Editor de Supabase. Es idempotente: si te equivocas, corrige el CSV y vuelve a correrlo.
+
+Si el día 2 del mes no hay precios cargados, el job `check_reference_prices` deja una alerta en `ops_alerts`.
+
 ### Prueba de seguridad (`npm run security:check`)
 
 Ataca el proyecto como lo haría cualquiera con la anon key: crea una sesión anónima e intenta cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fuelPrice, report, station, stationFields } from '@/test/fixtures/stations'
-import { applyStationChange, findTally } from './stationsCache'
+import { applyStationChange, findTally, patchConfirmed } from './stationsCache'
 
 const s1 = station()
 const s2 = station({ ...stationFields({ id: 's2', name: 'Biomax' }) })
@@ -65,5 +65,15 @@ describe('votos en caché', () => {
   it('findTally lee los contadores en caché o devuelve null', () => {
     expect(findTally(cache, { targetType: 'report', targetId: 'r1' })).toEqual({ votesUp: 2, votesDown: 0 })
     expect(findTally(cache, { targetType: 'price', targetId: 'no-existe' })).toBeNull()
+  })
+})
+
+describe('patchConfirmed', () => {
+  it('renueva confirmed_at solo de ese precio y no recrea estaciones que no lo tienen', () => {
+    const other = station({ ...stationFields({ id: 's3' }), fuel_prices: [fuelPrice({ id: 'p9' })] })
+    const target = station({ fuel_prices: [fuelPrice(), fuelPrice({ id: 'p2', fuel_type: 'diesel' })] })
+    const [patched, untouched] = patchConfirmed([target, other], 'p1', '2026-11-15T12:00:00Z')
+    expect(patched?.fuel_prices.map((price) => price.confirmed_at)).toEqual(['2026-11-15T12:00:00Z', '2026-11-13T10:00:00Z'])
+    expect(untouched).toBe(other)
   })
 })

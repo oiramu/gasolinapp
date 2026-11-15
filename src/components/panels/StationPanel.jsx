@@ -1,78 +1,23 @@
 import { useState } from 'react'
 import {
   Fuel, MapPin, Plus, X,
-  AlertTriangle, Clock, Tag, MessageSquare,
-  Droplets, Zap, Star, RefreshCw, Info, Wind, BarChart2, List
+  AlertTriangle, Tag, MessageSquare,
+  Star, Info, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, hasReportedPrices } from '@/shared/domain/fuel'
-import { formatPriceValue } from '@/shared/domain/format'
+import { hasReportedPrices } from '@/shared/domain/fuel'
 import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
 import { ReportVotes } from '@/features/votes/ui/ReportVotes'
+import { StationFuelPrices } from '@/features/prices/ui/StationFuelPrices'
+import { useTrackStationOpen } from '@/features/analytics/model/useTrack'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
 import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
 
-const FUEL_ICONS = { corriente: Zap, extra: Fuel, diesel: Droplets, urea: RefreshCw, gnv: Wind }
 const REPORT_ICONS = { price: Tag, promotion: Star, warning: AlertTriangle, comment: MessageSquare, correction: Info }
-
-function FuelCard({ fuelType, priceData, zoneAvg, hasData }) {
-  const config = FUEL_TYPES[fuelType]
-  const Icon = FUEL_ICONS[fuelType] || Fuel
-  const isEstimate = !priceData && hasData
-
-  return (
-    <div className={cn(
-      'rounded-xl border p-3 flex flex-col gap-1 transition-all relative overflow-hidden',
-      priceData
-        ? `bg-surface-card ${config.borderClass}`
-        : 'bg-surface-muted/30 border-white/5'
-    )}>
-      {/* Corner accent */}
-      {priceData && (
-        <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-xl opacity-20"
-          style={{ background: config.color }} />
-      )}
-
-      <div className="flex items-center gap-1.5">
-        <Icon size={12} className={priceData ? config.textClass : 'text-gray-600'} />
-        <span className="text-[10px] uppercase tracking-wider font-mono"
-          style={{ color: priceData ? config.color : '#4B5563', opacity: 0.8 }}>
-          {config.label}
-        </span>
-      </div>
-
-      {priceData ? (
-        <>
-          <span className="font-display font-bold text-2xl leading-none" style={{ color: config.color }}>
-            ${formatPriceValue(priceData.price)}
-          </span>
-          <div className="flex items-center gap-1 mt-0.5">
-            <Clock size={9} className="text-gray-600" />
-            <span className="text-[9px] text-gray-600 font-mono">
-              {formatRelativeTime(priceData.created_at)} · {priceData.reported_by}
-            </span>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col gap-0.5">
-          {zoneAvg && (
-            <span className="font-display font-bold text-xl text-gray-500 leading-none">
-              ${formatPriceValue(zoneAvg)}
-              <span className="text-xs font-body text-gray-600 ml-1">est.</span>
-            </span>
-          )}
-          <span className="text-[9px] text-gray-600 italic">
-            {isEstimate ? 'No venden / sin dato' : 'Promedio de zona'}
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
 
 function ReportItem({ report, reportIds, onVoteError }) {
   const Icon = REPORT_ICONS[report.type] || MessageSquare
@@ -110,7 +55,8 @@ function ReportItem({ report, reportIds, onVoteError }) {
 
 export default function StationPanel({ station, zoneData }) {
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
-  const latestPrices = getLatestPrices(station?.fuel_prices)
+  const openReportFor = useAppStore((state) => state.openReportFor)
+  useTrackStationOpen(station?.id ?? null)
   const hasData = hasReportedPrices(station)
 
   const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'
@@ -231,29 +177,14 @@ export default function StationPanel({ station, zoneData }) {
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'precios' ? (
           <>
-            {/* ── Fuel prices grid ───────────────────────────── */}
-            <div className="p-4 grid grid-cols-2 auto-rows-fr gap-2">
-              {FUEL_ORDER.map((ft) => {
-                // Ocultar urea si no hay precio reportado para este combustible
-                if (ft === 'urea' && !latestPrices[ft]) return null
-
-                let zoneAvg = null
-                if (ft === 'diesel')    zoneAvg = zoneData?.avg_diesel
-                else if (ft === 'extra')     zoneAvg = zoneData?.avg_extra
-                else if (ft === 'corriente') zoneAvg = zoneData?.avg_corriente
-                else if (ft === 'gnv')       zoneAvg = zoneData?.avg_gnv
-
-                return (
-                  <FuelCard
-                    key={ft}
-                    fuelType={ft}
-                    priceData={latestPrices[ft]}
-                    zoneAvg={hasData ? null : zoneAvg}
-                    hasData={hasData}
-                  />
-                )
-              })}
-            </div>
+            {/* ── Precios: comunitario, oficial de referencia o "Sin precio" ── */}
+            <StationFuelPrices
+              key={station.id}
+              station={station}
+              city={zoneData?.city ?? null}
+              onReport={openReportFor}
+              notify={showToast}
+            />
 
             {/* ── Services section ───────────────────────────── */}
             <div className="p-4 pt-2">

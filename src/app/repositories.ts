@@ -1,3 +1,6 @@
+import { createMockAnalyticsRepository } from '@/features/analytics/api/mockAnalyticsRepository'
+import { createSupabaseAnalyticsRepository } from '@/features/analytics/api/supabaseAnalyticsRepository'
+import type { AnalyticsRepository } from '@/features/analytics/api/types'
 import { createMockAuthRepository } from '@/features/auth/api/mockAuthRepository'
 import { createSupabaseAuthRepository } from '@/features/auth/api/supabaseAuthRepository'
 import type { AuthRepository } from '@/features/auth/api/types'
@@ -30,6 +33,7 @@ export interface Repositories {
   readonly prices: PricesRepository
   readonly reports: ReportsRepository
   readonly votes: VotesRepository
+  readonly analytics: AnalyticsRepository
 }
 
 export function createMockRepositories(latencyMs = MOCK_LATENCY_MS): Repositories {
@@ -40,6 +44,7 @@ export function createMockRepositories(latencyMs = MOCK_LATENCY_MS): Repositorie
     prices: createMockPricesRepository(latencyMs),
     reports: createMockReportsRepository(latencyMs),
     votes: createMockVotesRepository((target) => findTally(MOCK_STATIONS, target) ?? EMPTY_TALLY, latencyMs),
+    analytics: createMockAnalyticsRepository(),
   }
 }
 
@@ -51,6 +56,7 @@ export function createSupabaseRepositories(client: AppSupabaseClient): Repositor
     prices: createSupabasePricesRepository(client),
     reports: createSupabaseReportsRepository(client),
     votes: createSupabaseVotesRepository(client),
+    analytics: createSupabaseAnalyticsRepository(client),
   }
 }
 

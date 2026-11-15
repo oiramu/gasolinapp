@@ -31,4 +31,6 @@ export interface ReportsRepository {
   addReport(input: CommunityReportInput): Promise<void>
   /** Devuelve las claves que quedaron aplicadas en la estación (2 usuarios coincidieron). */
   suggestServices(input: ServiceSuggestionInput): Promise<readonly string[]>
+  /** "¿Sigue en $X? Sí": renueva la confirmación de un precio comunitario. Devuelve el `confirmed_at` nuevo. */
+  confirmPrice(priceId: string): Promise<string>
 }

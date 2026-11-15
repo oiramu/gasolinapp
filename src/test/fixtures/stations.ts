@@ -9,7 +9,7 @@ export const stationFields = (overrides: Partial<StationFields> = {}): StationFi
 
 export const fuelPrice = (overrides: Partial<FuelPrice> = {}): FuelPrice => ({
   id: 'p1', fuel_type: 'corriente', price: 15900, price_unit: 'gallon', currency: 'COP', comment: null,
-  votes_up: 0, votes_down: 0, created_at: '2026-11-13T10:00:00Z', reported_by: 'MK', is_active: true,
+  votes_up: 0, votes_down: 0, created_at: '2026-11-13T10:00:00Z', confirmed_at: '2026-11-13T10:00:00Z', reported_by: 'MK', is_active: true,
   ...overrides,
 })
 

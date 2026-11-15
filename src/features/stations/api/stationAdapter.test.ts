@@ -4,7 +4,7 @@ import { toFuelPrice, toReport, toStation, toStationFields } from './stationAdap
 
 describe('toFuelPrice', () => {
   it('conserva solo las columnas del modelo', () => {
-    const row = { ...fuelPrice(), station_id: 's1', expires_at: null }
+    const row = { ...fuelPrice(), station_id: 's1' }
     expect(toFuelPrice(row)).toEqual(fuelPrice())
   })
 

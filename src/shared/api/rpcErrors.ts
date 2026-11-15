@@ -11,6 +11,8 @@ const RPC_ERROR_MESSAGES = {
   INVALID_TYPE: 'Ese tipo de reporte no es válido.',
   INVALID_SERVICES: 'Esos servicios no son válidos.',
   TARGET_NOT_FOUND: 'Ese reporte ya no está disponible.',
+  PRICE_NOT_FOUND: 'Ese precio ya no está vigente. Recarga la estación.',
+  ALREADY_CONFIRMED: 'Ya confirmaste este precio hoy. ¡Gracias!',
 } as const satisfies Record<string, string>
 
 type RpcErrorCode = keyof typeof RPC_ERROR_MESSAGES
