@@ -5,7 +5,6 @@ import {
   Star, Info, BarChart2, List
 } from 'lucide-react'
 import { useAppStore } from '@/store/appStore'
-import { hasReportedPrices } from '@/shared/domain/fuel'
 import { formatRelativeTime } from '@/shared/domain/time'
 import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
@@ -57,7 +56,6 @@ export default function StationPanel({ station, zoneData }) {
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const openReportFor = useAppStore((state) => state.openReportFor)
   useTrackStationOpen(station?.id ?? null)
-  const hasData = hasReportedPrices(station)
 
   const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'
 
@@ -138,15 +136,6 @@ export default function StationPanel({ station, zoneData }) {
           </div>
         </div>
 
-        {/* No-data warning */}
-        {!hasData && (
-          <div className="mt-3 flex gap-2.5 p-2.5 rounded-lg border border-dashed border-amber-400/30 bg-amber-400/5">
-            <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-amber-200/70 leading-relaxed">
-              <strong className="text-amber-400">Sin precios verificados.</strong> Los valores mostrados son estimados del promedio de la zona. ¡Reporta el precio actual!
-            </p>
-          </div>
-        )}
       </div>
 
       {/* ── Tabs Navigation ── */}

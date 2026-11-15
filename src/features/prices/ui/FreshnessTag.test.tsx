@@ -19,21 +19,22 @@ afterEach(() => {
 describe('FreshnessTag', () => {
   it('dice cuándo se confirmó y qué tan fresco es el precio', () => {
     const { container } = render(<FreshnessTag confirmedAt={new Date(NOW - 4 * DAY).toISOString()} />)
-    expect(screen.getByText(/confirmado hace 4d/)).toBeInTheDocument()
-    expect(screen.getByText('· Reciente')).toBeInTheDocument()
+    expect(screen.getByText(/hace 4d/)).toBeInTheDocument()
+    expect(screen.getByText('Reciente')).toBeInTheDocument()
     expect(container.querySelector('[data-freshness="recent"]')).not.toBeNull()
   })
 
   it('sin fecha es dudoso y avanza solo con el reloj de la UI', () => {
     const { rerender } = render(<FreshnessTag confirmedAt={null} />)
-    expect(screen.getByText('· Dudoso')).toBeInTheDocument()
+    expect(screen.getByText('Dudoso')).toBeInTheDocument()
+    expect(screen.getByText(/sin confirmar/)).toBeInTheDocument()
     rerender(<FreshnessTag confirmedAt={new Date(NOW - 2.99 * DAY).toISOString()} />)
-    expect(screen.getByText('· Fresco')).toBeInTheDocument()
+    expect(screen.getByText('Fresco')).toBeInTheDocument()
     act(() => {
       vi.setSystemTime(NOW + DAY)
       vi.advanceTimersByTime(CLOCK_TICK_MS)
     })
-    expect(screen.getByText('· Reciente')).toBeInTheDocument()
+    expect(screen.getByText('Reciente')).toBeInTheDocument()
   })
 })
 
@@ -51,10 +52,12 @@ describe('useNow', () => {
 })
 
 describe('FreshnessLegend', () => {
-  it('lista los cuatro niveles con su rango', () => {
+  it('una escala de cuatro niveles con su rango compacto y una fila para el oficial', () => {
     render(<FreshnessLegend color="#00E5A0" />)
     expect(screen.getByText('Frescura del precio')).toBeInTheDocument()
-    expect(screen.getAllByText(/días/)).toHaveLength(4)
-    expect(screen.getByText('Dudoso')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'Fresco< 3 d', 'Reciente< 10 d', 'Viejo< 30 d', 'Dudoso30+ d',
+    ])
+    expect(screen.getByText('Precio oficial')).toBeInTheDocument()
   })
 })
