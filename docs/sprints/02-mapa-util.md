@@ -69,6 +69,8 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - **Listo cuando:** en producción, todas las estaciones de Barranquilla muestran un precio, sea comunitario o de referencia, y la etiqueta de fuente es correcta.
 
 ## [ ] 3.1 — "¿Sigue en $X?"
+**Estado (2026-11-15):** base de datos hecha en la rama (sin aplicar); falta el frontend.
+- Migración `20261116000400_confirmar_precio.sql`: tabla `price_confirmations` (PK precio + usuario + día de Bogotá, sin acceso del cliente) y RPC `confirm_price` (sesión obligatoria, precio activo en estación activa → si no `PRICE_NOT_FOUND`/404; doble confirmación el mismo día → `ALREADY_CONFIRMED`/409; reportes + confirmaciones comparten el límite de 10 por hora → `RATE_LIMIT`/429; renueva `confirmed_at`). pgTAP `011` (13 casos).
 - RPC `confirm_price(p_price_id)`: sesión obligatoria, una confirmación por uid por precio por día, actualiza `confirmed_at` y se cuenta para el límite de tasa general. Tabla `price_confirmations` sin escritura directa. Lleva GRANT explícito y pgTAP (caso feliz, confirmación doble, sin sesión, precio inactivo).
 - Panel: "¿Sigue en $15.900? **Sí** / **No**". "Sí" actualiza en forma optimista y muestra el Toast "¡Gracias!". "No" abre el modal con el combustible preseleccionado.
 - Sobre un precio de referencia oficial, el botón dice "¿Es este el precio? Sí / No". "Sí" crea un reporte comunitario con ese valor por `report_price`.

@@ -126,6 +126,36 @@ export type Database = {
         }
         Relationships: []
       }
+      price_confirmations: {
+        Row: {
+          confirmed_on: string
+          created_at: string
+          price_id: string
+          voter_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          confirmed_on?: string
+          created_at?: string
+          price_id: string
+          voter_id: string
+        }
+        Update: {
+          confirmed_on?: string
+          created_at?: string
+          price_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_confirmations_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "fuel_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reference_prices: {
         Row: {
           city: string
@@ -759,6 +789,7 @@ export type Database = {
       }
       check_srid_4326: { Args: Record<PropertyKey, never>; Returns: boolean }
       clear_my_test_data: { Args: Record<PropertyKey, never>; Returns: number }
+      confirm_price: { Args: { p_price_id: string }; Returns: string }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
