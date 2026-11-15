@@ -129,7 +129,7 @@
 - Hallazgo del 2026-11-14: en producción `anon` y `authenticated` también tienen `TRUNCATE`, `REFERENCES` y `TRIGGER` sobre `fuel_prices`, `reports` y `stations` (TRUNCATE se salta RLS; PostgREST no lo expone, pero no debe quedar). Usar `REVOKE ALL` + `GRANT SELECT` en lugar del REVOKE parcial.
 - **pgTAP:** cada escritura directa con rol anon o authenticated falla.
 
-**Estado (2026-11-14):** hecho en local (`20261115060000_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
+**Estado (2026-11-14):** hecho en local (`20261115045357_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
 
 ## [ ] 1.4 — Prueba de ataque contra producción
 
@@ -145,7 +145,7 @@
 - Documéntalo en el README.
 - **Listo cuando:** Mario lo corre contra producción y todo sale PASS.
 
-**Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261115060100_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
+**Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261115045457_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
 
 ---
 
@@ -156,7 +156,7 @@ Claude Code no tiene permiso para escribir en producción (lo bloqueó el modo a
 1. **Dashboard de Supabase:** Authentication → Sign In / Providers → activar *Anonymous sign-ins*.
 2. **Migraciones aditivas** (el frontend actual sigue funcionando con ellas): `20261115044726_votos_rpc.sql` y `20261115044942_rpc_escritura.sql`, en ese orden (SQL Editor o `apply_migration`). Después, renombrar los archivos con la versión que quede en `supabase_migrations.schema_migrations`.
 3. **Deploy:** `npx vercel deploy --prod` desde la rama (o promover el preview del último commit). Sale todo junto: S0.1, 1.1, 1.2 y 1.3b. Probar en producción: reportar un precio, votar y ver el ID de dispositivo en Configuración.
-4. **Contraer:** `20261115060000_cerrar_escrituras_precios_reportes.sql` y `20261115060100_estaciones_de_prueba.sql`.
+4. **Contraer:** `20261115045357_cerrar_escrituras_precios_reportes.sql` y `20261115045457_estaciones_de_prueba.sql`.
 5. **Verificar:** `npm run security:check` (usa `.env`) → todo PASS. Revisar los advisors de seguridad.
 6. **MR** de `docs/roadmap-criterios` a `main` (Vercel despliega `main` a producción: ya es el mismo código).
 
