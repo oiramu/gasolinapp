@@ -129,6 +129,8 @@
 - Hallazgo del 2026-11-14: en producción `anon` y `authenticated` también tienen `TRUNCATE`, `REFERENCES` y `TRIGGER` sobre `fuel_prices`, `reports` y `stations` (TRUNCATE se salta RLS; PostgREST no lo expone, pero no debe quedar). Usar `REVOKE ALL` + `GRANT SELECT` en lugar del REVOKE parcial.
 - **pgTAP:** cada escritura directa con rol anon o authenticated falla.
 
+**Estado (2026-11-14):** hecho en local (`20261114220000_cerrar_escrituras_precios_reportes.sql`, pgTAP `005_escrituras_cerradas`). Además de las políticas, borra cualquier otra de escritura en `public` y deja solo SELECT también en las vistas (`latest_prices`, `daily_avg_prices`, `v_station_summary` tenían INSERT/UPDATE/DELETE para el cliente).
+
 ## [ ] 1.4 — Prueba de ataque contra producción
 
 - `scripts/security-check.ts`, que corre con `npm run security:check` y usa solo `SUPABASE_URL` y `SUPABASE_ANON_KEY`. Intenta:
@@ -143,12 +145,40 @@
 - Documéntalo en el README.
 - **Listo cuando:** Mario lo corre contra producción y todo sale PASS.
 
+**Estado (2026-11-14):** hecho en local. `scripts/security-check/` (casos como tabla + runner, TS nativo de Node 22), migración `20261114230000_estaciones_de_prueba.sql` (tres estaciones `is_test`, ocultas en la app; `clear_my_test_data` solo borra lo de la propia sesión en estaciones de prueba) y pgTAP `006_datos_de_prueba`. Contra el local: todo PASS; con un hueco reabierto a propósito: 2 FAIL y exit 1.
+
+---
+
+## Paso a producción (pendiente de autorización)
+
+Claude Code no tiene permiso para escribir en producción (lo bloqueó el modo automático), así que esto queda para Mario o para cuando se autorice `mcp__supabase__apply_migration` y `vercel deploy --prod`. Orden obligatorio (expandir → desplegar → contraer):
+
+1. **Dashboard de Supabase:** Authentication → Sign In / Providers → activar *Anonymous sign-ins*.
+2. **Migraciones aditivas** (el frontend actual sigue funcionando con ellas): `20261114180000_votos_rpc.sql` y `20261114200000_rpc_escritura.sql`, en ese orden (SQL Editor o `apply_migration`). Después, renombrar los archivos con la versión que quede en `supabase_migrations.schema_migrations`.
+3. **Deploy:** `npx vercel deploy --prod` desde la rama (o promover el preview del último commit). Sale todo junto: S0.1, 1.1, 1.2 y 1.3b. Probar en producción: reportar un precio, votar y ver el ID de dispositivo en Configuración.
+4. **Contraer:** `20261114220000_cerrar_escrituras_precios_reportes.sql` y `20261114230000_estaciones_de_prueba.sql`.
+5. **Verificar:** `npm run security:check` (usa `.env`) → todo PASS. Revisar los advisors de seguridad.
+6. **MR** de `docs/roadmap-criterios` a `main` (Vercel despliega `main` a producción: ya es el mismo código).
+
+Entre 2 y 3, los votos que entren por el frontend viejo se pierden con el siguiente voto por RPC en ese reporte; por eso el deploy va enseguida.
+
 ---
 
 ## Definición de "sprint terminado"
 
 - [ ] Producción = `main` = el repo (sin cambios hechos solo en el dashboard).
-- [ ] `npm run check` y pgTAP en verde.
+- [x] `npm run check` y pgTAP en verde (rama, 2026-11-14: 190 tests y 130 pgTAP).
 - [ ] `security:check` todo PASS contra producción.
-- [ ] Ninguna política de INSERT, UPDATE o DELETE pública queda en el schema (agrega a pgTAP un test que lo verifique sobre `pg_policies`).
-- [ ] ROADMAP.md actualizado y lo siguiente definido: Fase 2 (2.1 frescura, 2.2 precios oficiales, 2.3 pg_cron, 2.4 bugs del mapa).
+- [ ] Ninguna política de INSERT, UPDATE o DELETE pública queda en el schema (agrega a pgTAP un test que lo verifique sobre `pg_policies`). El test ya existe (`005`); falta aplicar la 1.3c en producción.
+- [x] ROADMAP.md actualizado y lo siguiente definido: Fase 2 (2.1 frescura, 2.2 precios oficiales, 2.3 pg_cron, 2.4 bugs del mapa).
+
+## Siguiente: Sprint 02 — Fase 2 (datos vivos)
+
+Arranca cuando este sprint esté en producción y mergeado. Orden propuesto, una tarea por sesión:
+
+1. **2.4 Bugs del mapa** primero: es verificación y deja el mapa estable para lo demás.
+2. **2.1 Frescura en lugar de vencimiento a 24 h**: `report_price` ya renueva `created_at`; falta el modelo de frescura en `shared/domain` y en la UI.
+3. **2.3 Refrescos programados con pg_cron** (`cron.unschedule` antes de `cron.schedule`): refresco de `latest_prices` y `daily_avg_prices`.
+4. **2.2 Precios oficiales de referencia**.
+
+Deuda que queda anotada: la 0.5 (slices del store; el adaptador `components/modals/ReportPriceModal.jsx` se va con ella), la 0.6a–e, y el ajuste de los privilegios por defecto de `public` para que las tablas nuevas no nazcan con escritura para el cliente.
