@@ -11,6 +11,7 @@ import { BRAND_COLORS } from '@/shared/domain/brands'
 import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
 import { ReportVotes } from '@/features/votes/ui/ReportVotes'
 import { StationFuelPrices } from '@/features/prices/ui/StationFuelPrices'
+import { useTrackStationOpen } from '@/features/analytics/model/useTrack'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
@@ -55,6 +56,7 @@ function ReportItem({ report, reportIds, onVoteError }) {
 export default function StationPanel({ station, zoneData }) {
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const openReportFor = useAppStore((state) => state.openReportFor)
+  useTrackStationOpen(station?.id ?? null)
   const hasData = hasReportedPrices(station)
 
   const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'

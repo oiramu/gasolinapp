@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useStations } from '@/features/stations/model/useStations'
 import { useZones } from '@/features/zones/model/useZones'
+import { useTrackAppOpen } from '@/features/analytics/model/useTrack'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/domain/geo'
 import TopBar from '@/components/TopBar'
@@ -26,6 +27,8 @@ export default function App() {
     defaultFuelType, 
     setDefaultFuelType 
   } = useAppStore()
+
+  useTrackAppOpen()
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { stations, loading, error } = useStations()

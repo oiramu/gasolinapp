@@ -9,6 +9,31 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      events: {
+        Row: {
+          created_at: string
+          id: number
+          name: Database["public"]["Enums"]["event_name"]
+          props: NonNullable<Json>
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: never
+          name: Database["public"]["Enums"]["event_name"]
+          props?: NonNullable<Json>
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          name?: Database["public"]["Enums"]["event_name"]
+          props?: NonNullable<Json>
+          user_id?: string
+        }
+        Relationships: []
+      }
       fuel_price_ranges: {
         Row: {
           fuel_type: string
@@ -1639,6 +1664,7 @@ export type Database = {
         Args: { p_services: Json; p_station_id: string }
         Returns: string[]
       }
+      track: { Args: { p_name: string; p_props?: Json }; Returns: undefined }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
@@ -1652,7 +1678,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      event_name:
+        | "app_open"
+        | "station_open"
+        | "price_reported"
+        | "price_confirmed"
+        | "vote"
+        | "share"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1787,6 +1819,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_name: [
+        "app_open",
+        "station_open",
+        "price_reported",
+        "price_confirmed",
+        "vote",
+        "share",
+      ],
+    },
   },
 } as const

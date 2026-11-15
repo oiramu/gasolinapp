@@ -1,0 +1,41 @@
+import { useCallback, useEffect } from 'react'
+import { useEnsureSession } from '@/features/auth/model/session'
+import type { EventName, EventProps } from '../api/types'
+import { useAnalyticsRepository } from './analyticsRepository'
+
+export type Track = (name: EventName, props?: EventProps) => void
+
+const NO_PROPS: EventProps = {}
+
+/**
+ * Registra un evento sin bloquear la UI: espera la sesión (el uid anónimo es la única
+ * identidad) y descarta los errores, porque una métrica nunca rompe la app. Estable entre renders.
+ */
+export function useTrack(): Track {
+  const repository = useAnalyticsRepository()
+  const ensureSession = useEnsureSession()
+  return useCallback<Track>(
+    (name, props = NO_PROPS) => {
+      void ensureSession()
+        .then(() => repository.track({ name, props }))
+        .catch(() => undefined)
+    },
+    [ensureSession, repository],
+  )
+}
+
+/** `app_open`, una vez al montar la app. */
+export function useTrackAppOpen(): void {
+  const track = useTrack()
+  useEffect(() => {
+    track('app_open')
+  }, [track])
+}
+
+/** `station_open` cada vez que se abre el panel de otra estación. */
+export function useTrackStationOpen(stationId: string | null): void {
+  const track = useTrack()
+  useEffect(() => {
+    if (stationId !== null) track('station_open', { station_id: stationId })
+  }, [track, stationId])
+}

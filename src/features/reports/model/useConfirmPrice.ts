@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useTrack } from '@/features/analytics/model/useTrack'
 import { useWithSession } from '@/features/auth/model/session'
 import type { Station } from '@/features/stations/api/types'
 import { patchConfirmed } from '@/features/stations/model/stationsCache'
@@ -17,11 +18,12 @@ export function restoreStations(queryClient: QueryClient, snapshot: StationsSnap
 
 /**
  * Command con rollback: el precio queda confirmado "ahora" al instante (su frescura sube),
- * se revierte si la RPC falla y, si sale bien, se usa el `confirmed_at` del servidor.
+ * se revierte si la RPC falla y, si sale bien, se usa el `confirmed_at` del servidor (y `price_confirmed`).
  */
 export function useConfirmPrice() {
   const repository = useReportsRepository()
   const queryClient = useQueryClient()
+  const track = useTrack()
   const writeConfirmed = (priceId: string, confirmedAt: string) => {
     queryClient.setQueryData<readonly Station[]>(queryKeys.stations, (stations) => stations && patchConfirmed(stations, priceId, confirmedAt))
   }
@@ -39,6 +41,7 @@ export function useConfirmPrice() {
     },
     onSuccess: (confirmedAt, priceId) => {
       writeConfirmed(priceId, confirmedAt)
+      track('price_confirmed', { price_id: priceId })
     },
   })
 }

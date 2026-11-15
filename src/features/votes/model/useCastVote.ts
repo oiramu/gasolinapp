@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTrack } from '@/features/analytics/model/useTrack'
 import { useWithSession } from '@/features/auth/model/session'
 import { queryKeys } from '@/shared/api/queryKeys'
 import { applyVote, type VoteOutcome } from '@/shared/domain/votes'
@@ -13,11 +14,12 @@ export interface CastVoteVariables extends VoteCommand {
 
 /**
  * Command con rollback: aplica el voto en la caché al instante, lo revierte si la RPC
- * falla y, si sale bien, reemplaza la predicción por la respuesta del servidor.
+ * falla y, si sale bien, reemplaza la predicción por la respuesta del servidor (y registra `vote`).
  */
 export function useCastVote() {
   const repository = useVotesRepository()
   const queryClient = useQueryClient()
+  const track = useTrack()
 
   return useMutation<VoteOutcome, Error, CastVoteVariables, VoteCacheSnapshot>({
     mutationFn: useWithSession(({ targetType, targetId, value }: CastVoteVariables) => repository.cast({ targetType, targetId, value })),
@@ -35,6 +37,7 @@ export function useCastVote() {
     },
     onSuccess: (outcome, variables) => {
       writeOutcome(queryClient, variables, outcome)
+      track('vote', { target_type: variables.targetType, value: variables.value })
     },
   })
 }

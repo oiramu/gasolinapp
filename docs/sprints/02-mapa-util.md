@@ -77,6 +77,11 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - Sobre un precio de referencia oficial, el botón dice "¿Es este el precio? Sí / No". "Sí" crea un reporte comunitario con ese valor por `report_price`.
 
 ## [ ] 3.4 — Medir desde el día uno
+**Estado (2026-11-15):** hecha en la rama; falta aplicar `20261116000500_eventos.sql` en producción (sin ella, `track` falla en silencio: la app no se entera).
+- Migración: enum `event_name` (la lista cerrada; TS la lee de `database.types.ts`), tabla `events` con RLS, sin políticas ni privilegios del cliente, y `CHECK` de props = objeto de ≤ 1 KB. RPC `track(p_name, p_props)`: sesión obligatoria, `INVALID_EVENT` / `INVALID_PROPS` (22023), 300 eventos por usuario por hora (`RATE_LIMIT`). pgTAP `012` (18 casos). Idempotente (probada dos veces en local).
+- Frontend: feature `analytics` (Repository Supabase/Mock + `useTrack`, que espera la sesión y descarta errores; `useEnsureSession` nuevo en `auth`). `app_open` en `App`, `station_open` en el panel, `price_reported` (solo con precios), `price_confirmed` y `vote` en sus mutaciones, `share` en "Compartir en WhatsApp" de la calculadora. Props sin datos personales (ids, combustibles, valor del voto).
+- `supabase/queries/metricas.sql`: métrica norte, usuarios activos por semana, reportes y confirmaciones por día (de las tablas) y conversión `station_open` → confirmar o reportar el mismo día. **Línea base en producción (2026-11-15, solo lectura): 162 estaciones activas en Barranquilla, 0 con precio confirmado en 7 días (0,0 %).**
+- `security:check`: caso nuevo "Leer o escribir directo en events y price_confirmations" (exige 42501; falla en producción hasta aplicar 0400 y 0500). En local: 9 PASS, 1 KNOWN.
 - Tabla `events(name, props jsonb, user_id, created_at)` con escritura solo por la RPC `track(p_name, p_props)`: `name` dentro de una lista cerrada, `props` de máximo 1 KB y límite de tasa. Sin datos personales, solo el uid anónimo.
 - Eventos: `app_open`, `station_open`, `price_reported`, `price_confirmed`, `vote`, `share`.
 - `supabase/queries/metricas.sql`:

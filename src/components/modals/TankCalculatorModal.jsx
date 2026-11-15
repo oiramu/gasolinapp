@@ -8,6 +8,7 @@ import { useAppStore } from '@/store/appStore'
 import { FUEL_TYPES, FUEL_ORDER, getLatestPrices, getFuelUnitLabel } from '@/shared/domain/fuel'
 import { formatPrice, formatPriceValue } from '@/shared/domain/format'
 import { useReferencePrice } from '@/features/prices/model/useReferencePrice'
+import { useTrack } from '@/features/analytics/model/useTrack'
 import { cn } from '@/lib/utils'
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ export default function TankCalculatorModal() {
     setCalculatorOpen,
     defaultFuelType,
   } = useAppStore()
+  const track = useTrack()
 
   // ─ Fuel type (local, no sobreescribe global) ─
   const [fuelType, setFuelType] = useState(() => lsGet(LS_FUEL_TYPE) ?? defaultFuelType ?? 'corriente')
@@ -204,6 +206,7 @@ export default function TankCalculatorModal() {
     }
     text += `\nConsulta precios en tiempo real 👉 ${url}`
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    track('share', { from: 'calculator', fuel_type: fuelType })
   }
 
   if (!calculatorOpen) return null

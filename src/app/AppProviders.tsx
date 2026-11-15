@@ -1,5 +1,6 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { AnalyticsRepositoryProvider } from '@/features/analytics/model/analyticsRepository'
 import { AuthRepositoryProvider } from '@/features/auth/model/authRepository'
 import { PricesRepositoryProvider } from '@/features/prices/model/pricesRepository'
 import { ReportsRepositoryProvider } from '@/features/reports/model/reportsRepository'
@@ -23,7 +24,9 @@ export function AppProviders({ repositories, queryClient, children }: AppProvide
           <ZonesRepositoryProvider value={repositories.zones}>
             <PricesRepositoryProvider value={repositories.prices}>
               <ReportsRepositoryProvider value={repositories.reports}>
-                <VotesRepositoryProvider value={repositories.votes}>{children}</VotesRepositoryProvider>
+                <VotesRepositoryProvider value={repositories.votes}>
+                  <AnalyticsRepositoryProvider value={repositories.analytics}>{children}</AnalyticsRepositoryProvider>
+                </VotesRepositoryProvider>
               </ReportsRepositoryProvider>
             </PricesRepositoryProvider>
           </ZonesRepositoryProvider>

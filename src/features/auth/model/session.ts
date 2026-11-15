@@ -1,4 +1,5 @@
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { queryKeys } from '@/shared/api/queryKeys'
 import type { AuthRepository, Session } from '../api/types'
 import { useAuthRepository } from './authRepository'
@@ -22,15 +23,18 @@ export function useHasSession(): boolean {
   return useSession() !== null
 }
 
-/**
- * Envuelve la función de una mutación para que nunca salga sin sesión: espera la
- * sesión en caché o la vuelve a pedir si el intento anterior falló.
- */
-export function useWithSession<A, R>(mutationFn: (args: A) => Promise<R>): (args: A) => Promise<R> {
+/** La sesión en caché o, si el intento anterior falló, una nueva. Estable entre renders. */
+export function useEnsureSession(): () => Promise<Session> {
   const repository = useAuthRepository()
   const queryClient = useQueryClient()
+  return useCallback(() => queryClient.query(sessionQuery(repository)), [queryClient, repository])
+}
+
+/** Envuelve la función de una mutación para que nunca salga sin sesión. */
+export function useWithSession<A, R>(mutationFn: (args: A) => Promise<R>): (args: A) => Promise<R> {
+  const ensureSession = useEnsureSession()
   return async (args: A) => {
-    await queryClient.query(sessionQuery(repository))
+    await ensureSession()
     return mutationFn(args)
   }
 }

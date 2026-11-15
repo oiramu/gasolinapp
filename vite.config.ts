@@ -8,7 +8,7 @@ const FULL_COVERAGE = 100
 const GLOBAL_COVERAGE_FLOOR = {
   lines: 72,
   branches: 85,
-  functions: 78,
+  functions: 79,
   statements: 72,
 }
 
