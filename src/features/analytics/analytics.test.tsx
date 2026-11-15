@@ -11,6 +11,7 @@ import { createTestClient, postgrestError, REST_URL } from '@/test/supabase'
 import { createMockAnalyticsRepository } from './api/mockAnalyticsRepository'
 import { createSupabaseAnalyticsRepository } from './api/supabaseAnalyticsRepository'
 import type { AnalyticsRepository } from './api/types'
+import { isAutomatedBrowser } from './model/automation'
 import { useTrack, useTrackAppOpen, useTrackStationOpen } from './model/useTrack'
 
 function spyAnalytics(track: AnalyticsRepository['track'] = () => Promise.resolve()) {
@@ -40,6 +41,17 @@ describe('repositorios de analytics', () => {
 
   it('el mock no registra nada', async () => {
     await expect(createMockAnalyticsRepository().track({ name: 'app_open', props: {} })).resolves.toBeUndefined()
+  })
+})
+
+describe('isAutomatedBrowser', () => {
+  const SAFARI = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15'
+  const HEADLESS = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.0 Safari/537.36'
+
+  it('detecta webdriver o Chrome sin ventana; un navegador normal sí se mide', () => {
+    expect(isAutomatedBrowser({ webdriver: true, userAgent: SAFARI })).toBe(true)
+    expect(isAutomatedBrowser({ webdriver: false, userAgent: HEADLESS })).toBe(true)
+    expect(isAutomatedBrowser({ webdriver: false, userAgent: SAFARI })).toBe(false)
   })
 })
 
@@ -74,6 +86,18 @@ describe('useTrack', () => {
     await waitFor(() => {
       expect(analytics.track).toHaveBeenCalledOnce()
     })
+  })
+
+  it('un navegador automatizado (capturas de cada deploy) no se mide', async () => {
+    // El caso visto en producción: Chrome sin ventana justo después de cada deploy
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/153.0.8010.0 Safari/537.36')
+    const analytics = spyAnalytics()
+    const { result } = renderWithProviders(() => useTrack(), { analytics })
+    act(() => {
+      result.current('app_open')
+    })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(analytics.track).not.toHaveBeenCalled()
   })
 
   it('es estable entre renders (sirve como dependencia de efectos)', () => {
