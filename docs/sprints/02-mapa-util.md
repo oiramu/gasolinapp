@@ -54,7 +54,8 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - Quita cualquier lógica que dependa de `expires_at`. La columna se elimina en una migración de contracción aparte, después del deploy.
 
 ## [ ] 2.2 — Precios oficiales de referencia (la tarea más importante del sprint)
-**Estado (2026-11-15):** datos y dominio hechos en la rama; falta la UI.
+**Estado (2026-11-15):** datos, dominio y UI hechos en la rama; falta aplicar la migración y cargar noviembre en producción.
+- UI: el pin usa `resolveDisplayPrice` para el combustible elegido (el oficial va con borde punteado, insignia REF y opacidad 0.9); el panel muestra cada combustible con `StationFuelPrices`/`FuelPriceCard` (comunitario con frescura, "Precio de referencia oficial (nov 2026)" + "Cada estación puede variar", o "Sin precio"); se quitó el promedio de zona como precio de la estación (`StationPanel` bajó de 409 a 283 líneas); la leyenda suma "Precio oficial". La ciudad de cada estación sale de su zona. Piso de cobertura 71/84/77/71.
 - Fuente: CREG, "Precios vigentes a partir del 1 de noviembre del 2026 (13 ciudades principales)", solo gasolina corriente y ACPM (diésel). Extra, GNV y urea no tienen precio oficial.
 - Migración `20261116000300_precios_referencia.sql` (sin aplicar): tabla `reference_prices` (FK a `fuel_price_ranges`, trigger con `INVALID_FUEL`/`OUT_OF_RANGE`, fuente https), vista `current_reference_prices` (vigente según la fecha de Bogotá), lectura pública y job mensual `check_reference_prices` (día 2, 06:00) que **no carga datos**: solo alerta en `ops_alerts` si el mes empezó sin precios. pgTAP `010` (17 casos).
 - Carga manual mensual: `npm run reference-prices:import` (vite-node) valida el CSV y genera el SQL; README "Precios oficiales de referencia (cada mes)". Noviembre: `data/reference-prices/2026-11.csv` → `2026-11.sql` (26 filas), **pendiente de validación de Mario contra la fuente**.

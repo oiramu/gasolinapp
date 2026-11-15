@@ -34,7 +34,18 @@ describe('stationPinModel', () => {
   it('la opacidad sigue la frescura del precio que se muestra; sin precio es dudoso', () => {
     expect(stationPinModel(withPrices, { fuelType: 'corriente', isFavorite: false, now: NOW })).toMatchObject({ freshness: 'fresh', opacity: FRESHNESS_OPACITY.fresh })
     expect(stationPinModel(withPrices, { fuelType: 'corriente', isFavorite: false, now: NOW + 12 * DAY })).toMatchObject({ freshness: 'old', opacity: FRESHNESS_OPACITY.old })
-    expect(stationPinModel(station({ fuel_prices: [] }), { fuelType: 'corriente', isFavorite: false, now: NOW }).freshness).toBe('doubtful')
+    expect(stationPinModel(station({ fuel_prices: [] }), { fuelType: 'corriente', isFavorite: false, now: NOW })).toMatchObject({
+      source: 'none', freshness: null, opacity: FRESHNESS_OPACITY.doubtful,
+    })
+  })
+
+  it('sin precio comunitario fresco usa el oficial de su ciudad, con su propia opacidad', () => {
+    const official = { price: 15964, validFrom: '2026-11-01' }
+    expect(stationPinModel(station({ fuel_prices: [] }), { fuelType: 'corriente', isFavorite: false, now: NOW, official })).toMatchObject({
+      label: '$15.964', source: 'reference', freshness: null, opacity: 0.9, color: FUEL_TYPES.corriente.color, hasData: true,
+    })
+    // Un comunitario fresco le gana al oficial
+    expect(stationPinModel(station(), { fuelType: 'corriente', isFavorite: false, now: NOW, official })).toMatchObject({ label: '$15.900', source: 'community' })
   })
 
   it('con GNV elegido atenúa del todo las estaciones sin GNV', () => {
@@ -85,6 +96,13 @@ describe('mapIcons', () => {
     const old = html(createStationIcon(s1, { fuelType: 'corriente', isFavorite: false, now: NOW + 12 * DAY }))
     expect(fresh).toContain('opacity:1')
     expect(old).toContain(`opacity:${String(FRESHNESS_OPACITY.old)}`)
+  })
+
+  it('el pin oficial lleva borde punteado e insignia REF', () => {
+    const pin = html(createStationIcon(station({ fuel_prices: [] }), { fuelType: 'diesel', isFavorite: false, now: NOW, official: { price: 11291, validFrom: '2026-11-01' } }))
+    expect(pin).toContain('data-reference')
+    expect(pin).toContain('dashed')
+    expect(pin).toContain('$11.291')
   })
 
   it('pinta zonas por combustible y reutiliza el ícono de la ubicación', () => {
