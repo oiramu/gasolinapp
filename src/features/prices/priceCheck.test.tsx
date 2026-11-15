@@ -57,11 +57,13 @@ describe('PriceCheckPrompt', () => {
 
   it('mientras responde deshabilita Sí y No; ya respondida muestra el agradecimiento', () => {
     const { rerender } = render(<PriceCheckPrompt check={check} answered={false} pending onYes={noop} onNo={noop} />)
-    expect(screen.getByText('¿Sigue en $15.900?')).toBeInTheDocument()
+    // Visible corto (el precio ya está a la vista); el nombre accesible lleva la pregunta completa
+    expect(screen.getByText('¿Sigue así?')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '¿Sigue en $15.900?' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sí' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'No' })).toBeDisabled()
     rerender(<PriceCheckPrompt check={check} answered pending={false} onYes={noop} onNo={noop} />)
-    expect(screen.getByText('✓ ¡Gracias!')).toBeInTheDocument()
+    expect(screen.getByText('¡Gracias!')).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
@@ -129,9 +131,9 @@ describe('StationFuelPrices: "¿Sigue en $X?"', () => {
 
   it('pregunta por el comunitario y por el oficial; "Sin precio" no pregunta', async () => {
     renderPrices()
-    expect(screen.getByText('¿Sigue en $15.900?')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '¿Sigue en $15.900?' })).toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByText('¿Es este el precio?')).toBeInTheDocument()
+      expect(screen.getAllByRole('group', { name: '¿Es este el precio?' })).toHaveLength(1)
     })
     expect(screen.getAllByRole('button', { name: 'Sí' })).toHaveLength(2)
   })
@@ -144,15 +146,15 @@ describe('StationFuelPrices: "¿Sigue en $X?"', () => {
       expect(notify).toHaveBeenCalledWith('¡Gracias!', 'success')
     })
     expect(confirmPrice).toHaveBeenCalledWith('p1')
-    expect(screen.getByText('✓ ¡Gracias!')).toBeInTheDocument()
-    expect(screen.queryByText('¿Sigue en $15.900?')).not.toBeInTheDocument()
+    expect(screen.getByText('¡Gracias!')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '¿Sigue en $15.900?' })).not.toBeInTheDocument()
   })
 
   it('Sí en el oficial lo reporta como precio de la estación', async () => {
     const reportPrice = vi.fn(() => Promise.resolve())
     const { prompt, notify, user } = renderPrices({ reportPrice })
     await waitFor(() => {
-      expect(screen.getByText('¿Es este el precio?')).toBeInTheDocument()
+      expect(screen.getByRole('group', { name: '¿Es este el precio?' })).toBeInTheDocument()
     })
     await user.click(prompt('¿Es este el precio?').getByRole('button', { name: 'Sí' }))
     await waitFor(() => {
@@ -175,7 +177,13 @@ describe('StationFuelPrices: "¿Sigue en $X?"', () => {
     await waitFor(() => {
       expect(notify).toHaveBeenCalledWith('Ya confirmaste este precio hoy. ¡Gracias!', 'error')
     })
-    expect(screen.getByText('¿Sigue en $15.900?')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '¿Sigue en $15.900?' })).toBeInTheDocument()
+  })
+
+  it('sin precio no pregunta: ofrece "Reportar" con ese combustible', async () => {
+    const { onReport, user } = renderPrices()
+    await user.click(screen.getByRole('button', { name: 'Reportar precio de Extra' }))
+    expect(onReport).toHaveBeenCalledExactlyOnceWith('extra')
   })
 })
 

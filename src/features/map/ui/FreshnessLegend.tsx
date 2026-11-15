@@ -1,26 +1,30 @@
 import { FRESHNESS_LABELS, FRESHNESS_ORDER, FRESHNESS_RANGES } from '@/shared/domain/freshness'
 import { FRESHNESS_OPACITY } from '@/shared/ui/freshness'
 
-/** Leyenda de frescura: un pin más transparente es un precio confirmado hace más tiempo; el punteado es el oficial. */
+const SWATCH = 'h-2.5 rounded-full border'
+
+/**
+ * Leyenda de frescura compacta para el celular: una escala de cuatro pasos (un pin más transparente
+ * es un precio confirmado hace más tiempo) y una fila para el oficial (borde punteado).
+ */
 export function FreshnessLegend({ color }: { readonly color: string }) {
   return (
-    <div className="space-y-1.5">
-      <p className="text-[9px] uppercase tracking-wider font-mono text-gray-500">Frescura del precio</p>
-      {FRESHNESS_ORDER.map((freshness) => (
-        <div key={freshness} className="flex items-center gap-3 text-[11px] font-mono text-gray-300">
-          <div
-            className="w-3.5 h-3.5 rounded-md border-2 flex-shrink-0"
-            style={{ borderColor: color, backgroundColor: `${color}33`, opacity: FRESHNESS_OPACITY[freshness] }}
-          />
-          <span>{FRESHNESS_LABELS[freshness]}</span>
-          <span className="ml-auto text-[10px] text-gray-500">{FRESHNESS_RANGES[freshness]}</span>
-        </div>
-      ))}
-      <div className="flex items-center gap-3 text-[11px] font-mono text-gray-300">
-        <div className="w-3.5 h-3.5 rounded-md border-2 border-dashed flex-shrink-0" style={{ borderColor: color }} />
-        <span>Precio oficial</span>
-        <span className="ml-auto text-[10px] text-gray-500">referencia</span>
-      </div>
+    <div className="space-y-2">
+      <p className="font-mono text-[9px] uppercase tracking-wider text-gray-500">Frescura del precio</p>
+      <ul className="grid grid-cols-4 gap-1.5">
+        {FRESHNESS_ORDER.map((freshness) => (
+          <li key={freshness} className="flex min-w-0 flex-col items-center gap-1 text-center">
+            <span className={`${SWATCH} w-full`} style={{ borderColor: color, backgroundColor: `${color}55`, opacity: FRESHNESS_OPACITY[freshness] }} />
+            <span className="text-[11px] leading-none text-gray-300">{FRESHNESS_LABELS[freshness]}</span>
+            <span className="font-mono text-[10px] leading-none text-gray-500">{FRESHNESS_RANGES[freshness]}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="flex items-center gap-2 text-[11px] text-gray-300">
+        <span className={`${SWATCH} w-6 shrink-0 border-dashed`} style={{ borderColor: color }} />
+        Precio oficial
+        <span className="ml-auto font-mono text-[10px] text-gray-500">referencia</span>
+      </p>
     </div>
   )
 }

@@ -100,7 +100,3 @@ export function getLatestPrices<T extends PriceRecord>(fuelPrices: readonly T[] 
   return latest
 }
 
-/** True si la estación tiene al menos un precio activo reportado. */
-export function hasReportedPrices(station: { readonly fuel_prices?: readonly PriceRecord[] | null }): boolean {
-  return station.fuel_prices?.some((price) => price.is_active === true) ?? false
-}

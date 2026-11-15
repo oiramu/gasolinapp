@@ -10,7 +10,7 @@ import { createTestClient, REST_URL } from '@/test/supabase'
 import { createMockPricesRepository, MOCK_OFFICIAL_PRICES } from './api/mockPricesRepository'
 import { createSupabasePricesRepository } from './api/supabasePricesRepository'
 import { buildOfficialLookup, useOfficialPrices } from './model/useOfficialPrices'
-import { FuelPriceCard } from './ui/FuelPriceCard'
+import { FuelPriceRow } from './ui/FuelPriceRow'
 import { StationFuelPrices } from './ui/StationFuelPrices'
 
 const SOURCE = 'https://creg.gov.co/publicaciones/15565/precios-de-combustibles-liquidos/'
@@ -58,18 +58,20 @@ describe('useOfficialPrices', () => {
   })
 })
 
-describe('FuelPriceCard', () => {
-  it('oficial: precio con la etiqueta del mes y la aclaración', () => {
-    const { container } = render(<FuelPriceCard fuelType="corriente" display={{ source: 'reference', price: 15964, validFrom: '2026-11-01' }} confirmedAt={null} />)
+describe('FuelPriceRow', () => {
+  const renderRow = (props: Parameters<typeof FuelPriceRow>[0]) => render(<ul><FuelPriceRow {...props} /></ul>)
+
+  it('oficial: precio y fuente con el mes, en una línea corta', () => {
+    const { container } = renderRow({ fuelType: 'corriente', display: { source: 'reference', price: 15964, validFrom: '2026-11-01' }, confirmedAt: null })
     expect(screen.getByText('$15.964')).toBeInTheDocument()
-    expect(screen.getByText('Precio de referencia oficial (nov 2026)')).toBeInTheDocument()
-    expect(screen.getByText('Cada estación puede variar')).toBeInTheDocument()
+    expect(screen.getByText('Oficial · nov 2026')).toBeInTheDocument()
     expect(container.querySelector('[data-source="reference"]')).not.toBeNull()
   })
 
-  it('sin precio: "Sin precio", sin promedio de zona', () => {
-    render(<FuelPriceCard fuelType="extra" display={{ source: 'none' }} confirmedAt={null} />)
+  it('sin precio: "Sin precio" y que nadie lo ha reportado, sin promedio de zona', () => {
+    renderRow({ fuelType: 'extra', display: { source: 'none' }, confirmedAt: null })
     expect(screen.getByText('Sin precio')).toBeInTheDocument()
+    expect(screen.getByText('Nadie lo ha reportado')).toBeInTheDocument()
     expect(screen.queryByText(/promedio/i)).not.toBeInTheDocument()
   })
 })
@@ -99,13 +101,15 @@ describe('StationFuelPrices', () => {
   it('en Barranquilla: comunitario fresco, diésel oficial, extra y GNV sin precio y la urea oculta', async () => {
     const { container } = renderPrices('Barranquilla')
     expect(screen.getByText('$15.900')).toBeInTheDocument()
-    expect(screen.getByText(/confirmado hace 1d/)).toBeInTheDocument()
+    expect(screen.getByText(/hace 1d/)).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getByText('$11.291')).toBeInTheDocument()
     })
     expect(screen.getAllByText('Sin precio')).toHaveLength(2)
     expect(screen.queryByText('AdBlue/Urea')).not.toBeInTheDocument()
     expect(container.querySelectorAll('[data-source="reference"]')).toHaveLength(1)
+    // La aclaración del oficial va una sola vez, al pie
+    expect(screen.getAllByText(/Cada estación puede variar/)).toHaveLength(1)
   })
 
   it('en una ciudad sin precio oficial, el diésel también queda "Sin precio"', async () => {
@@ -113,5 +117,6 @@ describe('StationFuelPrices', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Sin precio')).toHaveLength(3)
     })
+    expect(screen.queryByText(/Cada estación puede variar/)).not.toBeInTheDocument()
   })
 })

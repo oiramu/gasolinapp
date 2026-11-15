@@ -22,12 +22,12 @@ export const FRESHNESS_LABELS: Readonly<Record<Freshness, string>> = {
   doubtful: 'Dudoso',
 }
 
-/** Rangos para la leyenda: "< 3 días", "< 10 días", "< 30 días", "30 días o más". */
+/** Rangos compactos para la leyenda del mapa (caben en una columna angosta en el celular). */
 export const FRESHNESS_RANGES: Readonly<Record<Freshness, string>> = {
-  fresh: '< 3 días',
-  recent: '< 10 días',
-  old: '< 30 días',
-  doubtful: '30 días o más',
+  fresh: '< 3 d',
+  recent: '< 10 d',
+  old: '< 30 d',
+  doubtful: '30+ d',
 }
 
 export const FRESHNESS_ORDER: readonly Freshness[] = ['fresh', 'recent', 'old', 'doubtful']
@@ -39,7 +39,7 @@ export function getFreshness(confirmedAt: string | null | undefined, now: number
   return FRESHNESS_STEPS.find((step) => days < step.belowDays)?.freshness ?? 'doubtful'
 }
 
-/** "confirmado hace 3d", "confirmado ahora mismo" o "sin confirmar". */
+/** "hace 3d", "ahora mismo" o "sin confirmar": cuándo se confirmó el precio por última vez. */
 export function formatConfirmed(confirmedAt: string | null | undefined, now: number): string {
-  return confirmedAt ? `confirmado ${formatRelativeTime(confirmedAt, now)}` : 'sin confirmar'
+  return confirmedAt ? formatRelativeTime(confirmedAt, now) : 'sin confirmar'
 }

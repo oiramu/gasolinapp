@@ -26,8 +26,8 @@ describe('getFreshness', () => {
 
 describe('formatConfirmed', () => {
   it('dice cuándo se confirmó o que falta confirmar', () => {
-    expect(formatConfirmed(daysAgo(3), NOW)).toBe('confirmado hace 3d')
-    expect(formatConfirmed(new Date(NOW).toISOString(), NOW)).toBe('confirmado ahora mismo')
+    expect(formatConfirmed(daysAgo(3), NOW)).toBe('hace 3d')
+    expect(formatConfirmed(new Date(NOW).toISOString(), NOW)).toBe('ahora mismo')
     expect(formatConfirmed(null, NOW)).toBe('sin confirmar')
   })
 })
@@ -35,7 +35,7 @@ describe('formatConfirmed', () => {
 describe('textos de frescura', () => {
   it('cada nivel tiene etiqueta y rango, en orden de más a menos fresco', () => {
     expect(FRESHNESS_ORDER.map((f) => `${FRESHNESS_LABELS[f]} (${FRESHNESS_RANGES[f]})`)).toEqual([
-      'Fresco (< 3 días)', 'Reciente (< 10 días)', 'Viejo (< 30 días)', 'Dudoso (30 días o más)',
+      'Fresco (< 3 d)', 'Reciente (< 10 d)', 'Viejo (< 30 d)', 'Dudoso (30+ d)',
     ])
   })
 })

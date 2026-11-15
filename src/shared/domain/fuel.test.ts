@@ -5,7 +5,6 @@ import {
   getFuelUnit,
   getFuelUnitLabel,
   getLatestPrices,
-  hasReportedPrices,
   isFuelType,
   isPriceOutlier,
 } from './fuel'
@@ -94,17 +93,5 @@ describe('getLatestPrices', () => {
 
   it('sin precios devuelve un objeto vacío', () => {
     expect(getLatestPrices()).toEqual({})
-  })
-})
-
-describe('hasReportedPrices', () => {
-  it('es true con al menos un precio activo', () => {
-    expect(hasReportedPrices({ fuel_prices: [price('extra', null, false), price('gnv', null)] })).toBe(true)
-  })
-
-  it('es false sin precios activos o sin lista', () => {
-    expect(hasReportedPrices({ fuel_prices: [price('extra', null, false)] })).toBe(false)
-    expect(hasReportedPrices({ fuel_prices: null })).toBe(false)
-    expect(hasReportedPrices({})).toBe(false)
   })
 })
