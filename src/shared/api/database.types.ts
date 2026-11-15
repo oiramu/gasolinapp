@@ -104,6 +104,28 @@ export type Database = {
           },
         ]
       }
+      ops_alerts: {
+        Row: {
+          check_name: string
+          created_at: string
+          detail: NonNullable<Json>
+          id: number
+        }
+        ComputedFields: never
+        Insert: {
+          check_name: string
+          created_at?: string
+          detail?: NonNullable<Json>
+          id?: never
+        }
+        Update: {
+          check_name?: string
+          created_at?: string
+          detail?: NonNullable<Json>
+          id?: never
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           content: string | null
@@ -506,6 +528,15 @@ export type Database = {
         Args: { p_max: number; p_recent: number }
         Returns: undefined
       }
+      _expected_srid_4326: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          auth_name: string
+          auth_srid: number
+          proj4text: string
+          srtext: string
+        }[]
+      }
       _lock_vote_target: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: undefined
@@ -667,6 +698,7 @@ export type Database = {
           votes_up: number
         }[]
       }
+      check_srid_4326: { Args: Record<PropertyKey, never>; Returns: boolean }
       clear_my_test_data: { Args: Record<PropertyKey, never>; Returns: number }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -927,6 +959,11 @@ export type Database = {
         }
         Returns: string
       }
+      restore_srid_4326: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      srid_4326_intact: { Args: Record<PropertyKey, never>; Returns: boolean }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown

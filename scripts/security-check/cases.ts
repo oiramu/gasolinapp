@@ -124,5 +124,16 @@ const spatialRefSys: AttackCase = {
   },
 }
 
+// Solo lectura: la fila de WGS 84 que usan las coordenadas de las estaciones sigue siendo la esperada
+const srid4326Intact: AttackCase = {
+  name: 'La fila SRID 4326 de PostGIS está intacta',
+  async run(ctx) {
+    const { data, error } = await ctx.client.rpc('srid_4326_intact')
+    return verdict(data === true, error ? `error: ${error.message}` : `srid_4326_intact() = ${String(data)}; restaurar con supabase/rollbacks/restaurar_srid_4326.sql`)
+  },
+}
+
 /** En el orden del sprint, salvo el límite de tasa: va al final porque agota los reportes de la sesión. */
-export const ATTACK_CASES: readonly AttackCase[] = [forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, spatialRefSys, rateLimit]
+export const ATTACK_CASES: readonly AttackCase[] = [
+  forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, spatialRefSys, srid4326Intact, rateLimit,
+]
