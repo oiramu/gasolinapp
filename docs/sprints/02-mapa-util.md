@@ -41,6 +41,7 @@ Siguen vigentes las reglas de CLAUDE.md y del Sprint 01: expandir y luego contra
 - El filtro "cerca" tiene que aplicarse a los marcadores del mapa, no solo a la tarjeta y a la búsqueda.
 - Cambiar de combustible no vuelve a montar el mapa: se conservan el centro y el zoom.
 - Tests de comportamiento (Testing Library) para los dos casos.
+- **Fix después del cierre (2026-11-15):** el mapa solo cargaba 1000 de las 1683 estaciones activas (tope `max_rows` de PostgREST, sin paginar ni ordenar: cuáles 1000 llegaban no estaba garantizado). `list()` ahora pagina con `fetchAllPages` (`shared/api/pagination.ts`: orden fijo por `id`, `count: 'exact'`, avanza por las filas recibidas). Verificado contra producción en solo lectura: 1683 estaciones, ids únicos, 247 precios.
 
 ## [x] 2.1 — Frescura en lugar de vencer a 24 h
 **Estado (2026-11-15):** hecha. Contracción `20261115160445_quitar_expires_at` aplicada después del deploy del merge (PR #3, deploy de producción en `success`, el bundle ya no lee la columna; ninguna vista, función ni índice dependía de ella). Verificado: columna eliminada, 247 precios activos con `confirmed_at`, la lectura de la app (repositorios reales contra producción) y `security:check` (9 PASS, 1 KNOWN, 0 FAIL) siguen bien. Antes: expansión aplicada en producción (`20261115054737`, verificada: 247 precios con `confirmed_at` = `created_at`, 0 nulos; `security:check` sin FAIL). La contracción espera al deploy del sprint.

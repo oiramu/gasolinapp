@@ -24,6 +24,26 @@ describe('createSupabaseStationsRepository.list', () => {
     expect(stations).toEqual([{ ...stationFields(), fuel_prices: [fuelPrice()], reports: [report()] }])
   })
 
+  it('pagina con orden fijo y trae más estaciones que el tope de PostgREST (1686 en producción)', async () => {
+    const TOTAL = 1686
+    const MAX_ROWS = 1000
+    const all = Array.from({ length: TOTAL }, (_, index) => ({ ...stationFields({ id: `s${String(index).padStart(4, '0')}` }), fuel_prices: [], reports: [] }))
+    const requests: URLSearchParams[] = []
+    server.use(
+      http.get(`${REST_URL}/stations`, ({ request }) => {
+        const query = new URL(request.url).searchParams
+        requests.push(query)
+        const offset = Number(query.get('offset') ?? 0)
+        const page = all.slice(offset, offset + Math.min(Number(query.get('limit')), MAX_ROWS))
+        const contentRange = `${String(offset)}-${String(offset + page.length - 1)}/${String(TOTAL)}`
+        return HttpResponse.json(page, { headers: { 'Content-Range': contentRange } })
+      }),
+    )
+    const stations = await createSupabaseStationsRepository(createTestClient()).list()
+    expect(stations.map((station) => station.id)).toEqual(all.map((station) => station.id))
+    expect(requests.map((query) => [query.get('offset'), query.get('order')])).toEqual([['0', 'id.asc'], ['1000', 'id.asc']])
+  })
+
   it('propaga el error de PostgREST', async () => {
     server.use(http.get(`${REST_URL}/stations`, () => postgrestError('sin permiso')))
     await expect(createSupabaseStationsRepository(createTestClient()).list()).rejects.toThrow('sin permiso')
