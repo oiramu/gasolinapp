@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- Token de captcha para crear la sesión de security:check contra producción (S0.1).
+     Con `npm run dev` abierto: http://localhost:5173/scripts/security-check/token.html?sitekey=<clave del sitio>
+     localhost tiene que estar entre los dominios del sitio en Cloudflare Turnstile. -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Token de captcha</title>
+    <style>
+      body { font-family: system-ui, sans-serif; background: #111318; color: #e5e7eb; margin: 2rem; }
+      textarea { width: 100%; height: 8rem; background: #1a1e27; color: #00e5a0; border: 1px solid #333; border-radius: 0.5rem; padding: 0.5rem; }
+    </style>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+  </head>
+  <body>
+    <h1>Token de captcha para security:check</h1>
+    <p id="estado">Verificando…</p>
+    <div id="widget"></div>
+    <textarea id="token" readonly placeholder="El token aparece aquí (vence a los 5 minutos y es de un solo uso)"></textarea>
+    <p>Luego: <code>SECURITY_CHECK_CAPTCHA_TOKEN=&lt;token&gt; npm run security:check</code></p>
+    <script>
+      window.addEventListener('load', () => {
+        const sitekey = new URLSearchParams(location.search).get('sitekey')
+        const estado = document.getElementById('estado')
+        if (!sitekey) { estado.textContent = 'Falta ?sitekey=<clave del sitio> en la URL.'; return }
+        window.turnstile.render('#widget', {
+          sitekey,
+          callback: (token) => { document.getElementById('token').value = token; estado.textContent = 'Listo: copia el token.' },
+          'error-callback': () => { estado.textContent = 'Turnstile falló: revisa que localhost esté entre los dominios del sitio.' },
+        })
+      })
+    </script>
+  </body>
+</html>

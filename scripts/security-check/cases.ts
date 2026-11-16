@@ -5,6 +5,8 @@ import type { Database } from '../../src/shared/api/database.types.ts'
 
 export interface Context {
   readonly client: SupabaseClient<Database>
+  /** Cliente nuevo, sin sesión (para probar el alta). */
+  readonly newClient: () => SupabaseClient<Database>
   readonly uid: string
   readonly stations: readonly string[]
   readonly minPrices: ReadonlyMap<string, number>
@@ -113,6 +115,16 @@ const directTables: AttackCase = {
   },
 }
 
+// S0.1: crear una sesión anónima sin token de captcha tiene que fallar. Si llegara a crearse,
+// queda un usuario anónimo huérfano (sin datos), que es justo lo que el captcha debe impedir.
+const signUpWithoutCaptcha: AttackCase = {
+  name: 'Alta anónima sin captcha',
+  async run(ctx) {
+    const { data, error } = await ctx.newClient().auth.signInAnonymously()
+    return verdict(error !== null && data.user === null, error ? `rechazada: ${String(error.code ?? error.message)}` : 'se creó una sesión sin captcha')
+  },
+}
+
 const PERMISSION_DENIED = '42501'
 
 // Tablas que solo tocan las RPC (confirm_price, track). Se exige 42501: si la tabla no existe, no pasa en falso.
@@ -152,5 +164,6 @@ const srid4326Intact: AttackCase = {
 
 /** En el orden del sprint, salvo el límite de tasa: va al final porque agota los reportes de la sesión. */
 export const ATTACK_CASES: readonly AttackCase[] = [
-  forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, rpcOnlyTables, spatialRefSys, srid4326Intact, rateLimit,
+  signUpWithoutCaptcha, forgePrice, insertDirect, editStation, doubleVote, outOfRange, directTables, rpcOnlyTables, spatialRefSys, srid4326Intact,
+  rateLimit,
 ]

@@ -16,6 +16,7 @@ import MapLegend from '@/components/MapLegend'
 import FilterChips from '@/components/FilterChips'
 import BestPriceCard from '@/components/BestPriceCard'
 import Toast from '@/components/Toast'
+import { SessionNotice } from '@/features/auth/ui/SessionNotice'
 import { cn } from '@/lib/utils'
 
 export default function App() {
@@ -173,6 +174,7 @@ export default function App() {
         onSelect={(s) => setSelectedStation(s)}
       />
       <TankCalculatorModal />
+      <SessionNotice />
       <Toast />
     </div>
   )

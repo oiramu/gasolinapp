@@ -109,7 +109,15 @@ Editar `.env` con los valores de **Project Settings > API**:
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGci...
+VITE_TURNSTILE_SITE_KEY=1x00000000000000000000BB   # captcha del alta anónima (ver abajo)
 ```
+
+**Captcha del alta anónima (Cloudflare Turnstile, modo invisible).** Cada dispositivo nuevo pasa un captcha invisible antes de crear su sesión anónima; los que ya tienen sesión no lo vuelven a ver. Sin `VITE_TURNSTILE_SITE_KEY` no se pide captcha (sirve mientras esté apagado en Supabase). En local, `supabase/config.toml` activa el captcha con la clave secreta de prueba de Cloudflare y `.env.example` trae la clave de sitio de prueba (`1x00000000000000000000BB`): las dos siempre pasan. En producción:
+
+1. Cloudflare → Turnstile → crear el sitio en modo **Invisible**, con los dominios de producción, de los previews de Vercel y `localhost`.
+2. Vercel → Environment Variables → `VITE_TURNSTILE_SITE_KEY` con la clave del sitio (es pública) y redeploy.
+3. Con ese deploy en producción: Supabase → Authentication → Bot and Abuse Protection → CAPTCHA → Turnstile con la **clave secreta** (solo ahí; nunca en el repo ni en Vercel). Activarlo antes del deploy bloquearía las altas nuevas.
+4. Supabase → Authentication → Rate Limits → altas anónimas por IP. Con el captcha activo no hace falta bajarlo mucho: en Colombia muchos celulares salen por la misma IP del operador.
 
 ### 5. Correr en dev
 
@@ -158,7 +166,7 @@ Si el día 2 del mes no hay precios cargados, el job `check_reference_prices` de
 
 ### Prueba de seguridad (`npm run security:check`)
 
-Ataca el proyecto como lo haría cualquiera con la anon key: crea una sesión anónima e intenta cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.
+Ataca el proyecto como lo haría cualquiera con la anon key: intenta crear una sesión anónima sin captcha y, con su propia sesión, cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.
 
 ```bash
 npm run security:check                                        # usa VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY de .env
@@ -167,7 +175,8 @@ SUPABASE_URL=... SUPABASE_ANON_KEY=... npm run security:check # contra otro proy
 
 - Solo usa la URL y la anon key; nunca la service key.
 - Escribe únicamente en las tres estaciones de prueba (`is_test = true`, ocultas en la app) y al final borra lo suyo con la RPC `clear_my_test_data`, que solo puede borrar lo que escribió la misma sesión en estaciones de prueba.
-- Cada corrida crea un usuario anónimo nuevo (con sus propios límites de tasa) y queda en `auth.users`.
+- **Sesión reutilizable (S0.1).** Con el captcha activo no puede crear una sesión en cada corrida: reutiliza siempre la misma mediante su refresh token, que rota en cada uso y se guarda en `~/.config/gasolinapp/security-check-session.json` (fuera del repo, permisos 600; otra ruta con `SECURITY_CHECK_SESSION_FILE`). No hace `signOut`: revocaría esa sesión.
+- **Primera vez o sesión perdida.** Contra Supabase local la crea sola, con el token de prueba. Contra producción, lo más simple es correr `security:check` una vez **antes** de activar el captcha. Si después se pierde la sesión, hace falta un token real: con `npm run dev` abierto, ir a `http://localhost:5173/scripts/security-check/token.html?sitekey=<clave del sitio>`, copiar el token y correr `SECURITY_CHECK_CAPTCHA_TOKEN=<token> npm run security:check` (vence a los 5 minutos y es de un solo uso).
 
 ---
 

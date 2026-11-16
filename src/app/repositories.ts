@@ -1,8 +1,10 @@
 import { createMockAnalyticsRepository } from '@/features/analytics/api/mockAnalyticsRepository'
 import { createSupabaseAnalyticsRepository } from '@/features/analytics/api/supabaseAnalyticsRepository'
 import type { AnalyticsRepository } from '@/features/analytics/api/types'
+import type { CaptchaProvider } from '@/features/auth/api/captcha'
 import { createMockAuthRepository } from '@/features/auth/api/mockAuthRepository'
 import { createSupabaseAuthRepository } from '@/features/auth/api/supabaseAuthRepository'
+import { createTurnstileCaptcha, createTurnstileLoader } from '@/features/auth/api/turnstileCaptcha'
 import type { AuthRepository } from '@/features/auth/api/types'
 import { createMockPricesRepository } from '@/features/prices/api/mockPricesRepository'
 import { createSupabasePricesRepository } from '@/features/prices/api/supabasePricesRepository'
@@ -48,9 +50,9 @@ export function createMockRepositories(latencyMs = MOCK_LATENCY_MS): Repositorie
   }
 }
 
-export function createSupabaseRepositories(client: AppSupabaseClient): Repositories {
+export function createSupabaseRepositories(client: AppSupabaseClient, captcha: CaptchaProvider | null = null): Repositories {
   return {
-    auth: createSupabaseAuthRepository(client),
+    auth: createSupabaseAuthRepository(client, captcha),
     stations: createSupabaseStationsRepository(client),
     zones: createSupabaseZonesRepository(client),
     prices: createSupabasePricesRepository(client),
@@ -60,7 +62,11 @@ export function createSupabaseRepositories(client: AppSupabaseClient): Repositor
   }
 }
 
-/** Strategy: el único lugar que decide entre Supabase y Mock. */
+const captchaFor = (siteKey: string | null): CaptchaProvider | null =>
+  siteKey ? createTurnstileCaptcha({ siteKey, load: createTurnstileLoader() }) : null
+
+/** Strategy: el único lugar que decide entre Supabase y Mock (y si el alta anónima pide captcha). */
 export function createRepositories(env: AppEnv): Repositories {
-  return env.dataSource === 'mock' ? createMockRepositories() : createSupabaseRepositories(createSupabaseClient(env.supabase))
+  if (env.dataSource === 'mock') return createMockRepositories()
+  return createSupabaseRepositories(createSupabaseClient(env.supabase), captchaFor(env.captchaSiteKey))
 }
