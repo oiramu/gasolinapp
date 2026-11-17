@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import {
   Fuel, MapPin, Plus, X,
   AlertTriangle, Tag, MessageSquare,
@@ -15,7 +15,9 @@ import { ShareStationButton } from '@/features/share/ui/ShareStationButton'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
-import PriceHistoryChart from '@/components/panels/PriceHistoryChart'
+
+// Velocidad: el gráfico (recharts, ~260 KB) se descarga solo al abrir la pestaña Historial
+const PriceHistoryChart = lazy(() => import('@/components/panels/PriceHistoryChart'))
 
 const REPORT_ICONS = { price: Tag, promotion: Star, warning: AlertTriangle, comment: MessageSquare, correction: Info }
 
@@ -262,10 +264,12 @@ export default function StationPanel({ station, zoneData }) {
         ) : (
           /* ── Price History ───────────────────────────────── */
           <div className="p-4 pt-6">
-            <PriceHistoryChart
-              stationId={station.id}
-              initialFuelType={defaultFuelType}
-            />
+            <Suspense fallback={<p className="py-12 text-center text-xs text-gray-500">Cargando historial…</p>}>
+              <PriceHistoryChart
+                stationId={station.id}
+                initialFuelType={defaultFuelType}
+              />
+            </Suspense>
           </div>
         )}
       </div>

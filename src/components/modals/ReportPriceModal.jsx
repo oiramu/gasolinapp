@@ -1,6 +1,10 @@
+import { lazy, Suspense } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { features } from '@/config/features'
-import { ReportPriceModal as ReportPriceModalView } from '@/features/reports/ui/ReportPriceModal'
+
+/** El formulario de reporte no va en el bundle inicial: se descarga al abrirlo (App lo precarga en segundo plano). */
+export const loadReportPriceModal = () => import('@/features/reports/ui/ReportPriceModal')
+const ReportPriceModalView = lazy(() => loadReportPriceModal().then((module) => ({ default: module.ReportPriceModal })))
 
 /**
  * Adaptador del store legado (hasta la 0.5): el modal en TSX no conoce Zustand.
@@ -16,13 +20,15 @@ export default function ReportPriceModal({ station }) {
   if (!open || !station) return null
 
   return (
-    <ReportPriceModalView
-      station={station}
-      servicesEnabled={features.serviceSuggestions}
-      expandServices={expandServices}
-      initialFuel={initialFuel}
-      onClose={() => setReportModalOpen(false)}
-      notify={showToast}
-    />
+    <Suspense fallback={null}>
+      <ReportPriceModalView
+        station={station}
+        servicesEnabled={features.serviceSuggestions}
+        expandServices={expandServices}
+        initialFuel={initialFuel}
+        onClose={() => setReportModalOpen(false)}
+        notify={showToast}
+      />
+    </Suspense>
   )
 }

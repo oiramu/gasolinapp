@@ -6,6 +6,7 @@ import { createQueryClient } from './app/queryClient'
 import { createRepositories } from './app/repositories'
 import { registerServiceWorker } from './app/serviceWorker'
 import { parseEnv } from './shared/config/env'
+import 'leaflet/dist/leaflet.css'
 import './index.css'
 
 const repositories = createRepositories(parseEnv(import.meta.env))

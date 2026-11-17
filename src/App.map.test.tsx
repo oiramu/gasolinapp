@@ -94,6 +94,50 @@ describe('Enlace directo a una estación (3.2)', () => {
   })
 })
 
+describe('Modales diferidos (velocidad de carga)', () => {
+  afterEach(() => {
+    useAppStore.setState({ calculatorOpen: false })
+  })
+
+  it('configuración y búsqueda se descargan al abrirlas desde la barra superior', async () => {
+    const user = renderApp()
+    await screen.findByTestId('map-dock')
+    expect(screen.queryByText('Combustible por defecto')).not.toBeInTheDocument()
+    await user.click(screen.getByTitle('Configuración'))
+    expect(await screen.findByText('Combustible por defecto')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    act(() => {
+      useAppStore.setState({ settingsModalOpen: false })
+    })
+    await user.click(screen.getByTitle('Buscar estación (Cmd+K)'))
+    const search = await screen.findByPlaceholderText('Buscar estación, empresa, barrio...')
+    await user.type(search, 'Terpel')
+    act(() => {
+      useAppStore.setState({ spotlightOpen: false })
+    })
+  })
+
+  it('el historial de una estación se descarga al abrir su pestaña', async () => {
+    const user = renderApp()
+    act(() => {
+      useAppStore.setState({ selectedStation: near, panelOpen: true })
+    })
+    await user.click(await screen.findByRole('button', { name: /Historial/i }))
+    expect(await screen.findByText(/Sin reportes en los últimos/)).toBeInTheDocument()
+    act(() => {
+      useAppStore.setState({ selectedStation: null, panelOpen: false })
+    })
+  })
+
+  it('la calculadora no se monta hasta abrirla; al abrirla se descarga y aparece', async () => {
+    const user = renderApp()
+    await screen.findByTestId('map-dock')
+    expect(screen.queryByText('Compartir en WhatsApp')).not.toBeInTheDocument()
+    await user.click(await screen.findByRole('button', { name: /Calcular/ }))
+    expect(await screen.findByText('Compartir en WhatsApp')).toBeInTheDocument()
+  })
+})
+
 describe('Mejor precio y leyenda en el celular (S0.2)', () => {
   it('van apilados en la misma columna (tarjeta arriba, leyenda abajo), sin alturas fijas que se desfasen', async () => {
     renderApp()
