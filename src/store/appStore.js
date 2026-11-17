@@ -21,12 +21,16 @@ export const useAppStore = create((set, get) => ({
   // Map state
   mapZoom: 12,
   mapCenter: [10.99, -74.808],
+  // Zoom al que ir con el próximo centro (enlace directo); null = conservar el zoom actual
+  mapFocusZoom: null,
   setMapZoom: (zoom) => set({ mapZoom: zoom }),
-  setMapCenter: (center) => set({ mapCenter: center }),
+  setMapCenter: (center) => set({ mapCenter: center, mapFocusZoom: null }),
+  focusMap: (center, zoom) => set({ mapCenter: center, mapFocusZoom: zoom }),
 
-  // Selected station
+  // Selected station. source: de dónde se abrió ('map' | 'search' | 'link'), para station_open
   selectedStation: null,
-  setSelectedStation: (station) => set({ selectedStation: station, panelOpen: !!station }),
+  selectionSource: 'map',
+  setSelectedStation: (station, source = 'map') => set({ selectedStation: station, panelOpen: !!station, selectionSource: source }),
 
   // Side panel
   panelOpen: false,

@@ -55,7 +55,8 @@ function ReportItem({ report, reportIds, onVoteError }) {
 export default function StationPanel({ station, zoneData }) {
   const { setPanelOpen, setReportModalOpen, defaultFuelType, favoriteStationId, setFavoriteStationId, showToast } = useAppStore()
   const openReportFor = useAppStore((state) => state.openReportFor)
-  useTrackStationOpen(station?.id ?? null)
+  const selectionSource = useAppStore((state) => state.selectionSource)
+  useTrackStationOpen(station?.id ?? null, selectionSource)
 
   const [activeTab, setActiveTab] = useState('precios') // 'precios' | 'historial'
 

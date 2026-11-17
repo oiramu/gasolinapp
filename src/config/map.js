@@ -15,6 +15,9 @@ export const MAP_DEFAULT_ZOOM = 14
  */
 export const MAP_CLUSTER_ZOOM_THRESHOLD = 13
 
+/** Zoom para manejar: lo bastante cerca para ver las estaciones alrededor (GPS y enlaces directos). */
+export const MAP_DRIVING_ZOOM = 16
+
 /**
  * Esri dark basemap — matches the app's dark theme.
  * Split into a base (shading) layer and a reference (labels/roads) layer,

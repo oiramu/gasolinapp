@@ -35,10 +35,13 @@ export function useTrackAppOpen(): void {
   }, [track])
 }
 
-/** `station_open` cada vez que se abre el panel de otra estación. */
-export function useTrackStationOpen(stationId: string | null): void {
+/** De dónde llegó la persona a la estación: un enlace compartido, el mapa o la búsqueda. */
+export type StationOpenSource = 'link' | 'map' | 'search'
+
+/** `station_open` cada vez que se abre el panel de otra estación, con su origen. */
+export function useTrackStationOpen(stationId: string | null, source: StationOpenSource): void {
   const track = useTrack()
   useEffect(() => {
-    if (stationId !== null) track('station_open', { station_id: stationId })
-  }, [track, stationId])
+    if (stationId !== null) track('station_open', { station_id: stationId, source })
+  }, [track, stationId, source])
 }

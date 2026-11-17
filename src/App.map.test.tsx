@@ -1,12 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.jsx'
 import { AppProviders } from './app/AppProviders'
 import { createMockRepositories } from './app/repositories'
 import { createMockStationsRepository } from './features/stations/api/mockStationsRepository'
 import type { Station } from './features/stations/api/types'
+import { useAppStore } from './store/appStore'
 import { station, stationFields } from './test/fixtures/stations'
 import { createTestQueryClient } from './test/renderWithProviders'
 
@@ -46,6 +47,51 @@ function renderApp() {
 beforeEach(() => {
   mapView.mounts = 0
   mapView.stationIds = []
+})
+
+/** El store es JS legado (hasta la 0.5): se tipa aquí solo lo que el test lee. */
+interface LinkState {
+  readonly selectedStation: { readonly id: string } | null
+  readonly panelOpen: boolean
+  readonly selectionSource: string
+  readonly defaultFuelType: string
+  readonly mapCenter: readonly number[]
+  readonly mapFocusZoom: number | null
+  readonly setPanelOpen: (open: boolean) => void
+}
+const appState = () => useAppStore.getState() as LinkState
+
+describe('Enlace directo a una estación (3.2)', () => {
+  beforeEach(() => {
+    useAppStore.setState({ selectedStation: null, panelOpen: false, selectionSource: 'map', defaultFuelType: 'corriente', mapFocusZoom: null })
+  })
+
+  afterEach(() => {
+    window.history.replaceState(null, '', '/')
+  })
+
+  it('?estacion=&combustible= abre el panel de esa estación con su combustible y enfoca el mapa', async () => {
+    window.history.replaceState(null, '', '/?estacion=lejos&combustible=diesel')
+    renderApp()
+    await waitFor(() => {
+      expect(appState()).toMatchObject({ selectedStation: { id: 'lejos' }, panelOpen: true, selectionSource: 'link', defaultFuelType: 'diesel' })
+    })
+    expect(appState()).toMatchObject({ mapCenter: [far.lat, far.lng], mapFocusZoom: 16 })
+    expect(window.location.search).toBe('?estacion=lejos&combustible=diesel')
+    act(() => {
+      appState().setPanelOpen(false)
+    })
+    expect(window.location.search).toBe('')
+  })
+
+  it('un id que no existe abre el mapa normal, sin errores, y limpia la URL', async () => {
+    window.history.replaceState(null, '', '/?estacion=no-existe&combustible=extra')
+    renderApp()
+    await waitFor(() => {
+      expect(window.location.search).toBe('')
+    })
+    expect(appState()).toMatchObject({ selectedStation: null, panelOpen: false, defaultFuelType: 'corriente' })
+  })
 })
 
 describe('Mejor precio y leyenda en el celular (S0.2)', () => {

@@ -45,10 +45,17 @@ Orden de despliegue (expandir y luego contraer):
 
 ---
 
-## [ ] 3.2 — Enlaces directos por estación
+## [x] 3.2 — Enlaces directos por estación
 - `?estacion=<id>&combustible=<tipo>`: al cargar, centra el mapa, abre el panel y selecciona el combustible. Un id inválido abre el mapa normal, sin errores.
 - Abrir o cerrar el panel actualiza la URL con `history.replaceState`, sin ensuciar el historial.
 - `track('station_open', { source: 'link' | 'map' | 'search' })` para medir de dónde llega la gente.
+
+**Estado (2026-11-16):** hecha en la rama.
+- `src/app/stationLink.ts` (leer y escribir el enlace conservando los demás parámetros; un combustible desconocido se ignora) y `useStationLink` (abre la estación cuando cargan las estaciones y desde ahí mantiene la URL con `replaceState`).
+- Store: `focusMap(center, zoom)` para centrar a zoom de manejo (`MAP_DRIVING_ZOOM`, ahora en `config/map.js`) y `selectionSource` en `setSelectedStation(station, source)`: búsqueda → `search`, enlace → `link`, pines y "Mejor precio" → `map`. El panel lo manda en `station_open`.
+- El primer GPS ya no le quita el centro a una estación abierta por enlace.
+- El combustible del enlace queda como el combustible elegido (igual que elegirlo en la app, se guarda como preferencia).
+- Verificado en la app (mock, 375 px): el enlace abre la estación con su combustible; cerrar limpia la URL; tocar otro pin la actualiza; un id inválido deja el mapa normal; el historial no crece; sin errores. Tests: `src/app/stationLink.test.ts` y `App.map.test.tsx`.
 
 ## [ ] 3.3 — Compartir por WhatsApp
 - Botón "Compartir" en el panel de la estación y en "Mejor precio". Usa la Web Share API y, si no está disponible, `https://wa.me/?text=`.

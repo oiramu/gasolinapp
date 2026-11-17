@@ -3,6 +3,8 @@ import { useAppStore } from '@/store/appStore'
 import { useStations } from '@/features/stations/model/useStations'
 import { useZones } from '@/features/zones/model/useZones'
 import { useTrackAppOpen } from '@/features/analytics/model/useTrack'
+import { useStationLink } from '@/app/useStationLink'
+import { MAP_DRIVING_ZOOM } from '@/config/map'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/domain/geo'
 import TopBar from '@/components/TopBar'
@@ -30,11 +32,26 @@ export default function App() {
   } = useAppStore()
 
   useTrackAppOpen()
+  const focusMap = useAppStore((state) => state.focusMap)
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { stations, loading, error } = useStations()
   const zones                        = useZones()
   const { position: userPos }        = useGeolocation({})
+
+  // 3.2: enlace directo ?estacion=<id>&combustible=<tipo> y la URL al día con la estación abierta
+  const openFromLink = useCallback((station, fuelType) => {
+    if (fuelType) setDefaultFuelType(fuelType)
+    setSelectedStation(station, 'link')
+    focusMap([station.lat, station.lng], MAP_DRIVING_ZOOM)
+  }, [setDefaultFuelType, setSelectedStation, focusMap])
+  useStationLink({
+    stations,
+    ready: !loading,
+    openStationId: panelOpen ? selectedStation?.id ?? null : null,
+    fuelType: defaultFuelType,
+    onOpen: openFromLink,
+  })
 
   // Keep the selected station panel in sync with the freshest data
   const syncedStation = selectedStation
@@ -174,7 +191,7 @@ export default function App() {
         stations={filteredStations}
         activeFuelType={defaultFuelType}
         userPos={userPos}
-        onSelect={(s) => setSelectedStation(s)}
+        onSelect={(s) => setSelectedStation(s, 'search')}
       />
       <TankCalculatorModal />
       <SessionNotice />

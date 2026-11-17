@@ -18,10 +18,8 @@ import {
   MAP_MAX_ZOOM,
   MAP_TILE_MAX_NATIVE_ZOOM,
   MAP_CLUSTER_ZOOM_THRESHOLD,
+  MAP_DRIVING_ZOOM as DRIVING_ZOOM,
 } from '@/config/map'
-
-/** Zoom suitable for a driver — close enough to see nearby stations */
-const DRIVING_ZOOM = 16
 
 // ── Internal: listens to map events and updates store/state ─────────────────
 function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoundsChange, onDragStart }) {
@@ -45,15 +43,16 @@ function MapEventsWatcher({ onZoomChange, onMove, onMoveStart, onMoveEnd, onBoun
 // ── Internal: syncs store mapCenter → actual map view ───────────────────────
 function MapSync() {
   const mapCenter = useAppStore((s) => s.mapCenter)
+  const mapFocusZoom = useAppStore((s) => s.mapFocusZoom)
   const map       = useMap()
   const prevCenter = useRef(null)
 
   useEffect(() => {
     if (mapCenter && prevCenter.current?.toString() !== mapCenter.toString()) {
-      map.flyTo(mapCenter, map.getZoom(), { duration: 0.8 })
+      map.flyTo(mapCenter, mapFocusZoom ?? map.getZoom(), { duration: 0.8 })
       prevCenter.current = mapCenter
     }
-  }, [mapCenter, map])
+  }, [mapCenter, mapFocusZoom, map])
 
   return null
 }
@@ -179,8 +178,9 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
     setVisibleBrands(uniqueBrands)
   }, [bounds, stations, showClusters, setVisibleBrands])
 
-  // Fly to user on first GPS fix at driving zoom
+  // Fly to user on first GPS fix at driving zoom (salvo que ya haya una estación abierta, p. ej. por enlace)
   const handleFirstFix = useCallback(({ lat, lng }) => {
+    if (useAppStore.getState().selectedStation) return
     if (mapRef.current) {
       mapRef.current.flyTo([lat, lng], DRIVING_ZOOM, { duration: 1.2 })
       setIsLocked(true)
