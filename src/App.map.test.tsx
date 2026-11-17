@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, configure, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,6 +10,10 @@ import type { Station } from './features/stations/api/types'
 import { useAppStore } from './store/appStore'
 import { station, stationFields } from './test/fixtures/stations'
 import { createTestQueryClient } from './test/renderWithProviders'
+
+// Integración con módulos diferidos (recharts, modales): con la cobertura activa, su primera
+// transformación puede pasar de 1 s, el tiempo por defecto de findBy/waitFor. Solo en este archivo.
+configure({ asyncUtilTimeout: 5000 })
 
 // 2.4: lo que el mapa recibe y cuántas veces se monta, sin depender de Leaflet en jsdom
 const mapView = vi.hoisted(() => ({ mounts: 0, stationIds: [] as string[] }))
@@ -34,8 +38,8 @@ vi.mock('@/hooks/useGeolocation', () => ({
 const near = station({ ...stationFields({ id: 'cerca', lat: 10.985, lng: -74.805 }) })
 const far = station({ ...stationFields({ id: 'lejos', lat: 4.6, lng: -74.08 }) }) // Bogotá
 
-function renderApp() {
-  const repositories = { ...createMockRepositories(0), stations: createMockStationsRepository([near, far], 0) }
+function renderApp(stations: readonly Station[] = [near, far]) {
+  const repositories = { ...createMockRepositories(0), stations: createMockStationsRepository([...stations], 0) }
   render(
     <AppProviders repositories={repositories} queryClient={createTestQueryClient()}>
       <App />
@@ -150,6 +154,22 @@ describe('Mejor precio y leyenda en el celular (S0.2)', () => {
     expect(legend).toHaveTextContent('Visor')
     // La causa del bug: la tarjeta adivinaba la altura de la leyenda con bottom-[80px]/bottom-[240px]
     expect(card?.className).not.toMatch(/(^|\s)bottom-\[/)
+  })
+})
+
+describe('Tarjeta "Mejor precio" de alto fijo', () => {
+  it('sin servicios, la fila de íconos igual ocupa su lugar (la tarjeta no cambia de alto)', async () => {
+    const withoutServices = station({ ...stationFields({ id: 'cerca', lat: 10.985, lng: -74.805, svc_tienda: false }) })
+    renderApp([withoutServices, far])
+    const row = await screen.findByTestId('best-services')
+    expect(row.children).toHaveLength(0)
+    expect(row.className).toMatch(/(^|\s)h-4(\s|$)/)
+  })
+
+  it('con servicios, los íconos van en esa misma fila', async () => {
+    renderApp()
+    const row = await screen.findByTestId('best-services')
+    expect(row.children.length).toBeGreaterThan(0)
   })
 })
 
