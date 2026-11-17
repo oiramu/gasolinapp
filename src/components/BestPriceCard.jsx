@@ -15,6 +15,39 @@ const SIX_HOURS = 6 * 60 * 60 * 1000
 // Escritorio: flota abajo al centro.
 const DOCK_POSITION = 'pointer-events-auto w-full max-w-[360px] sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:bottom-6 sm:z-[450] sm:w-max sm:min-w-[300px]'
 
+const MAX_ICONS = 5
+
+/**
+ * Íconos de los servicios de la estación. La fila ocupa siempre el mismo alto (h-4), tenga o no
+ * servicios: así la tarjeta mide lo mismo con cualquier estación y no "salta" al cambiar.
+ */
+function ServiceIcons({ station, onMore }) {
+  const activeSrvcs = SERVICES.filter(s => station?.[s.key] === true)
+  const hasAtms = (station?.atm_franquicias || []).length > 0
+  const items = [
+    ...activeSrvcs.map(s => ({ key: s.key, Icon: s.icon })),
+    ...(hasAtms ? [{ key: 'atm', Icon: Landmark }] : []),
+  ]
+  const display = items.slice(0, MAX_ICONS === items.length ? MAX_ICONS : MAX_ICONS - 1)
+  const overflow = items.length > MAX_ICONS ? items.length - display.length : 0
+
+  return (
+    <div data-testid="best-services" className="flex h-4 items-center gap-1.5 mt-1">
+      {display.map(({ key, Icon }) => (
+        <Icon key={key} size={13} className="text-gray-400 opacity-70" aria-hidden />
+      ))}
+      {overflow > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onMore() }}
+          className="flex items-center justify-center h-4 text-[9px] font-mono font-bold text-gray-400 border border-white/10 rounded px-1.5 ml-0.5 hover:bg-white/5 active:scale-95 transition-all bg-surface-muted/30"
+        >
+          +{overflow}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function BestPriceCard({ station, fuelType, userPos, onSelect }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
@@ -115,38 +148,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
             <p className="text-[13px] font-semibold text-white truncate">{station.name}</p>
             <p className="text-[10px] text-gray-500 font-mono truncate">{station.brand}</p>
             
-            {/* Services Inline */}
-            {(() => {
-              const activeSrvcs = SERVICES.filter(s => station?.[s.key] === true)
-              const hasAtms = (station?.atm_franquicias || []).length > 0
-              if (activeSrvcs.length === 0 && !hasAtms) return null
-              
-              const items = [ 
-                ...activeSrvcs.map(s => ({ key: s.key, Icon: s.icon })), 
-                ...(hasAtms ? [{ key: 'atm', Icon: Landmark }] : []) 
-              ]
-
-              const MAX_ICONS = 5
-              const display = items.slice(0, MAX_ICONS === items.length ? MAX_ICONS : MAX_ICONS - 1)
-              const overflow = items.length > MAX_ICONS ? items.length - display.length : 0
-
-              return (
-                <div className="flex items-center gap-1.5 mt-1">
-                  {display.map(item => {
-                    const Icon = item.Icon
-                    return <Icon key={item.key} size={13} className="text-gray-400 opacity-70" />
-                  })}
-                  {overflow > 0 && (
-                     <button
-                       onClick={(e) => { e.stopPropagation(); setSelectedStation(station); setPanelOpen(true) }}
-                       className="flex items-center justify-center h-[16px] text-[9px] font-mono font-bold text-gray-400 border border-white/10 rounded px-1.5 ml-0.5 hover:bg-white/5 active:scale-95 transition-all bg-surface-muted/30"
-                     >
-                       +{overflow}
-                     </button>
-                  )}
-                </div>
-              )
-            })()}
+            <ServiceIcons station={station} onMore={() => { setSelectedStation(station); setPanelOpen(true) }} />
 
             <div className="flex items-center gap-2 mt-1.5">
               {distance !== null && (
