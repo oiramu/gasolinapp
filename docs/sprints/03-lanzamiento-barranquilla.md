@@ -35,8 +35,13 @@ Orden de despliegue (expandir y luego contraer):
 - Verificado en local (Supabase con captcha): `security:check` todo PASS más 1 KNOWN en corridas seguidas con la misma sesión (1 solo usuario anónimo creado); la app con el widget real de Cloudflare (clave de prueba) crea la sesión al cargar y no vuelve a pedir captcha al recargar; con Turnstile bloqueado aparece el aviso, el mapa sigue usable y "Reintentar" crea la sesión.
 - Para el paso 4 hace falta que el código llegue a `main`: merge de la rama del sprint a mitad de camino.
 
-### [ ] S0.2 La leyenda no queda tapada
+### [x] S0.2 La leyenda no queda tapada
 - Con la leyenda abierta, la tarjeta "Mejor precio" no la tapa en el celular (360 a 430 px de ancho). Test de layout o captura con Playwright **solo contra local**.
+
+**Estado (2026-11-16):** hecha en la rama.
+- Causa: la tarjeta adivinaba la altura de la leyenda con `bottom-[80px]` / `bottom-[240px]`; la leyenda cambió de alto y la tapaba.
+- Arreglo de layout: en el celular, tarjeta y leyenda van apiladas en una sola columna anclada abajo (`map-dock`, tarjeta arriba y leyenda abajo), así la altura de una empuja a la otra. `right-16` deja libre la columna de zoom y ubicación del mapa, que también tapaba la tarjeta. En escritorio (`sm:contents`) cada una sigue en su lugar. La tarjeta ya no depende de `legendOpen`, y su fila de acciones puede pasar a dos líneas (a 360 px se cortaba "Ver").
+- Verificado con Playwright contra local (mock): 360×640, 390×844 y 430×844 con la leyenda cerrada y abierta, más escritorio 1280×800, sin solapamientos entre tarjeta, leyenda y botones de zoom, todo dentro de la pantalla y sin errores. Test de regresión en `App.map.test.tsx`.
 
 ---
 

@@ -102,8 +102,6 @@ export default function App() {
             zones={zones}
             onBoundsChange={handleBoundsChange}
           />
-          <MapLegend loading={loading} />
-
           {/* Filter Chips — elevated higher up */}
           <FilterChips
             activeFuelType={defaultFuelType}
@@ -113,15 +111,20 @@ export default function App() {
             onDistanceChange={setDistanceMode}
           />
 
-          {/* Best Price Card — floating bottom-center (adjusting its own internal mobile bottom) */}
-          {!panelOpen && (
-            <BestPriceCard
-              station={bestStation}
-              fuelType={defaultFuelType}
-              userPos={userPos}
-              onSelect={(s) => setSelectedStation(s)}
-            />
-          )}
+          {/* Celular: mejor precio y leyenda apilados en una columna abajo, así la altura de una empuja
+              a la otra y nunca se tapan; right-16 deja libre la columna de zoom y ubicación del mapa.
+              Escritorio (sm:contents): cada uno en su propia posición. */}
+          <div data-testid="map-dock" className="pointer-events-none absolute left-4 right-16 bottom-6 z-[400] flex flex-col items-start gap-3 sm:contents">
+            {!panelOpen && (
+              <BestPriceCard
+                station={bestStation}
+                fuelType={defaultFuelType}
+                userPos={userPos}
+                onSelect={(s) => setSelectedStation(s)}
+              />
+            )}
+            <MapLegend loading={loading} />
+          </div>
 
           {/* Loading overlay */}
           {loading && (

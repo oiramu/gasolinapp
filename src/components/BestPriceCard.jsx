@@ -10,10 +10,14 @@ import { cn } from '@/lib/utils'
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
 
+// Celular: va en la columna inferior de App (MapDock), apilada sobre la leyenda: nunca la tapa.
+// Escritorio: flota abajo al centro.
+const DOCK_POSITION = 'pointer-events-auto w-full max-w-[360px] sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:bottom-6 sm:z-[450] sm:w-max sm:min-w-[300px]'
+
 export default function BestPriceCard({ station, fuelType, userPos, onSelect }) {
   const [visible, setVisible] = useState(false)
   const [prevId, setPrevId]   = useState(null)
-  const { setCalculatorOpen, legendOpen, setPanelOpen, setSelectedStation } = useAppStore()
+  const { setCalculatorOpen, setPanelOpen, setSelectedStation } = useAppStore()
 
   const fuelConfig = FUEL_TYPES[fuelType]
   const fuelColor  = fuelConfig?.color || '#00E5A0'
@@ -37,10 +41,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
 
   if (noGnvInArea) {
     return (
-      <div className={cn(
-        "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300",
-        legendOpen ? "bottom-[240px] sm:bottom-6" : "bottom-[80px] sm:bottom-6"
-      )}>
+      <div className={cn(DOCK_POSITION, 'transition-all duration-300')}>
         <div
           className="bg-surface-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           style={{ borderColor: fuelColor + '30' }}
@@ -75,8 +76,8 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
   return (
     <div
       className={cn(
-        "absolute left-1/2 -translate-x-1/2 z-[450] w-[calc(100%-2rem)] sm:w-max min-w-[300px] max-w-[360px] transition-all duration-300 ease-out",
-        legendOpen ? "bottom-[240px] sm:bottom-6" : "bottom-[80px] sm:bottom-6",
+        DOCK_POSITION,
+        'transition-all duration-300 ease-out',
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
     >
@@ -152,7 +153,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
               <span className="text-[10px] font-mono text-gray-600">{formatRelativeTime(price.created_at)}</span>
             </div>
 
-            <div className="flex items-center gap-1.5 mt-3">
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
               <a
                 href={mapsUrl}
                 target="_blank"

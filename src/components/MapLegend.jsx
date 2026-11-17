@@ -20,7 +20,7 @@ export default function MapLegend({ loading, realtimeConnected = true }) {
   }
 
   return (
-    <div className="absolute bottom-6 left-4 z-[400] w-[256px] bg-surface-card/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="pointer-events-auto w-[256px] max-w-full sm:absolute sm:bottom-6 sm:left-4 sm:z-[400] bg-surface-card/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
       
       {/* ── Header: Title & Realtime Status ── */}
       <button
