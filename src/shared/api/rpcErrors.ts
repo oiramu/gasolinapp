@@ -1,4 +1,4 @@
-// Códigos que lanzan las RPC (RAISE EXCEPTION '<CÓDIGO>') y su mensaje para el usuario.
+// Códigos que lanzan las RPC (RAISE EXCEPTION '<CÓDIGO>') y el alta anónima (captcha), con su mensaje para el usuario.
 
 const RPC_ERROR_MESSAGES = {
   NOT_AUTHENTICATED: 'No hay sesión en este dispositivo. Recarga la página e intenta de nuevo.',
@@ -13,9 +13,11 @@ const RPC_ERROR_MESSAGES = {
   TARGET_NOT_FOUND: 'Ese reporte ya no está disponible.',
   PRICE_NOT_FOUND: 'Ese precio ya no está vigente. Recarga la estación.',
   ALREADY_CONFIRMED: 'Ya confirmaste este precio hoy. ¡Gracias!',
+  CAPTCHA_UNAVAILABLE: 'No pudimos verificar tu conexión. Si usas un bloqueador de anuncios, pausa la verificación y reintenta.',
+  CAPTCHA_FAILED: 'No pudimos verificar que eres una persona. Recarga la página e intenta de nuevo.',
 } as const satisfies Record<string, string>
 
-type RpcErrorCode = keyof typeof RPC_ERROR_MESSAGES
+export type RpcErrorCode = keyof typeof RPC_ERROR_MESSAGES
 
 const isRpcErrorCode = (message: string): message is RpcErrorCode => Object.hasOwn(RPC_ERROR_MESSAGES, message)
 

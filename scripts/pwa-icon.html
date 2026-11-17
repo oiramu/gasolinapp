@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Plantilla de los íconos de la PWA (4.2). ?size=512 y ?maskable=1 (el dibujo queda en la zona
+     segura del 80 % para que Android lo recorte en círculo o gota sin cortar el surtidor).
+     Se captura a size×size: public/icons/icon-192.png, icon-512.png, icon-maskable-512.png y
+     public/apple-touch-icon.png (180). README, "Instalable como PWA". -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; box-sizing: border-box; }
+      html, body { width: 100vw; height: 100vh; background: transparent; }
+      .tile { width: 100vw; height: 100vh; display: grid; place-items: center; background: #111318; }
+      .tile.rounded { border-radius: 22%; border: 0.6vw solid rgba(0, 229, 160, 0.35); }
+      svg { width: 56%; height: 56%; }
+      .maskable svg { width: 46%; height: 46%; }
+    </style>
+  </head>
+  <body>
+    <div class="tile" id="tile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" x2="15" y1="22" y2="22" /><line x1="4" x2="14" y1="9" y2="9" />
+        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
+        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5" />
+      </svg>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search)
+      document.getElementById('tile').classList.add(params.get('maskable') ? 'maskable' : 'rounded')
+    </script>
+  </body>
+</html>

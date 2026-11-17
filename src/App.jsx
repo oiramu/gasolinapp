@@ -3,6 +3,8 @@ import { useAppStore } from '@/store/appStore'
 import { useStations } from '@/features/stations/model/useStations'
 import { useZones } from '@/features/zones/model/useZones'
 import { useTrackAppOpen } from '@/features/analytics/model/useTrack'
+import { useStationLink } from '@/app/useStationLink'
+import { MAP_DRIVING_ZOOM } from '@/config/map'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/domain/geo'
 import TopBar from '@/components/TopBar'
@@ -16,6 +18,8 @@ import MapLegend from '@/components/MapLegend'
 import FilterChips from '@/components/FilterChips'
 import BestPriceCard from '@/components/BestPriceCard'
 import Toast from '@/components/Toast'
+import { SessionNotice } from '@/features/auth/ui/SessionNotice'
+import { InstallBanner } from '@/features/install/ui/InstallBanner'
 import { cn } from '@/lib/utils'
 
 export default function App() {
@@ -29,11 +33,26 @@ export default function App() {
   } = useAppStore()
 
   useTrackAppOpen()
+  const focusMap = useAppStore((state) => state.focusMap)
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { stations, loading, error } = useStations()
   const zones                        = useZones()
   const { position: userPos }        = useGeolocation({})
+
+  // 3.2: enlace directo ?estacion=<id>&combustible=<tipo> y la URL al día con la estación abierta
+  const openFromLink = useCallback((station, fuelType) => {
+    if (fuelType) setDefaultFuelType(fuelType)
+    setSelectedStation(station, 'link')
+    focusMap([station.lat, station.lng], MAP_DRIVING_ZOOM)
+  }, [setDefaultFuelType, setSelectedStation, focusMap])
+  useStationLink({
+    stations,
+    ready: !loading,
+    openStationId: panelOpen ? selectedStation?.id ?? null : null,
+    fuelType: defaultFuelType,
+    onOpen: openFromLink,
+  })
 
   // Keep the selected station panel in sync with the freshest data
   const syncedStation = selectedStation
@@ -101,8 +120,6 @@ export default function App() {
             zones={zones}
             onBoundsChange={handleBoundsChange}
           />
-          <MapLegend loading={loading} />
-
           {/* Filter Chips — elevated higher up */}
           <FilterChips
             activeFuelType={defaultFuelType}
@@ -112,15 +129,20 @@ export default function App() {
             onDistanceChange={setDistanceMode}
           />
 
-          {/* Best Price Card — floating bottom-center (adjusting its own internal mobile bottom) */}
-          {!panelOpen && (
-            <BestPriceCard
-              station={bestStation}
-              fuelType={defaultFuelType}
-              userPos={userPos}
-              onSelect={(s) => setSelectedStation(s)}
-            />
-          )}
+          {/* Celular: mejor precio y leyenda apilados en una columna abajo, así la altura de una empuja
+              a la otra y nunca se tapan; right-16 deja libre la columna de zoom y ubicación del mapa.
+              Escritorio (sm:contents): cada uno en su propia posición. */}
+          <div data-testid="map-dock" className="pointer-events-none absolute left-4 right-16 bottom-6 z-[400] flex flex-col items-start gap-3 sm:contents">
+            {!panelOpen && (
+              <BestPriceCard
+                station={bestStation}
+                fuelType={defaultFuelType}
+                userPos={userPos}
+                onSelect={(s) => setSelectedStation(s)}
+              />
+            )}
+            <MapLegend loading={loading} />
+          </div>
 
           {/* Loading overlay */}
           {loading && (
@@ -170,9 +192,14 @@ export default function App() {
         stations={filteredStations}
         activeFuelType={defaultFuelType}
         userPos={userPos}
-        onSelect={(s) => setSelectedStation(s)}
+        onSelect={(s) => setSelectedStation(s, 'search')}
       />
       <TankCalculatorModal />
+      {/* Avisos bajo la barra superior, apilados para que nunca se tapen entre sí */}
+      <div className="pointer-events-none fixed inset-x-4 top-16 z-[900] mx-auto flex max-w-md flex-col gap-2">
+        <SessionNotice />
+        <InstallBanner />
+      </div>
       <Toast />
     </div>
   )

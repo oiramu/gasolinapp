@@ -18,8 +18,15 @@ describe('createRepositories (Strategy)', () => {
   })
 
   it('en modo Supabase crea el cliente y los repositorios remotos', () => {
-    const repositories = createRepositories({ dataSource: 'supabase', supabase: { url: 'http://supabase.test', anonKey: 'anon' } })
+    const repositories = createRepositories({ dataSource: 'supabase', supabase: { url: 'http://supabase.test', anonKey: 'anon' }, captchaSiteKey: null })
     expect(Object.keys(repositories).sort()).toEqual(REPOSITORY_NAMES)
+  })
+
+  it('con clave de Turnstile compone el captcha sin descargar el script hasta el alta', () => {
+    const supabase = { url: 'http://supabase.test', anonKey: 'anon' }
+    const repositories = createRepositories({ dataSource: 'supabase', supabase, captchaSiteKey: '1x00000000000000000000BB' })
+    expect(Object.keys(repositories).sort()).toEqual(REPOSITORY_NAMES)
+    expect(document.querySelector('script[src*="turnstile"]')).toBeNull()
   })
 })
 

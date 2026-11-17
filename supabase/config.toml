@@ -213,10 +213,12 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# S0.1: el alta anónima exige captcha. En local se usa la clave secreta de prueba de Cloudflare,
+# que acepta el token de prueba (XXXX.DUMMY.TOKEN.XXXX). La clave real solo vive en el dashboard.
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "1x0000000000000000000000000000000AA"
 
 [auth.email]
 # Allow/disallow the email provider. When false, users can't sign up or sign in with email.

@@ -12,7 +12,7 @@ import { createMockAnalyticsRepository } from './api/mockAnalyticsRepository'
 import { createSupabaseAnalyticsRepository } from './api/supabaseAnalyticsRepository'
 import type { AnalyticsRepository } from './api/types'
 import { isAutomatedBrowser } from './model/automation'
-import { useTrack, useTrackAppOpen, useTrackStationOpen } from './model/useTrack'
+import { useTrack, useTrackAppOpen, useTrackStationOpen, type StationOpenSource } from './model/useTrack'
 
 function spyAnalytics(track: AnalyticsRepository['track'] = () => Promise.resolve()) {
   const analytics = { track: vi.fn(track) }
@@ -120,23 +120,26 @@ describe('eventos de pantalla', () => {
     })
   })
 
-  it('station_open al abrir cada estación; sin estación no registra nada', async () => {
+  it('station_open al abrir cada estación, con su origen; sin estación no registra nada', async () => {
     const analytics = spyAnalytics()
     let stationId: string | null = null
+    let source: StationOpenSource = 'map'
     const { rerender } = renderWithProviders(() => {
-      useTrackStationOpen(stationId)
+      useTrackStationOpen(stationId, source)
     }, { analytics })
     stationId = 's1'
+    source = 'link'
     rerender()
     rerender()
     stationId = 's2'
+    source = 'search'
     rerender()
     await waitFor(() => {
       expect(analytics.track).toHaveBeenCalledTimes(2)
     })
     expect(analytics.track.mock.calls.map(([event]) => event)).toEqual([
-      { name: 'station_open', props: { station_id: 's1' } },
-      { name: 'station_open', props: { station_id: 's2' } },
+      { name: 'station_open', props: { station_id: 's1', source: 'link' } },
+      { name: 'station_open', props: { station_id: 's2', source: 'search' } },
     ])
   })
 })

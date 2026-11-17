@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Plantilla de public/og-image.png (vista previa de los enlaces en WhatsApp, 1200×630).
+     Para regenerarla: abrir este archivo a 1200×630 y capturar la página (README, "Vista previa al compartir"). -->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+    <style>
+      :root { --surface: #111318; --card: #1a1e27; --muted: #22272f; --fuel: #00e5a0; --diesel: #ffb547; --extra: #60a5fa; }
+      * { box-sizing: border-box; margin: 0; }
+      body { width: 1200px; height: 630px; background: var(--surface); color: #fff; font-family: 'DM Sans', sans-serif; overflow: hidden; position: relative; }
+      .glow { position: absolute; width: 760px; height: 760px; right: -220px; top: -260px; border-radius: 50%; background: radial-gradient(circle, rgba(0,229,160,0.18), transparent 65%); }
+      .wrap { position: relative; height: 100%; padding: 72px 80px; display: flex; flex-direction: column; justify-content: space-between; }
+      .brand { display: flex; align-items: center; gap: 18px; }
+      .logo { width: 64px; height: 64px; border-radius: 16px; background: var(--card); border: 2px solid rgba(0,229,160,0.4); display: grid; place-items: center; }
+      .name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 44px; letter-spacing: 0.5px; }
+      .name span { color: var(--fuel); }
+      h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 84px; line-height: 0.95; max-width: 760px; }
+      .sub { margin-top: 18px; font-size: 28px; color: #9ca3af; max-width: 720px; line-height: 1.3; }
+      .prices { display: flex; gap: 16px; }
+      .chip { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 16px 22px; min-width: 220px; }
+      .chip .label { font-family: 'JetBrains Mono', monospace; font-size: 16px; letter-spacing: 3px; text-transform: uppercase; }
+      .chip .value { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 52px; line-height: 1.05; }
+      .chip .meta { font-size: 16px; color: #9ca3af; }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+        </div>
+        <div class="name">Gasolin<span>App</span></div>
+      </div>
+      <div>
+        <h1>¿Dónde tanquear más barato hoy?</h1>
+        <p class="sub">Precios de corriente, extra, diésel y gas en cada EDS, confirmados por la comunidad.</p>
+      </div>
+      <div class="prices">
+        <!-- Sin cifras: la imagen es estática y los precios cambian cada mes -->
+        <div class="chip"><div class="label" style="color: var(--fuel)">Corriente</div><div class="value" style="color: var(--fuel)">Hoy</div><div class="meta">confirmado por la comunidad</div></div>
+        <div class="chip"><div class="label" style="color: var(--diesel)">Diésel</div><div class="value" style="color: var(--diesel)">Oficial</div><div class="meta">referencia de la CREG</div></div>
+        <div class="chip"><div class="label" style="color: var(--extra)">Extra</div><div class="value" style="color: var(--extra)">¿Cuánto?</div><div class="meta">repórtalo en la app</div></div>
+      </div>
+    </div>
+  </body>
+</html>
