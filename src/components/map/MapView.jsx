@@ -291,12 +291,14 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
         {/* Zoom controls - Mobile only */}
         <div className="flex flex-col gap-2 mb-1 sm:hidden items-center">
           <button
+            aria-label="Acercar"
             onClick={() => mapRef.current?.zoomIn()}
             className="w-8 h-8 rounded-full border border-white/10 bg-surface-card flex items-center justify-center text-gray-400 active:bg-surface-muted shadow-lg active:scale-90 transition-all"
           >
             <Plus size={16} />
           </button>
           <button
+            aria-label="Alejar"
             onClick={() => mapRef.current?.zoomOut()}
             className="w-8 h-8 rounded-full border border-white/10 bg-surface-card flex items-center justify-center text-gray-400 active:bg-surface-muted shadow-lg active:scale-90 transition-all"
           >

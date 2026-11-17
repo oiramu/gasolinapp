@@ -82,10 +82,17 @@ Orden de despliegue (expandir y luego contraer):
 - Migración `20261116000700_barranquilla_duplicados.sql`: desactiva 3 duplicados obvios por `osm_id` (Ecos - EDS Virgen del Carmen, EDS Servicampestre y la Primax de la Av. Circunvalar), ninguno con precios ni reportes; solo si la estación que se queda sigue activa. Probada en local: idempotente y el resguardo funciona. 162 → 159 estaciones activas.
 - `data/barranquilla-revision.csv` (67 filas) para revisar a mano: 2 pares dudosos (EDS Trasalianco ×2 a 692 m; Texaco/Petromil a 58 m), 26 marcas mal escritas o con el nombre de la EDS (ECOS/Ecos, Zeuss/Zeus, "Gas", "Independiente"…) y 39 direcciones que son solo "Barranquilla". Ojo: `seed-colombia.js` reescribe nombre y marca al reimportar, así que corregir marcas en la base sin corregir el origen se pierde en la próxima importación.
 
-## [ ] 4.2 — Instalable como PWA
+## [x] 4.2 — Instalable como PWA
 - Manifest completo (nombre, íconos de 192 y 512 px, `theme_color`) y service worker que cumpla los requisitos de instalación de Chrome en Android.
 - Mensaje discreto de "Instalar" desde la segunda visita, que se puede cerrar y no vuelve a salir en 30 días.
 - Lighthouse en móvil corrido solo contra local o un preview: el objetivo es quedar instalable. Lo demás que salga se anota y no bloquea el sprint.
+
+**Estado (2026-11-16):** hecha en la rama.
+- Manifest completo con íconos de 192 y 512 px más uno maskable (`scripts/pwa-icon.html`), `theme-color` e ícono de iOS.
+- `public/sw.js` conservador: solo la navegación (red primero; sin conexión, `offline.html`). No guarda el JS ni las respuestas de Supabase: un deploy nunca queda tapado por una versión vieja. Se registra solo en el build.
+- Aviso "Instalar" (`features/install`): desde la segunda visita (una por sesión del navegador), solo si Chrome lo permite, y al cerrarlo vuelve en 30 días; tolera navegadores que bloquean el almacenamiento. Comparte con el aviso de sesión una pila bajo la barra superior para que no se tapen.
+- Verificado contra un build local (no producción) con Chromium: `Page.getInstallabilityErrors` sin errores en un perfil normal (en incógnito Chrome nunca deja instalar), el service worker controla la página, el manifest no tiene errores y sin conexión se ve "Sin conexión".
+- Lighthouse móvil (build local, 4G simulada): rendimiento 66, accesibilidad 95, buenas prácticas 93, SEO 92. Se corrigió lo trivial (los botones + y − del mapa no tenían nombre accesible). Anotado para después, sin bloquear: FCP 4,2 s y LCP 7,2 s por la CSS de Google Fonts y de Leaflet que bloquean el primer pintado (se pueden cargar sin bloquear o servir desde el propio dominio) y unos 210 KB de JS sin usar al inicio (dividir por rutas o diferir los modales y gráficos). La caché de `/assets` en Vercel ya es inmutable; el aviso de caché sale por `vite preview`.
 
 ---
 

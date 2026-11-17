@@ -19,6 +19,7 @@ import FilterChips from '@/components/FilterChips'
 import BestPriceCard from '@/components/BestPriceCard'
 import Toast from '@/components/Toast'
 import { SessionNotice } from '@/features/auth/ui/SessionNotice'
+import { InstallBanner } from '@/features/install/ui/InstallBanner'
 import { cn } from '@/lib/utils'
 
 export default function App() {
@@ -194,7 +195,11 @@ export default function App() {
         onSelect={(s) => setSelectedStation(s, 'search')}
       />
       <TankCalculatorModal />
-      <SessionNotice />
+      {/* Avisos bajo la barra superior, apilados para que nunca se tapen entre sí */}
+      <div className="pointer-events-none fixed inset-x-4 top-16 z-[900] mx-auto flex max-w-md flex-col gap-2">
+        <SessionNotice />
+        <InstallBanner />
+      </div>
       <Toast />
     </div>
   )

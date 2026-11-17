@@ -168,6 +168,13 @@ Si el día 2 del mes no hay precios cargados, el job `check_reference_prices` de
 
 Los enlaces que se comparten por WhatsApp (botón "Compartir" del panel y de "Mejor precio", con enlace directo `?estacion=<id>&combustible=<tipo>`) se ven con `public/og-image.png` (1200×630, PNG: WhatsApp no muestra SVG). Las etiquetas `og:*` y `twitter:*` están en `index.html`. La imagen sale de la plantilla `scripts/og-image.html`, que usa los colores y tipografías de la app y no lleva cifras (es estática y los precios cambian cada mes): para cambiarla, editar la plantilla, abrirla en el navegador a 1200×630 y guardar la captura como `public/og-image.png` (menos de 300 KB). WhatsApp guarda la vista previa en caché: un cambio puede tardar en verse en enlaces ya compartidos.
 
+### Instalable como PWA
+
+- `public/manifest.webmanifest` (nombre, íconos de 192 y 512 px más uno maskable, `theme_color` #111318) y, en `index.html`, el enlace al manifest, `theme-color` y el ícono de iOS (`public/apple-touch-icon.png`). Los íconos salen de `scripts/pwa-icon.html` (capturar a 192, 512 y 180 px; `?maskable=1` deja el dibujo en la zona segura).
+- `public/sw.js` es conservador a propósito: solo atiende la navegación (red primero y, sin conexión, `public/offline.html`). No guarda en caché el JavaScript ni las respuestas de Supabase, así un deploy nuevo nunca queda tapado por una versión vieja. Si cambia `offline.html`, subir `CACHE_VERSION`. Se registra solo en el build (`src/app/serviceWorker.ts`), no con `npm run dev`.
+- El aviso "Instalar" (`features/install`) sale desde la segunda visita, cuando Chrome lo permite (`beforeinstallprompt`: Android y escritorio; iOS no lo tiene), y al cerrarlo no vuelve en 30 días.
+- Para probarlo en local: `npm run build && npm run preview`, abrir en Chrome y revisar DevTools → Application → Manifest (sin errores de instalabilidad).
+
 ### Prueba de seguridad (`npm run security:check`)
 
 Ataca el proyecto como lo haría cualquiera con la anon key: intenta crear una sesión anónima sin captcha y, con su propia sesión, cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.
