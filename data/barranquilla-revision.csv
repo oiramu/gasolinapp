@@ -1,0 +1,68 @@
+tipo,osm_id,nombre,marca,direccion,detalle,sugerencia
+posible duplicado,way/759560643 + way/1264105123,EDS Trasalianco,Texaco,Barranquilla,Mismo nombre y marca a 692 m,"Si es la misma EDS, desactivar una; si son dos sedes, poner direcciones distintas"
+cercanas,way/782400656 + way/782122210,Gasolinera Barranquilla / EDS La 30,Texaco / Petromil,Barranquilla,"A 58,6 m, marcas distintas",Probablemente dos EDS en esquinas vecinas: confirmar y completar direcciones
+marca,way/977090828,ECOS - Bomba de Guarín,ECOS,Calle 40 #22-37,"Marca ""ECOS""",Ecos
+marca,way/988790541,ECOS - Eds Malambo,ECOS,Vía Oriental,"Marca ""ECOS""",Ecos
+marca,way/684605088,Ecos - EDS Virgen del Carmen,Ecos - EDS Virgen del Carmen,Carrera 9,"Marca ""Ecos - EDS Virgen del Carmen""",Ecos (su duplicado way/1267440493 lo desactiva la migración)
+marca,way/765941560,ECOS | EDS El Porvenir,ECOS | EDS El Porvenir,Calle 18 #28,"Marca ""ECOS | EDS El Porvenir""",Ecos
+marca,way/561277689,ECOS - EDS LA GRANJA,Ecos Petroleo Ltda,Carrera 15 Sur #93-01,"Marca ""Ecos Petroleo Ltda""",Ecos
+marca,way/681685237,Estación Ecos Papiros,Estación Ecos Papiros,Barranquilla,"Marca ""Estación Ecos Papiros""",Ecos
+marca,way/561408684,EDS - Bomba del Muñeco,EDS - Bomba del Muñeco,Carrera 43,"Marca ""EDS - Bomba del Muñeco""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/1158343523,EDS - La 44,EDS - La 44,Calle 44 #36,"Marca ""EDS - La 44""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/1264123213,EDS - La Oriental,EDS - La Oriental,Vía Oriental,"Marca ""EDS - La Oriental""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/698199157,EDS - P900,EDS - P900,Carrera 14 #54,"Marca ""EDS - P900""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/1158343519,EDS - San Mateo,EDS - San Mateo,Calle 39 #36,"Marca ""EDS - San Mateo""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/776235817,EDS Avenida 15,EDS Avenida 15,Carrera 15 #27A,"Marca ""EDS Avenida 15""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/1167624279,EDS La Trinidad,EDS La Trinidad,Barranquilla,"Marca ""EDS La Trinidad""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/783899654,EDS Palmitas,EDS Palmitas,Barranquilla,"Marca ""EDS Palmitas""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente)
+marca,way/676776100,Estación de ACPM,Estación de ACPM,Barranquilla,"Marca ""Estación de ACPM""",La marca tiene el nombre de la EDS: poner la marca real (o Independiente); ¿sigue operando?
+marca,way/689735060,Estacion Interna,Estacion Interna,Barranquilla,"Marca ""Estacion Interna""","¿Es pública? Si es interna de una empresa, desactivar"
+marca,way/1189285997,EDS Petromil Granabastos,EDS Petromil Granabastos,Calle 56,"Marca ""EDS Petromil Granabastos""",Petromil
+marca,way/683762912,Petromil | EDS Los Mangos,Petromil | EDS Los Mangos,Calle 18 #38,"Marca ""Petromil | EDS Los Mangos""",Petromil
+marca,way/561349428,EDS - Don Bosco,Gas,Avenida Carrera 38 #17-11,"Marca ""Gas""","""Gas"" no es marca: poner la marca real (¿EDS de GNV?)"
+marca,way/560138656,Gas,Gas,Avenida Circunvalar,"Marca ""Gas""","""Gas"" no es marca: poner la marca real (está a 226 m de la Primax: es otra EDS)"
+marca,way/561641216,Gasolinera Barranquilla,GASEL ZETA GAS,Avenida Cordialidad - Calle 56 #11,"Marca ""GASEL ZETA GAS""",¿Gazel? Verificar
+marca,way/737611644,Gasolinera Barranquilla,Independiente,Barranquilla,"Marca ""Independiente""",Sin marca: confirmar si es independiente y poner nombre y dirección
+marca,way/739841436,Gasolinera Barranquilla,Independiente,Barranquilla,"Marca ""Independiente""",Sin marca: confirmar si es independiente y poner nombre y dirección
+marca,way/1171329647,Zeus | EDS El Esmeraldal,Zeus | EDS El Esmeraldal,Carretera de la Cordialidad / Troncal del Caribe #Km8,"Marca ""Zeus | EDS El Esmeraldal""",Zeus
+marca,way/1266187254,EDS El Manantial,Zeuss,Calle 65,"Marca ""Zeuss""",Zeus
+marca,way/561848313,Zeus | EDS La Popa,Zeuss,Diagonal 18,"Marca ""Zeuss""",Zeus
+direccion,way/1260693158,Arcas,Arcas,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/798020235,EDS Mar y Río,Brío,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1159203215,Gasolinera Barranquilla,Distracom,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1193655025,EDS San Antonio,Ecos,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1167624279,EDS La Trinidad,EDS La Trinidad,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/783899654,EDS Palmitas,EDS Palmitas,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1265510762,Esso,Esso,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/676776100,Estación de ACPM,Estación de ACPM,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/681685237,Estación Ecos Papiros,Estación Ecos Papiros,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/689735060,Estacion Interna,Estacion Interna,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/739841436,Gasolinera Barranquilla,Independiente,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/737611644,Gasolinera Barranquilla,Independiente,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/670620349,EDS Caujaral,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1263074216,EDS Cootrasol,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/782122210,EDS La 30,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/681624024,EDS La Sobusa,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,relation/18736069,EDS Tajamares,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/144902433,Petromil,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,node/13344426634,Petromil,Petromil,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/561349440,EDS Puente Pumarejo,Primax,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1356449270,Gasolinera Barranquilla,Primax,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/784837489,Gasolinera Barranquilla,Primax,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/684600931,Puma | EDS Simón Bolívar,Puma,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,relation/17625491,EDS La Unión,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/783590282,EDS Las Flores,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1353003206,Gasolinera Barranquilla,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,relation/18132559,Gasolinera Barranquilla,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/694199674,Terpel,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/687244726,Terpel,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/749810242,Terpel,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/695529634,Terpel,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/520802566,Terpel - EDS La Paz,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1264349659,Terpel - Riomar,Terpel,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/759560643,EDS Trasalianco,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1264105123,EDS Trasalianco,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1292603485,Gasolinera Barranquilla,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/674257976,Gasolinera Barranquilla,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/782400656,Gasolinera Barranquilla,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)
+direccion,way/1177261411,Texaco EDS Virgen del Carmen,Texaco,Barranquilla,La dirección es solo la ciudad,Completar la dirección (calle y número)

@@ -72,9 +72,15 @@ Orden de despliegue (expandir y luego contraer):
 - `stationLink.ts` pasó a `shared/lib` (lo usan la app y compartir).
 - Verificado en la app (mock, 360 px): los dos botones comparten el texto correcto (comunitario y oficial) con su enlace directo, sin errores; la S0.2 sigue sin solapamientos.
 
-## [ ] 4.1 — Limpieza de estaciones de Barranquilla (una sesión, sin más)
+## [x] 4.1 — Limpieza de estaciones de Barranquilla (una sesión, sin más)
 - `supabase/queries/barranquilla-calidad.sql`: estaciones a menos de 60 m entre sí con la misma marca, sin marca o sin dirección.
 - Migración que corrige solo los duplicados obvios: desactiva el duplicado con `is_active = false`, sin borrarlo. Lo demás va a un CSV para que Mario lo revise a mano.
+
+**Estado (2026-11-16):** hecha en la rama; la migración espera el OK de Mario para producción.
+- Hallazgo: a menos de 60 m solo hay un par (Texaco y Petromil, marcas distintas: no es duplicado). Los duplicados reales son dos polígonos de OSM de la misma EDS, cuyos centros quedan a 67–80 m. La consulta busca por misma marca y dirección hasta 150 m.
+- `supabase/queries/barranquilla-calidad.sql` (solo lectura): pares cercanos (obvio o revisar), marcas no reconocidas y direcciones que son solo la ciudad.
+- Migración `20261116000700_barranquilla_duplicados.sql`: desactiva 3 duplicados obvios por `osm_id` (Ecos - EDS Virgen del Carmen, EDS Servicampestre y la Primax de la Av. Circunvalar), ninguno con precios ni reportes; solo si la estación que se queda sigue activa. Probada en local: idempotente y el resguardo funciona. 162 → 159 estaciones activas.
+- `data/barranquilla-revision.csv` (67 filas) para revisar a mano: 2 pares dudosos (EDS Trasalianco ×2 a 692 m; Texaco/Petromil a 58 m), 26 marcas mal escritas o con el nombre de la EDS (ECOS/Ecos, Zeuss/Zeus, "Gas", "Independiente"…) y 39 direcciones que son solo "Barranquilla". Ojo: `seed-colombia.js` reescribe nombre y marca al reimportar, así que corregir marcas en la base sin corregir el origen se pierde en la próxima importación.
 
 ## [ ] 4.2 — Instalable como PWA
 - Manifest completo (nombre, íconos de 192 y 512 px, `theme_color`) y service worker que cumpla los requisitos de instalación de Chrome en Android.
