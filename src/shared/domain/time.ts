@@ -17,6 +17,18 @@ const RELATIVE_STEPS: readonly RelativeStep[] = [
   DAYS,
 ]
 
+const MS_PER_DAY = MINUTES_PER_DAY * MS_PER_MINUTE
+/** Colombia no tiene horario de verano: America/Bogota es siempre UTC−5. */
+const BOGOTA_UTC_OFFSET_HOURS = -5
+const BOGOTA_OFFSET_MS = BOGOTA_UTC_OFFSET_HOURS * MINUTES_PER_HOUR * MS_PER_MINUTE
+
+const bogotaDay = (ms: number): number => Math.floor((ms + BOGOTA_OFFSET_MS) / MS_PER_DAY)
+
+/** Días de calendario en hora de Bogotá entre una fecha y ahora: 0 = hoy, 1 = ayer. */
+export function bogotaDaysAgo(date: string | number | Date, now: number = Date.now()): number {
+  return bogotaDay(now) - bogotaDay(new Date(date).getTime())
+}
+
 /** Tiempo relativo corto: "ahora mismo", "hace 5m", "hace 2h", "hace 3d". */
 export function formatRelativeTime(date: string | number | Date, now: number = Date.now()): string {
   const minutes = Math.floor((now - new Date(date).getTime()) / MS_PER_MINUTE)

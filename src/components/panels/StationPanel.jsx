@@ -11,6 +11,7 @@ import { REPORT_TYPE_LABELS } from '@/shared/domain/reports'
 import { ReportVotes } from '@/features/votes/ui/ReportVotes'
 import { StationFuelPrices } from '@/features/prices/ui/StationFuelPrices'
 import { useTrackStationOpen } from '@/features/analytics/model/useTrack'
+import { ShareStationButton } from '@/features/share/ui/ShareStationButton'
 import { cn } from '@/lib/utils'
 import { SERVICES } from '@/lib/services'
 import { features } from '@/config/features'
@@ -82,7 +83,8 @@ export default function StationPanel({ station, zoneData }) {
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: brandColor }} />
 
         <div className="flex items-start justify-between gap-3">
-          <div className="flex gap-3 items-start">
+          {/* min-w-0: el nombre y la dirección ceden espacio; los botones (compartir, favorito, cerrar) nunca salen de la pantalla */}
+          <div className="flex gap-3 items-start min-w-0 flex-1">
             {/* Fuel pump icon */}
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
               style={{ background: brandColor + '20', border: `1px solid ${brandColor}40` }}>
@@ -103,22 +105,23 @@ export default function StationPanel({ station, zoneData }) {
                 )}
               </div>
             </div>
-            <div>
-              <h2 className="font-display font-bold text-[17px] leading-tight">{station.name}</h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border border-white/10 text-gray-400">
+            <div className="min-w-0">
+              <h2 className="font-display font-bold text-[17px] leading-tight break-words">{station.name}</h2>
+              <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                <span className="shrink-0 text-[11px] font-mono px-2 py-0.5 rounded-full border border-white/10 text-gray-400">
                   {station.brand}
                 </span>
                 {station.address && (
-                  <div className="flex items-center gap-1 text-[10px] text-gray-600">
-                    <MapPin size={9} />
-                    <span className="truncate max-w-[160px]">{station.address}</span>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-600 min-w-0">
+                    <MapPin size={9} className="shrink-0" />
+                    <span className="truncate">{station.address}</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex gap-1 -mt-0.5 -mr-0.5">
+          <div className="flex shrink-0 gap-1 -mt-0.5 -mr-0.5">
+            <ShareStationButton station={station} fuelType={defaultFuelType} from="panel" variant="icon" />
             <button
               onClick={toggleFavorite}
               className={cn(

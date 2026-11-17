@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { FuelType } from '@/shared/domain/fuel'
-import { readStationLink, writeStationLink } from './stationLink'
+import { readStationLink, writeStationLink } from '@/shared/lib/stationLink'
 
 interface LinkableStation {
   readonly id: string

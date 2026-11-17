@@ -57,12 +57,20 @@ Orden de despliegue (expandir y luego contraer):
 - El combustible del enlace queda como el combustible elegido (igual que elegirlo en la app, se guarda como preferencia).
 - Verificado en la app (mock, 375 px): el enlace abre la estación con su combustible; cerrar limpia la URL; tocar otro pin la actualiza; un id inválido deja el mapa normal; el historial no crece; sin errores. Tests: `src/app/stationLink.test.ts` y `App.map.test.tsx`.
 
-## [ ] 3.3 — Compartir por WhatsApp
+## [x] 3.3 — Compartir por WhatsApp
 - Botón "Compartir" en el panel de la estación y en "Mejor precio". Usa la Web Share API y, si no está disponible, `https://wa.me/?text=`.
 - Texto: `⛽ Corriente a $15.900 en Terpel El Recreo (confirmado hoy). Míralo en GasolinApp: <enlace ?estacion=>`. Si el precio es el oficial de referencia, el texto lo dice.
 - Open Graph y Twitter Card estáticos (título, descripción e imagen de 1200×630 en `public/`) para que el enlace se vea bien en WhatsApp.
 - `track('share', { via: 'native' | 'whatsapp', station_id })`.
 - **Opcional, solo si sobra tiempo:** una imagen Open Graph dinámica por estación con el precio, generada con una función de Vercel.
+
+**Estado (2026-11-16):** hecha en la rama (la imagen dinámica opcional no se hizo).
+- Mensaje (`features/share/model/shareMessage.ts`): "⛽ Corriente a $15.900/galón en Terpel El Recreo (confirmado hoy). Míralo en GasolinApp: <enlace>". Lleva la unidad (el gas va en m³); "hoy / ayer / hace N días" en hora de Bogotá (`bogotaDaysAgo`); con precio oficial dice "(precio oficial de referencia, nov 2026)"; sin precio invita a ver la estación. Usa el mismo precio que muestra la app (`resolveDisplayPrice`).
+- Compartir (`shareTarget.ts`): hoja nativa (Web Share API) y, si no existe o falla, `wa.me`; si la persona cancela no se abre nada ni se mide. `track('share', { via, station_id, from: 'panel' | 'best_price' })`.
+- Botones: ícono en la cabecera del panel; en "Mejor precio", "Compartir" (solo el ícono en el celular). Al sumarlo aparecieron dos problemas de espacio a 360 px y se corrigieron: la X de cerrar del panel quedaba fuera de la pantalla (ahora el nombre y la dirección ceden espacio) y las acciones de la tarjeta ocupaban tres filas (ahora van a todo el ancho, en una fila).
+- Open Graph y Twitter Card en `index.html` con `public/og-image.png` (1200×630, 130 KB; antes apuntaba a un SVG que WhatsApp no muestra). Plantilla en `scripts/og-image.html`, sin cifras para que no envejezca.
+- `stationLink.ts` pasó a `shared/lib` (lo usan la app y compartir).
+- Verificado en la app (mock, 360 px): los dos botones comparten el texto correcto (comunitario y oficial) con su enlace directo, sin errores; la S0.2 sigue sin solapamientos.
 
 ## [ ] 4.1 — Limpieza de estaciones de Barranquilla (una sesión, sin más)
 - `supabase/queries/barranquilla-calidad.sql`: estaciones a menos de 60 m entre sí con la misma marca, sin marca o sin dirección.

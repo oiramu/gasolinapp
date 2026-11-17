@@ -164,6 +164,10 @@ La CREG publica a fin de mes los precios de referencia de gasolina corriente y A
 
 Si el día 2 del mes no hay precios cargados, el job `check_reference_prices` deja una alerta en `ops_alerts`.
 
+### Vista previa al compartir (Open Graph)
+
+Los enlaces que se comparten por WhatsApp (botón "Compartir" del panel y de "Mejor precio", con enlace directo `?estacion=<id>&combustible=<tipo>`) se ven con `public/og-image.png` (1200×630, PNG: WhatsApp no muestra SVG). Las etiquetas `og:*` y `twitter:*` están en `index.html`. La imagen sale de la plantilla `scripts/og-image.html`, que usa los colores y tipografías de la app y no lleva cifras (es estática y los precios cambian cada mes): para cambiarla, editar la plantilla, abrirla en el navegador a 1200×630 y guardar la captura como `public/og-image.png` (menos de 300 KB). WhatsApp guarda la vista previa en caché: un cambio puede tardar en verse en enlaces ya compartidos.
+
 ### Prueba de seguridad (`npm run security:check`)
 
 Ataca el proyecto como lo haría cualquiera con la anon key: intenta crear una sesión anónima sin captcha y, con su propia sesión, cambiar precios y votos con UPDATE, insertar directo en `fuel_prices`, `reports`, `votes` y `service_suggestions`, editar una estación, votar dos veces, reportar un precio fuera de rango y pasarse del límite de `report_price`. Imprime PASS/FAIL por caso y sale con código 1 si algún ataque pasa.

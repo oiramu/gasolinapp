@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -106,6 +106,23 @@ describe('Mejor precio y leyenda en el celular (S0.2)', () => {
     expect(legend).toHaveTextContent('Visor')
     // La causa del bug: la tarjeta adivinaba la altura de la leyenda con bottom-[80px]/bottom-[240px]
     expect(card?.className).not.toMatch(/(^|\s)bottom-\[/)
+  })
+})
+
+describe('Compartir desde "Mejor precio" (3.3)', () => {
+  it('sin hoja nativa (escritorio) abre WhatsApp con el precio y el enlace directo a la estación', async () => {
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    const user = renderApp()
+    const dock = await screen.findByTestId('map-dock')
+    const share = await within(dock).findByRole('button', { name: 'Compartir' })
+    await user.click(share)
+    await waitFor(() => {
+      expect(open).toHaveBeenCalledOnce()
+    })
+    const [url] = open.mock.calls[0] ?? []
+    const text = decodeURIComponent(String(url).replace('https://wa.me/?text=', ''))
+    expect(text).toMatch(/^⛽ Corriente a \$15\.900\/galón en Terpel El Recreo/)
+    expect(text).toContain('?estacion=cerca&combustible=corriente')
   })
 })
 

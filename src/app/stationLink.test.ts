@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { FuelType } from '@/shared/domain/fuel'
-import { readStationLink, writeStationLink } from './stationLink'
+import { readStationLink, writeStationLink } from '@/shared/lib/stationLink'
 import { useStationLink, type StationLinkOptions } from './useStationLink'
 
 describe('readStationLink', () => {

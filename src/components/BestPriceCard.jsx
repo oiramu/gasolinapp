@@ -7,6 +7,7 @@ import { distanceMeters, formatDistance } from '@/shared/domain/geo'
 import { SERVICES } from '@/lib/services'
 import { useAppStore } from '@/store/appStore'
 import { cn } from '@/lib/utils'
+import { ShareStationButton } from '@/features/share/ui/ShareStationButton'
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
 
@@ -87,7 +88,8 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
       >
         <div className="h-0.5 w-full" style={{ background: `linear-gradient(to right, ${fuelColor}, ${fuelColor}80)` }} />
 
-        <div className="px-4 py-3.5 flex items-center gap-4">
+        <div className="px-4 py-3.5">
+          <div className="flex items-center gap-4">
           <div className="flex-shrink-0 text-center">
             <div className="text-[32px] font-display font-bold leading-none" style={{ color: fuelColor }}>
               {formatPriceValue(price.price)}
@@ -152,8 +154,11 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
               )}
               <span className="text-[10px] font-mono text-gray-600">{formatRelativeTime(price.created_at)}</span>
             </div>
+          </div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+          {/* Acciones a todo el ancho de la tarjeta: en el celular caben en una sola fila */}
+          <div className="flex flex-wrap items-center gap-1.5 mt-3">
               <a
                 href={mapsUrl}
                 target="_blank"
@@ -178,7 +183,7 @@ export default function BestPriceCard({ station, fuelType, userPos, onSelect }) 
                 <Eye size={11} />
                 <span>Ver</span>
               </button>
-            </div>
+              <ShareStationButton station={station} fuelType={fuelType} from="best_price" variant="pill" />
           </div>
         </div>
       </div>

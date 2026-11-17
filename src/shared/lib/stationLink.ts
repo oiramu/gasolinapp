@@ -19,6 +19,11 @@ export function readStationLink(search: string): StationLink | null {
   return { stationId, fuelType: fuel !== null && isFuelType(fuel) ? fuel : null }
 }
 
+/** Enlace completo a una estación, para compartir: `https://…/?estacion=<id>&combustible=<tipo>`. */
+export function stationUrl(origin: string, link: StationLink): string {
+  return `${origin}/${writeStationLink('', link)}`
+}
+
 /** La query con el enlace de la estación abierta (o sin él, si no hay), conservando los demás parámetros. */
 export function writeStationLink(search: string, link: StationLink | null): string {
   const params = new URLSearchParams(search)
