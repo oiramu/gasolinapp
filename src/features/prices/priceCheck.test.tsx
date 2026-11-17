@@ -206,14 +206,14 @@ describe('"No" → reporte con el combustible preseleccionado', () => {
     expect(useAppStore.getState()).toMatchObject({ reportModalOpen: true, reportModalPreExpand: true, reportModalFuel: null })
   })
 
-  it('el modal llega con ese combustible activo y corriente apagado', () => {
+  it('el modal (que se descarga al abrirlo) llega con ese combustible activo y corriente apagado', async () => {
     reportModal().openReportFor('diesel')
     render(
       <AppProviders repositories={createMockRepositories(0)} queryClient={createTestQueryClient()}>
         <ReportPriceModalAdapter station={stationFields()} />
       </AppProviders>,
     )
-    expect(screen.getByLabelText('Precio de Diésel')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Precio de Diésel')).toBeInTheDocument()
     expect(screen.queryByLabelText('Precio de Corriente')).not.toBeInTheDocument()
   })
 })

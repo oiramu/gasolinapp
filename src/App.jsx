@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useStations } from '@/features/stations/model/useStations'
 import { useZones } from '@/features/zones/model/useZones'
@@ -10,10 +10,8 @@ import { distanceMeters, getBestStation, NEAR_RADIUS_METERS } from '@/shared/dom
 import TopBar from '@/components/TopBar'
 import MapView from '@/components/map/MapView'
 import StationPanel from '@/components/panels/StationPanel'
-import ReportPriceModal from '@/components/modals/ReportPriceModal'
-import SettingsModal from '@/components/modals/SettingsModal'
-import SpotlightModal from '@/components/modals/SpotlightModal'
-import TankCalculatorModal from '@/components/modals/TankCalculatorModal'
+import ReportPriceModal, { loadReportPriceModal } from '@/components/modals/ReportPriceModal'
+import { usePrefetchOnIdle } from '@/app/usePrefetchOnIdle'
 import MapLegend from '@/components/MapLegend'
 import FilterChips from '@/components/FilterChips'
 import BestPriceCard from '@/components/BestPriceCard'
@@ -21,6 +19,14 @@ import Toast from '@/components/Toast'
 import { SessionNotice } from '@/features/auth/ui/SessionNotice'
 import { InstallBanner } from '@/features/install/ui/InstallBanner'
 import { cn } from '@/lib/utils'
+
+// Velocidad: los modales no van en el bundle inicial; se descargan al abrirlos
+const loadSpotlightModal = () => import('@/components/modals/SpotlightModal')
+const SettingsModal = lazy(() => import('@/components/modals/SettingsModal'))
+const SpotlightModal = lazy(loadSpotlightModal)
+const TankCalculatorModal = lazy(() => import('@/components/modals/TankCalculatorModal'))
+// Se precargan en segundo plano solo los que casi todos usan (reportar y buscar)
+const PREFETCH = [loadReportPriceModal, loadSpotlightModal]
 
 export default function App() {
   const { 
@@ -33,6 +39,10 @@ export default function App() {
   } = useAppStore()
 
   useTrackAppOpen()
+  usePrefetchOnIdle(PREFETCH)
+  const settingsModalOpen = useAppStore((state) => state.settingsModalOpen)
+  const spotlightOpen = useAppStore((state) => state.spotlightOpen)
+  const calculatorOpen = useAppStore((state) => state.calculatorOpen)
   const focusMap = useAppStore((state) => state.focusMap)
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -187,14 +197,18 @@ export default function App() {
 
       {/* ── Modals & toasts ─────────────────────────────────────────────── */}
       <ReportPriceModal station={syncedStation} />
-      <SettingsModal />
-      <SpotlightModal
-        stations={filteredStations}
-        activeFuelType={defaultFuelType}
-        userPos={userPos}
-        onSelect={(s) => setSelectedStation(s, 'search')}
-      />
-      <TankCalculatorModal />
+      <Suspense fallback={null}>
+        {settingsModalOpen && <SettingsModal />}
+        {spotlightOpen && (
+          <SpotlightModal
+            stations={filteredStations}
+            activeFuelType={defaultFuelType}
+            userPos={userPos}
+            onSelect={(s) => setSelectedStation(s, 'search')}
+          />
+        )}
+        {calculatorOpen && <TankCalculatorModal />}
+      </Suspense>
       {/* Avisos bajo la barra superior, apilados para que nunca se tapen entre sí */}
       <div className="pointer-events-none fixed inset-x-4 top-16 z-[900] mx-auto flex max-w-md flex-col gap-2">
         <SessionNotice />

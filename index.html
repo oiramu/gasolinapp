@@ -40,15 +40,29 @@
     <meta name="theme-color" content="#111318" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="GasolinApp" />
+    <!-- Velocidad: conexiones anticipadas a las teselas del mapa (el contenido principal) y a las fuentes -->
+    <link rel="preconnect" href="https://services.arcgisonline.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Las fuentes no bloquean el primer pintado (display=swap): se aplican cuando llegan -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      media="print"
+      onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
+      />
+    </noscript>
+    <!-- La CSS de Leaflet va en el bundle (src/main.jsx), ya no desde cdnjs -->
   </head>
   <body class="bg-surface text-white">
     <div id="root"></div>
