@@ -76,10 +76,10 @@ Orden de despliegue (expandir y luego contraer):
 - `supabase/queries/barranquilla-calidad.sql`: estaciones a menos de 60 m entre sí con la misma marca, sin marca o sin dirección.
 - Migración que corrige solo los duplicados obvios: desactiva el duplicado con `is_active = false`, sin borrarlo. Lo demás va a un CSV para que Mario lo revise a mano.
 
-**Estado (2026-11-16):** hecha en la rama; la migración espera el OK de Mario para producción.
+**Estado (2026-11-16):** hecha. Migración `20261117045625_barranquilla_duplicados` aplicada en producción con el OK de Mario y verificada en solo lectura: los 3 duplicados quedaron inactivos, las 3 que se quedan siguen activas y Barranquilla pasó de 162 a 159 estaciones activas. Métrica norte: 0 de 159 (la meta del 20 % son 32 estaciones).
 - Hallazgo: a menos de 60 m solo hay un par (Texaco y Petromil, marcas distintas: no es duplicado). Los duplicados reales son dos polígonos de OSM de la misma EDS, cuyos centros quedan a 67–80 m. La consulta busca por misma marca y dirección hasta 150 m.
 - `supabase/queries/barranquilla-calidad.sql` (solo lectura): pares cercanos (obvio o revisar), marcas no reconocidas y direcciones que son solo la ciudad.
-- Migración `20261116000700_barranquilla_duplicados.sql`: desactiva 3 duplicados obvios por `osm_id` (Ecos - EDS Virgen del Carmen, EDS Servicampestre y la Primax de la Av. Circunvalar), ninguno con precios ni reportes; solo si la estación que se queda sigue activa. Probada en local: idempotente y el resguardo funciona. 162 → 159 estaciones activas.
+- Migración `20261117045625_barranquilla_duplicados.sql`: desactiva 3 duplicados obvios por `osm_id` (Ecos - EDS Virgen del Carmen, EDS Servicampestre y la Primax de la Av. Circunvalar), ninguno con precios ni reportes; solo si la estación que se queda sigue activa. Probada en local: idempotente y el resguardo funciona. 162 → 159 estaciones activas.
 - `data/barranquilla-revision.csv` (67 filas) para revisar a mano: 2 pares dudosos (EDS Trasalianco ×2 a 692 m; Texaco/Petromil a 58 m), 26 marcas mal escritas o con el nombre de la EDS (ECOS/Ecos, Zeuss/Zeus, "Gas", "Independiente"…) y 39 direcciones que son solo "Barranquilla". Ojo: `seed-colombia.js` reescribe nombre y marca al reimportar, así que corregir marcas en la base sin corregir el origen se pierde en la próxima importación.
 
 ## [x] 4.2 — Instalable como PWA
