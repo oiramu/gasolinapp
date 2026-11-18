@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MAP_LABELS_TILE_URL, MAP_TILE_LOADING, MAP_TILE_SUBDOMAINS, MAP_TILE_URL } from '@/config/map'
 import type { ZoneAverage } from '@/features/zones/api/types'
 import { FUEL_TYPES } from '@/shared/domain/fuel'
 import { FRESHNESS_OPACITY } from '@/shared/ui/freshness'
@@ -108,5 +109,16 @@ describe('mapIcons', () => {
   it('pinta zonas por combustible y reutiliza el ícono de la ubicación', () => {
     expect(html(createZoneIcon(zone, 'diesel'))).toContain('$10.900')
     expect(createUserLocationIcon()).toBe(createUserLocationIcon())
+  })
+})
+
+describe('teselas del mapa', () => {
+  it('se reparten entre los dos dominios de Esri (sirven solo por HTTP/1.1: 6 conexiones por dominio)', () => {
+    for (const url of [MAP_TILE_URL, MAP_LABELS_TILE_URL]) expect(url).toMatch(/^https:\/\/\{s\}\.arcgisonline\.com\//)
+    expect(MAP_TILE_SUBDOMAINS).toEqual(['services', 'server'])
+  })
+
+  it('se cargan cuando el mapa se detiene, no en cada paso del arrastre ni del zoom', () => {
+    expect(MAP_TILE_LOADING).toEqual({ updateWhenIdle: true, updateWhenZooming: false, keepBuffer: 4 })
   })
 })

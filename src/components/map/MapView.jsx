@@ -19,6 +19,8 @@ import {
   MAP_TILE_MAX_NATIVE_ZOOM,
   MAP_CLUSTER_ZOOM_THRESHOLD,
   MAP_DRIVING_ZOOM as DRIVING_ZOOM,
+  MAP_TILE_SUBDOMAINS,
+  MAP_TILE_LOADING,
 } from '@/config/map'
 
 // ── Internal: listens to map events and updates store/state ─────────────────
@@ -213,14 +215,18 @@ export default function MapView({ stations, zones, onMoveStart, onMoveEnd, onBou
       >
         <TileLayer
           url={MAP_TILE_URL}
+          subdomains={MAP_TILE_SUBDOMAINS}
           attribution={MAP_TILE_ATTRIBUTION}
           maxZoom={MAP_MAX_ZOOM}
           maxNativeZoom={MAP_TILE_MAX_NATIVE_ZOOM}
+          {...MAP_TILE_LOADING}
         />
         <TileLayer
           url={MAP_LABELS_TILE_URL}
+          subdomains={MAP_TILE_SUBDOMAINS}
           maxZoom={MAP_MAX_ZOOM}
           maxNativeZoom={MAP_TILE_MAX_NATIVE_ZOOM}
+          {...MAP_TILE_LOADING}
         />
 
         <MapInitializer onBoundsChange={(b) => { onBoundsChange?.(b); setBounds(b) }} />

@@ -26,10 +26,23 @@ export const MAP_DRIVING_ZOOM = 16
  * API key in Aug 2026 and now render an "API KEY REQUIRED" watermark.
  */
 export const MAP_TILE_URL =
-  'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+  'https://{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
 
 export const MAP_LABELS_TILE_URL =
-  'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+  'https://{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+
+/**
+ * Esri sirve las teselas solo por HTTP/1.1: el navegador abre 6 conexiones por dominio y una
+ * pantalla grande pide más de 150 teselas (dos capas), que hacen cola. Los dos dominios sirven las
+ * mismas teselas; repartirlas entre ambos duplica las conexiones (Leaflet elige por posición).
+ */
+export const MAP_TILE_SUBDOMAINS = ['services', 'server']
+
+/**
+ * Menos teselas al moverse: cargar cuando el mapa se detiene (no en cada paso del arrastre ni
+ * durante la animación del zoom) y conservar más alrededor para no volver a pedirlas.
+ */
+export const MAP_TILE_LOADING = { updateWhenIdle: true, updateWhenZooming: false, keepBuffer: 4 }
 
 export const MAP_TILE_ATTRIBUTION = '© Esri © OpenStreetMap © oiramu'
 
